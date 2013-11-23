@@ -1,0 +1,4 @@
+JavaSecurityPolicyCentralization
+================================
+
+Bachelor thesis
