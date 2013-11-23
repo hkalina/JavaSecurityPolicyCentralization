@@ -1,5 +1,5 @@
 Toto je repozitář pro text a příklady bakalářské práce Java Security Policy Centralization.
-Informace o práci naleznete na [Thesis Management](https://thesis-managementsystem.rhcloud.com/thesis/show/80/java-security-policy-centralization).
+Informace o práci naleznete na [Thesis Management System](https://thesis-managementsystem.rhcloud.com/thesis/show/80/java-security-policy-centralization).
 
 ## Anotace bakalářské práce ##
 
@@ -10,7 +10,7 @@ Součástí práce je také návrh a implementace automatizovaných testů umož
 **Klíčová slova:** JBoss, Java security policy
 
 ### Související repozitáře ###
-[honza889 / jsm-policy-subsystem](https://github.com/honza889/jsm-policy-subsystem) - subsystém JBoss/Wildfly
-[honza889 / jsm-policy-console](https://github.com/honza889/jsm-policy-console) - rozšíření JBoss administrační konzole
-[honza889 / jsm-policy-test](https://github.com/honza889/jsm-policy-test) - automatické testy nasazování bezpečnostních polik
+* [honza889 / jsm-policy-subsystem](https://github.com/honza889/jsm-policy-subsystem) - subsystém JBoss/Wildfly
+* [honza889 / jsm-policy-console](https://github.com/honza889/jsm-policy-console) - rozšíření JBoss administrační konzole
+* [honza889 / jsm-policy-test](https://github.com/honza889/jsm-policy-test) - automatické testy nasazování bezpečnostních polik
 
