@@ -1,3 +1,8 @@
+import java.lang.SecurityManager;
+import java.security.Permission;
+import java.io.IOException;
+import java.util.Scanner;
+
 class Program {
 	public static void main(String[] args){
 		

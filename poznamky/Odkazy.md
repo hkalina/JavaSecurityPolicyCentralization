@@ -1,8 +1,11 @@
 
+0. [Java Security by Scott Oaks ISBN 1-56592-403-7E First edition, published May 1998.](http://docstore.mik.ua/orelly/java-ent/security/index.htm)
+
 1. [Java Virtual Machine Specification: 1.2. The Java Virtual Machine](http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-1.html#jvms-1.2)
 
 2. [Security manager](http://docs.oracle.com/javase/tutorial/essential/environment/security.html)
 
+3. [Tutorial: Providing Your Own Security Manager](http://journals.ecs.soton.ac.uk/java/tutorial/networking/security/index.html)
 
 
 
