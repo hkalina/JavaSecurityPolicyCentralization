@@ -21,7 +21,7 @@ Základní možné hodnoty proměnné `java.security.manager` a jim odpovídají
 | -Djava.security.manager                            | java.lang.SecurityManager  |
 | -Djava.security.manager=default                    | java.lang.SecurityManager  |
 | -Djava.security.manager=java.lang.SecurityManager  | java.lang.SecurityManager  |
-| -Djava.security.manager=muj.skvely.SecurityManager | muj.skvely.SecurityManager |
+| -Djava.security.manager=TestovaciSM                | TestovaciSM                |
 +----------------------------------------------------+----------------------------+
 
 Poslední řádek demonstruje použití vlastní třídy objektu security managera. Jestliže je uvedena neexistující třída, skončí inicializace JVM vyjímkou a vykonávání programu nebude vůbec zahájeno.
