@@ -7,7 +7,7 @@
 
 3. [Tutorial: Providing Your Own Security Manager](http://journals.ecs.soton.ac.uk/java/tutorial/networking/security/index.html)
 
-
+* [Java Docs: Policy files](http://docs.oracle.com/javase/7/docs/technotes/guides/security/PolicyFiles.html)
 
 * [Privilegované bloky kódu](http://download.java.net/jdk8/docs/technotes/guides/security/doprivileged.html)
 * [Zdrojáky OpenJDK - java.security](https://github.com/openjdk-mirror/jdk7u-jdk/tree/master/src/share/classes/java/security)
