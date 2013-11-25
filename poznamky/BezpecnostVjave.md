@@ -67,7 +67,29 @@ Příklad níže ukazuje jednoduchý Security manager, který o povolení každ�
 
 Tento příklad je samozřejmě pouze demonstrativní, zbytečně obtěžuje uživatele požadováním povolení operací, které jsou nezbytné pro spuštění sebejednodušší aplikace. Po rozšíření o ukládání povolených operací by ale mohl najít praktické uplatnění i podobně jednoduchý Security manager, který by po rozšíření o grafické uživatelské rozhraní mohl fungovat na podobných principech uživatelského rozhraní, na kterých v současnosti fungují interaktivní firewally.
 
-*** Todo: Bezpečnostní kontext (codebase, principals) ***
+## Zavaděče tříd ##
+
+Zavaděč (classloader) je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy (tedy názvu používaného v bytekódu, např. `java.lang.String` nebo `java.security.KeyStore$Builder$FileBuilder$1`) se pokusí vyhledat a načíst data třídy daného názvu.
+
+Třída každého zavaděče musí být podtřídou třídy `ClassLoader` a musí implementovat metodu `findClass()`, která provádí právě samotné vyhledání třídy podle názvu. Jejím výstupem je objekt třídy `Class` představující třídu. K vytvoření objektu třídy Class metoda obvykle využívá zděděné metody `defineClass()`, které kromě názvu třídy a bytů samotných dat třídy předává také informace o původu a z něj vyplývajících oprávnění zapouzdřené v objektu tzv. ochrané domény (ProtectionDomain).
+
+Při programování běžných aplikací můžeme na objekty třídy Class narazit například při snaze získat název třídy neznámého objektu jako řetězec za běhu aplikace:
+
+`System.out.println("Proměnná x je typu " + x.getClass().getName());`
+
+Z hlediska bezpečnosti pro nás jsou ale classloadery zajímavé hlavně tím, že právě ony poskytují informaci o původu načtené třídy.
+
+Původ třídy, zmíněný výše jako součást ochranné domény, je stanoven třídou CodeSource, jejíž první částí je URL adresa, ze které byla třída získána, a druhou částí je buď pole certifikátů (Certificate) kterými byla třída podepsána nebo pole podepsaných (CodeSigner).
+
+TODO
+
+{http://docs.oracle.com/javase/7/docs/api/java/lang/ClassLoader.html}
+{http://docs.oracle.com/javase/7/docs/api/java/lang/Class.html}
+{http://docs.oracle.com/javase/jndi/tutorial/beyond/misc/classloader.html}
+
+## Bezpečnostní kontext ##
+
+
 
 ## Soubor bezpečnostní politiky ##
 

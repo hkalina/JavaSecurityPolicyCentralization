@@ -7,6 +7,11 @@
 
 3. [Tutorial: Providing Your Own Security Manager](http://journals.ecs.soton.ac.uk/java/tutorial/networking/security/index.html)
 
+
+* [Linuxsoft.cz: Java (23) - omezování práv II. (ISSN 1801-3805)](http://www.linuxsoft.cz/article.php?id_article=1123)
+
+* [How to Override Java Security Configuration per JVM instance](http://blog.eyallupu.com/2012/11/how-to-overriding-java-security.html)
+
 * [Java Docs: Policy files](http://docs.oracle.com/javase/7/docs/technotes/guides/security/PolicyFiles.html)
 
 * [Privilegované bloky kódu](http://download.java.net/jdk8/docs/technotes/guides/security/doprivileged.html)

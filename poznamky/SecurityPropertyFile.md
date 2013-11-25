@@ -6,8 +6,8 @@ JVM loads its security configuration, including the JCE providers list, from a m
 
 
 
-security.provider.1=sun.security.provider.Sun
-policy.provider=java.security.PolicyFile
+security.provider.1=sun.security.provider.Sun # provider kryptografie
+policy.provider=java.security.PolicyFile # provider politiky (potomek java.security.Policy)
 policy.url.1=file:${java.home}/lib/security/java.policy
 policy.url.2=file:${user.home}/.java.policy
 policy.expandProperties=true # mohou property mohou obsahovat proměnné ${...}
