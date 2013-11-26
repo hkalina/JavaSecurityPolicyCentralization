@@ -1,8 +1,16 @@
+
+## Bezpečnost ##
+
+Co je to bezpečnost...
+
+## Java ##
+
 Programy v jazyce Java bývají překládány do platformě nezávislého a efektivněji než kód v jazyce Java interpretovatelného mezikódu, takzvaného bytekódu. Bytekód bývá zpravidla interpretován virtuálním strojem Javy (JVM - Java Virtual Machine). JVM je abstraktní výpočetní stroj, podobně jako například Turingův stroj. Stejně jako reálný výpočetní stroj má svoji instrukční sadu a paměť se kterou může manipulovat, ale na rozdíl od něj pro něj neexistuje jeho fyzická implementace, pouze emulovaná implementace softwarová. To znamená že její kód není prováděn nativně hardwarem, ale je interpretován speciálním programem, interpreterem, který sám je v nativním kódu dané platformy. To mimo nezávislosti na platformě přináší také vyšší stupeň abstrakce, díky tomu že programy nepřistupují ani nemohou přistupovat ke zdrojům fyzického stroje přímo, ale pouze zprostředkovaně skrze zdroje virtuální stroje Javy.
 
 Není tedy těžké si představit že by použití takovéhoto virtuálního stroje mohlo mít i významný bezpečnostní efekt. Protože programy v JVM mohou k fyzickým zdrojům počítače (např. k souborům nebo k síti) přistupovat jen skrze JVM, zablokování takového přístupu ze strany JVM není nikterak složité - JVM stačí odmítnout takový požadavek a interpretovaný program nemá možnost JVM obejít.
 
 ## Java Security Manager ##
+
 Pro maximální rozšiřitelnost omezení kladených na programy běžících na virtuáních strojích Javy nerozhoduje o povolení nebo zablokování operace samotná JVM, ale dotazuje se speciálního objektu třídy java.lang.SecurityManager, nebo jeho podtřídy. Podtřída je třída dědící atributy a metody (operace, přijímané zprávy) své nadtřídy a reference na její instanci může být vložena do proměnné určené pro referenci na její nadtřídu. Jakákoli podtřída třídy SecurityManager tedy bude vždy přijímat všechny zprávy, které přijimá třída SecurityManager, přičemž ty které nebude sama implementovat, budou přejaty z její nadtřídy SecurityManager.
 
 Security manager který JVM použije při svém startu lze ovlivnit skrze konfigurační proměnnou JVM - `java.security.manager`. Za běhu je možné Security manager vypnout nebo vyměnit voláním System.getSecurityManager(), respektive System.setSecurityManager(). Volání těchto metod ale bývá samo chráněno SecurityManagerem. Aplikace která by se restrikcím daným Security managerem chtěla vzepřít tedy nemůže Security manager vypnout nebo vyměnit jak by jejímu autorovi zlíbilo.
@@ -86,6 +94,7 @@ TODO
 {http://docs.oracle.com/javase/7/docs/api/java/lang/ClassLoader.html}
 {http://docs.oracle.com/javase/7/docs/api/java/lang/Class.html}
 {http://docs.oracle.com/javase/jndi/tutorial/beyond/misc/classloader.html}
+{http://www.linuxsoft.cz/article.php?id_article=1123}
 
 ## Bezpečnostní kontext ##
 
