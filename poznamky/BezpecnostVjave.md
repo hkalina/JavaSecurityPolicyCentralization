@@ -1,4 +1,3 @@
-
 ## Bezpečnost ##
 
 Protože se tato práce zabývá bezpečností, což je pojem, který lze v různých souvislostech chápat zcela odlišně, je nanejvýš vhodné nejprve specifikovat co termínem bezpečnosti míníme a z kterého pohledu se jí budeme zabývat.
@@ -37,6 +36,7 @@ použít příkaz:
 
 Základní možné hodnoty proměnné `java.security.manager` a jim odpovídající třídy objektů security managera popisuje následující tabulka.
 
+```
 +----------------------------------------------------+----------------------------+
 | Parametr příkazu `java`                            | Použitý objekt JSM         |
 +----------------------------------------------------+----------------------------+
@@ -46,6 +46,7 @@ Základní možné hodnoty proměnné `java.security.manager` a jim odpovídají
 | -Djava.security.manager=java.lang.SecurityManager  | java.lang.SecurityManager  |
 | -Djava.security.manager=TestovaciSM                | TestovaciSM                |
 +----------------------------------------------------+----------------------------+
+```
 
 Poslední řádek demonstruje použití vlastní třídy objektu security managera. Způsob vytvoření vlastního Security managera bude podrobněji rozebrán v další kapitole. Jestliže je zde uvedena neexistující třída, skončí inicializace JVM vyjímkou a vykonávání programu nebude vůbec zahájeno:
 
