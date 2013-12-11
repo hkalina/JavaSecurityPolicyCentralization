@@ -1,99 +1,169 @@
-%=========================================================================
-% (c) Michal Bidlo, Bohuslav Křena, 2008
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Jan Kalina <xkalin03@stud.fit.vutbr.cz> 2013
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Úvod}
-Abychom mohli napsat odborný text jasně a~srozumitelně, musíme splnit několik základních předpokladů:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Teoretický úvod}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%=============================================================================
+\section{Bezpečnost}
+%=============================================================================
+
+Protože se tato práce zabývá bezpečností, což je pojem, který lze v různých souvislostech chápat zcela odlišně, je nanejvýš vhodné nejprve specifikovat co termínem bezpečnosti míníme a z kterého pohledu se jí budeme zabývat.
+
+Scott Oaks definuje ve své knize Java Security bezpečnost jako souhrn následujících kritérií: \cite[1.1]{oaks}
+
 \begin{itemize}
-\item Musíme mít co říci,
-\item musíme vědět, komu to chceme říci,
-\item musíme si dokonale promyslet obsah,
-\item musíme psát strukturovaně. 
+  \item Bezpečí vůči zákeřnému software - programy by neměly být schopny poškodit prostředí hostitelského počítače.
+  \item Bezpečí vůči Velkému bratru - programům by mělo být bráněno ve šmírování uživatele -- programy by neměly být schopny svévolně číst soukromé informace na počítači na kterém běží, ani na síti ke které je tento počítač připojen.
+  \item Autentizace - identita autorů programu by měla být ověřována (typicky elektronickým podpisem).
+  \item Šifrování - data odesílaná a přijímaná programem by měla být šifrována.
+  \item Auditovatelnost - potenciálně škodlivé operace by měly být vždy zaznamenávány.
+  \item Specifikovanost - program by měla doprovázet specifikace bezpečnostních pravidel, které program dodržuje.
+  \item Verifikovanost - pro prováděné operace by měla být stanovena pravidla, proti kterým by měly být verifikovány.
+  \item Dbaní na dobré vychování - programům by mělo být bráněno v užívání příliš mnoha systémových prostředků.
 \end{itemize}
 
-Tyto a další pokyny jsou dostupné též na školních internetových stránkách \cite{fitWeb} nebo \cite{JavaSecurity}.
+V souvislosti s víceuživatelskými prostředími se pak pojem bezpečnosti vyskytuje ještě v další rovině, kdy nejde o bezpečí před běžícím programem, ale o způsob jakým může naopak program ověřit, kdo je jeho uživatelem a zdali má právo po něm žádat vykonání operace, o jejíž vykonání žádá.
 
-Přehled základů typografie a tvorby dokumentů s využitím systému \LaTeX je 
-uveden v~\cite{Rybicka}.
+V této práci se však budeme zabývat bezpečností ve smyslu prvních tří uvedených kritérií, tedy ve smyslu ochrany prostředí a dat hostitele před programy.
 
-\section{Musíme mít co říci}
-Dalším důležitým předpokladem dobrého psaní je {\it psát pro někoho}. Píšeme-li si poznámky sami pro sebe, píšeme je jinak než výzkumnou zprávu, článek, diplomovou práci, knihu nebo dopis. Podle předpokládaného čtenáře se rozhodneme pro způsob psaní, rozsah informace a~míru detailů.
+%=============================================================================
+\section{Java}
+%=============================================================================
 
-\section{Musíme vědět, komu to chceme říci}
-Dalším důležitým předpokladem dobrého psaní je psát pro někoho. Píšeme-li si poznámky sami pro sebe, píšeme je jinak než výzkumnou zprávu, článek, diplomovou práci, knihu nebo dopis. Podle předpokládaného čtenáře se rozhodneme pro způsob psaní, rozsah informace a~míru detailů.
+Programy v jazyce Java bývají překládány do platformě nezávislého a efektivněji než kód v jazyce Java interpretovatelného mezikódu, takzvaného bytekódu.
+Bytekód bývá zpravidla interpretován virtuálním strojem Javy (JVM - Java Virtual Machine).
+JVM je abstraktní výpočetní stroj, podobně jako například Turingův stroj.
+Stejně jako reálný výpočetní stroj má svoji instrukční sadu a paměť se kterou může manipulovat, ale na rozdíl od něj pro něj neexistuje jeho fyzická implementace, pouze emulovaná implementace softwarová.
+To znamená že její kód není prováděn nativně hardwarem, ale je interpretován speciálním programem, interpreterem, který sám zkompilován do nativního kódu dané platformy.
+To mimo nezávislosti na platformě přináší také vyšší stupeň abstrakce.
 
-\section{Musíme si dokonale promyslet obsah}
-Musíme si dokonale promyslet a~sestavit obsah sdělení a~vytvořit pořadí, v~jakém chceme čtenáři své myšlenky prezentovat. 
-Jakmile víme, co chceme říci a~komu, musíme si rozvrhnout látku. Ideální je takové rozvržení, které tvoří logicky přesný a~psychologicky stravitelný celek, ve kterém je pro všechno místo a~jehož jednotlivé části do sebe přesně zapadají. Jsou jasné všechny souvislosti a~je zřejmé, co kam patří.
+Díky tomu, že programy nepřistupují ani nemohou přistupovat ke zdrojům fyzického stroje přímo, ale pouze zprostředkovaně skrze zdroje virtuální stroje Javy, si není těžké představit, že by použití takovéhoto virtuálního stroje mohlo mít i významný bezpečnostní efekt.
+Protože programy v JVM mohou k fyzickým zdrojům počítače (např. k souborům nebo k síti) přistupovat jen skrze JVM, zablokování takového přístupu ze strany JVM není nikterak složité - JVM stačí odmítnout takový požadavek a interpretovaný program nemá možnost JVM obejít.
 
-Abychom tohoto cíle dosáhli, musíme pečlivě organizovat látku. Rozhodneme, co budou hlavní kapitoly, co podkapitoly a~jaké jsou mezi nimi vztahy. Diagramem takové organizace je graf, který je velmi podobný stromu, ale ne řetězci. Při organizaci látky je stejně důležitá otázka, co do osnovy zahrnout, jako otázka, co z~ní vypustit. Příliš mnoho podrobností může čtenáře právě tak odradit jako žádné detaily.
+%=============================================================================
+\section{Java Security Manager}
+%=============================================================================
 
-Výsledkem této etapy je osnova textu, kterou tvoří sled hlavních myšlenek a~mezi ně zařazené detaily.
+Pro maximální rozšiřitelnost omezení kladených na programy běžících na virtuáních strojích Javy nerozhoduje o povolení nebo zablokování operace samotná JVM, ale dotazuje se speciálního objektu třídy {\tt java.lang.SecurityManager}, nebo jeho podtřídy. Podtřída je třída dědící atributy a metody (operace, přijímané zprávy) své nadtřídy a reference na její instanci může být vložena do proměnné určené pro referenci na její nadtřídu. Jakákoli podtřída třídy SecurityManager tedy bude vždy přijímat všechny zprávy, které přijimá třída SecurityManager, přičemž ty které nebude sama implementovat, budou přejaty z její nadtřídy SecurityManager.
 
-\section{Musíme psát strukturovaně} 
-Musíme začít psát strukturovaně a~současně pracujeme na co nejsrozumitelnější formě, včetně dobrého slohu a~dokonalého značení. 
-Máme-li tedy myšlenku, představu o~budoucím čtenáři, cíl a~osnovu textu, můžeme začít psát. Při psaní prvního konceptu se snažíme zaznamenat všechny své myšlenky a~názory vztahující se k~jednotlivým kapitolám a~podkapitolám. Každou myšlenku musíme vysvětlit, popsat a~prokázat. Hlavní myšlenku má vždy vyjadřovat hlavní věta a~nikoliv věta vedlejší.
+Security manager, který JVM použije při svém startu lze ovlivnit skrze konfigurační proměnnou JVM -- {\tt java.security.manager}. Za běhu je možné aktuálně používaný Security manager zjistit voláním {\tt System.getSecurityManager() } a vypnout nebo vyměnit voláním {\tt System.setSecurityManager()}. Volání těchto metod bývá samo chráněno Security managerem, takže nehrozí že by se program neoprávněně zbavil omezení, které na něj uvalil Security manager např. vypnutím Security manageru.
 
-I k~procesu psaní textu přistupujeme strukturovaně. Současně s~tím, jak si ujasňujeme strukturu písemné práce, vytváříme kostru textu, kterou postupně doplňujeme. Využíváme ty prostředky DTP programu, které podporují strukturovanou stavbu textu (předdefinované typy pro nadpisy a~bloky textu). 
+Hodnotu konfigurační proměnné {\tt java.security.manager} po startu JVM je možné nastavit za pomoci k tomu určeného parametru {\tt -D}. Pro spuštění programu s výchozím Security managerem můžeme tedy použít příkaz:
+
+\begin{verbatim}
+java -Djava.security.manager=default ProgramABC
+\end{verbatim}
+
+Základní možné hodnoty proměnné {\tt java.security.manager} a jim odpovídající třídy objektů security managera popisuje následující tabulka.
+
+\begin{center}
+    \begin{tabular}{| l | l |}
+    \hline
+    Parametr příkazu java & Použitý JSM \\ \hline
+    (parametr nepoužit)                                      & {\tt null                      } \\
+    {\tt -Djava.security.manager                           } & {\tt java.lang.SecurityManager } \\
+    {\tt -Djava.security.manager=default                   } & {\tt java.lang.SecurityManager } \\
+    {\tt -Djava.security.manager=java.lang.SecurityManager } & {\tt java.lang.SecurityManager } \\
+    {\tt -Djava.security.manager=TestovaciSM               } & {\tt TestovaciSM               } \\
+    \hline
+    \end{tabular}
+\end{center}
+
+Poslední řádek demonstruje použití vlastní třídy objektu security managera. Způsob vytvoření vlastního Security managera bude podrobněji rozebrán v další kapitole. Jestliže je zde uvedena neexistující třída, skončí inicializace JVM vyjímkou a vykonávání programu nebude vůbec zahájeno:
+
+\begin{verbatim}
+Error occurred during initialization of VM
+java.lang.InternalError: Could not create SecurityManager: neexistujici.SM
+    at sun.misc.Launcher.<init>(Launcher.java:106)
+    at sun.misc.Launcher.<clinit>(Launcher.java:57)
+    at java.lang.ClassLoader.initSystemClassLoader(ClassLoader.java:1486)
+    at java.lang.ClassLoader.getSystemClassLoader(ClassLoader.java:1468)
+\end{verbatim}
+
+Tím že je zabráněno startu JVM v případě chybné konfigurace Security manageru -- je tedy uplatněn bezpečnostní princip, podle kterého musí systém zůstat bezpečný i v případě poruchového stavu.
+
+%=============================================================================
+\section{Implementace vlastního Security managera}
+%=============================================================================
+
+V této podkapitole bude vysvětlen způsob vytvoření vlastní třídy Security managera za účelem stanovení vlastní bezpečnostní politiky (v širším slova smyslu). Jak se dozvíme později, vytvoření vlastního Security managera není pro stanovení vlastní bezpečnostní politiky nezbytné, umožňuje ale založit rozhodování o povolení nebo nepovolení operace na takřka jakémkoli algoritmu.
+
+{\tt SecurityManager} (přesněji {\tt java.lang.SecurityManager}) poskytuje rozhraní, skrze které je Java API schopno zjistit, zdali je operace požadovaná uživatelskou aplikací povolena. Algoritmus který Java API používá při provádění potenciálně nebezpečné operace je následující: \cite[4.1.1]{oaks}
+
+\begin{enumerate}
+  \item Uživatelská aplikace žádá Java API o provedení dané operace
+  \item Java API se dotáže Security manageru zda operaci povolit zavoláním patřičné metody Security manageru.
+  \item Nemá-li být operace povolena, vyhodí Security manager vyjímku {\tt SecurityException}, která je předána uživatelské aplikaci
+  \item Není-li vyhozena žádná vyjímka, operace se považuje za povolenou a je provedena.
+\end{enumerate}
+
+Vlastní Security manager tedy vytvoříme rozšířením třídy {\tt SecurityManager}, přičemž přepíšeme metody rozhodující o povolení akce, kterou chceme povolit, nebo pro kterou chceme stanovit vlastní algoritmus určující zda akci povolit.
+Protože standardní Security manager implicitně všechny operace zakazuje, stačí nám implementovat metody autorizující provedení operací, které chceme povolit a operacemi které nikdy povolit chtít nebudeme se nebudeme muset vůbec zabývat.
+
+Příklad níže ukazuje jednoduchý Security manager, který o povolení každé akce rozhodne na základě interakce s uživatelem. Při pokusu programu o provedení bezpečnostně-citlivé operace je na standardní výstup tohoto programu zobrazen dotaz, zda tuto operaci uživatel chce povolit. V případě pozitivní odpovědi je operace povolena, jinak je jejímu provedení vyhozením vyjímky {\tt SecurityException} zabráněno.
+
+\begin{verbatim}
+public class TestovaciSM extends SecurityManager {
+    @Override
+    public void checkPermission(Permission permission) {
+        
+        System.out.println("Povolit " + permission.toString() + " ?");
+        if(!askUser()){ // jestliže uživatel nezvolí "ano"
+            throw new SecurityException("Operace byla zakázána uživatelem");
+        }
+        
+    }
+}
+\end{verbatim}
+
+Tento příklad je samozřejmě pouze demonstrativní, zbytečně obtěžuje uživatele požadováním povolení velkého množství operací, které jsou nezbytné pro spuštění sebejednodušší aplikace. Po rozšíření o ukládání povolených operací by ale mohl najít praktické uplatnění i podobně jednoduchý Security manager. Po rozšíření o grafické uživatelské rozhraní by mohl fungovat podobně jako interaktivní firewall.
+
+%=============================================================================
+\section{Zavaděče tříd}
+%=============================================================================
+
+Zavaděč (classloader) je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy (tedy názvu používaného v bytekódu, např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}) se pokusí vyhledat a načíst třídu daného názvu. \ref{refClassLoader}
+
+Třída každého zavaděče musí být podtřídou třídy {\tt java.lang.ClassLoader} a musí implementovat metodu {\tt findClass()}, která provádí právě samotné vyhledání třídy podle názvu. Jejím výstupem je objekt třídy {\tt Class} představující samotnou třídu. K vytvoření objektu třídy Class metoda obvykle využívá zděděné metody ({\tt defineClass()}), které kromě názvu třídy a bytů samotných dat třídy předává také informace o původu a z něj vyplývajících oprávnění zapouzdřené v objektu tzv. ochrané domény ({\tt ProtectionDomain}). \ref{refClassLoader}
+
+Při programování běžných aplikací můžeme na objekty třídy {\tt Class} narazit například při snaze získat název třídy neznámého objektu jako řetězec za běhu aplikace:
+
+\begin{verbatim}
+String nazev = x.getClass().getName(); // getClass() vrací objekt Class
+\end{verbatim}
+
+Z hlediska bezpečnosti pro nás jsou ale classloadery zajímavé hlavně tím, že právě ony poskytují informaci o původu načtené třídy. O povolení operace totiž rozhodujeme zpravidla právě na základě původu třídy jež ji volá.
+
+Původ může být určen dvěma způsoby -- na základě adresy souboru, z kterého byla třída načtena, nebo na základě elektronického podpisu, kterým byla třída při svém načítání opatřena.
+
+Původ třídy, zmíněný výše jako součást ochranné domény, je stanoven třídou ({\tt CodeSource}), jejíž první částí je URL adresa, ze které byla třída získána, a druhou částí je buď pole certifikátů ({\tt Certificate}) kterými byla třída podepsána nebo pole podepsaných ({\tt CodeSigner}). \ref{refClassLoader}
 
 
-\chapter{Několik formálních pravidel}
-Naším cílem je vytvořit jasný a~srozumitelný text. Vyjadřujeme se proto přesně, píšeme dobrou češtinou (nebo zpravidla angličtinou) a~dobrým slohem podle obecně přijatých zvyklostí. Text má upravit čtenáři cestu k~rychlému pochopení problému, předvídat jeho obtíže a~předcházet jim. Dobrý sloh předpokládá bezvadnou gramatiku, správnou interpunkci a~vhodnou volbu slov. Snažíme se, aby náš text nepůsobil příliš jednotvárně používáním malého výběru slov a~tím, že některá zvlášť oblíbená slova používáme příliš často. Pokud používáme cizích slov, je samozřejmým předpokladem, že známe jejich přesný význam. Ale i~českých slov musíme používat ve správném smyslu. Např. platí jistá pravidla při používání slova {\it zřejmě}. Je {\it zřejmé} opravdu zřejmé? A~přesvědčili jsme se, zda to, co je {\it zřejmé} opravdu platí? Pozor bychom si měli dát i~na příliš časté používání zvratného se. Například obratu {\it dokázalo se}, že... zásadně nepoužíváme. Není špatné používat autorského {\it my}, tím předpokládáme, že něco řešíme, nebo například zobecňujeme spolu se čtenářem. V~kvalifikačních pracích použijeme autorského {\it já} (například když vymezujeme podíl vlastní práce vůči převzatému textu), ale v~běžném textu se nadměrné používání první osoby jednotného čísla nedoporučuje.
-
-Za pečlivý výběr stojí i~symbolika, kterou používáme ke {\it značení}. Máme tím na mysli volbu zkratek a~symbolů používaných například pro vyjádření typů součástek, pro označení hlavních činností programu, pro pojmenování ovládacích kláves na klávesnici, pro pojmenování proměnných v~matematických formulích a~podobně. Výstižné a~důsledné značení může čtenáři při četbě textu velmi pomoci. Je vhodné uvést seznam značení na začátku textu. Nejen ve značení, ale i~v~odkazech a~v~celkové tiskové úpravě je důležitá důslednost.
-
-S tím souvisí i~pojem z~typografie nazývaný {\it vyznačování}. Zde máme na mysli způsob sazby textu pro jeho zvýraznění. Pro zvolené značení by měl být zvolen i~způsob vyznačování v~textu. Tak například klávesy mohou být umístěny do obdélníčku, identifikátory ze zdrojového textu mohou být vypisovány {\tt písmem typu psací stroj} a~podobně.
-
-Uvádíme-li některá fakta, neskrýváme jejich původ a~náš vztah k~nim. Když něco tvrdíme, vždycky výslovně uvedeme, co z~toho bylo dokázáno, co teprve bude dokázáno v~našem textu a~co přebíráme z~literatury s~uvedením odkazu na příslušný zdroj. V~tomto směru nenecháváme čtenáře nikdy na pochybách, zda jde o~myšlenku naši nebo převzatou z~literatury.
-
-Nikdy neplýtváme čtenářovým časem výkladem triviálních a~nepodstatných informací. Neuvádíme rovněž několikrát totéž jen jinými slovy. Při pozdějších úpravách textu se nám může některá dříve napsaná pasáž jevit jako zbytečně podrobná nebo dokonce zcela zbytečná. Vypuštění takové pasáže nebo alespoň její zestručnění přispěje k~lepší čitelnosti práce! Tento krok ale vyžaduje odvahu zahodit čas, který jsme jejímu vytvoření věnovali. 
 
 
-\chapter{Nikdy to nebude naprosto dokonalé}
-Když jsme už napsali vše, o~čem jsme přemýšleli, uděláme si den nebo dva dny volna a~pak si přečteme sami rukopis znovu. Uděláme ještě poslední úpravy a~skončíme. Jsme si vědomi toho, že vždy zůstane něco nedokončeno, vždy existuje lepší způsob, jak něco vysvětlit, ale každá etapa úprav musí být konečná.
+
+\begin{verbatim}
+http://docs.oracle.com/javase/7/docs/api/java/lang/ClassLoader.html
+http://docs.oracle.com/javase/7/docs/api/java/lang/Class.html
+http://docs.oracle.com/javase/jndi/tutorial/beyond/misc/classloader.html
+http://www.linuxsoft.cz/article.php?id_article=1123
+\end{verbatim}
 
 
-\chapter{Typografické a~jazykové zásady}
-Při tisku odborného textu typu {\it technická zpráva} (anglicky {\it technical report}), ke kterému patří například i~text kvalifikačních prací, se často volí formát A4 a~často se tiskne pouze po jedné straně papíru. V~takovém případě volte levý okraj všech stránek o~něco větší než pravý -- v~tomto místě budou papíry svázány a~technologie vazby si tento požadavek vynucuje. Při vazbě s~pevným hřbetem by se levý okraj měl dělat o~něco širší pro tlusté svazky, protože se stránky budou hůře rozevírat a~levý okraj se tak bude oku méně odhalovat.
-
-Horní a~spodní okraj volte stejně veliký, případně potištěnou část posuňte mírně nahoru (horní okraj menší než dolní). Počítejte s~tím, že při vazbě budou okraje mírně oříznuty.
-
-Pro sazbu na stránku formátu A4 je vhodné používat pro základní text písmo stupně (velikosti) 11 bodů. Volte šířku sazby 15 až 16 centimetrů a~výšku 22 až 23 centimetrů (včetně případných hlaviček a~patiček). Proklad mezi řádky se volí 120 procent stupně použitého základního písma, což je optimální hodnota pro rychlost čtení souvislého textu. V~případě použití systému LaTeX ponecháme implicitní nastavení. Při psaní kvalifikační práce se řiďte příslušnými závaznými požadavky.
-
-Stupeň písma u~nadpisů různé úrovně volíme podle standardních typografických pravidel. 
-Pro všechny uvedené druhy nadpisů se obvykle používá polotučné nebo tučné písmo (jednotně buď všude polotučné nebo všude tučné). Proklad se volí tak, aby se následující text běžných odstavců sázel pokud možno na {\it pevný rejstřík}, to znamená jakoby na linky s~předem definovanou a~pevnou roztečí.
-
-Uspořádání jednotlivých částí textu musí být přehledné a~logické. Je třeba odlišit názvy kapitol a~podkapitol -- píšeme je malými písmeny kromě velkých začátečních písmen. U~jednotlivých odstavců textu odsazujeme první řádek odstavce asi o~jeden až dva čtverčíky (vždy o~stejnou, předem zvolenou hodnotu), tedy přibližně o~dvě šířky velkého písmene M základního textu. Poslední řádek předchozího odstavce a~první řádek následujícího odstavce se v~takovém případě neoddělují svislou mezerou. Proklad mezi těmito řádky je stejný jako proklad mezi řádky uvnitř odstavce.
-
-Při vkládání obrázků volte jejich rozměry tak, aby nepřesáhly oblast, do které se tiskne text (tj. okraje textu ze všech stran). Pro velké obrázky vyčleňte samostatnou stránku. Obrázky nebo tabulky o~rozměrech větších než A4 umístěte do písemné zprávy formou skládanky všité do přílohy nebo vložené do záložek na zadní desce.
-
-Obrázky i~tabulky musí být pořadově očíslovány. Číslování se volí buď průběžné v~rámci celého textu, nebo -- což bývá praktičtější -- průběžné v~rámci kapitoly. V~druhém případě se číslo tabulky nebo obrázku skládá z~čísla kapitoly a~čísla obrázku/tabulky v~rámci kapitoly -- čísla jsou oddělena tečkou. Čísla podkapitol nemají na číslování obrázků a~tabulek žádný vliv.
-
-Tabulky a~obrázky používají své vlastní, nezávislé číselné řady. Z toho vyplývá, že v~odkazech uvnitř textu musíme kromě čísla udat i~informaci o~tom, zda se jedná o~obrázek či tabulku (například ``... {\it viz tabulka 2.7} ...''). Dodržování této zásady je ostatně velmi přirozené.
-
-Pro odkazy na stránky, na čísla kapitol a~podkapitol, na čísla obrázků a~tabulek a~v~dalších podobných příkladech využíváme speciálních prostředků DTP programu, které zajistí vygenerování správného čísla i~v~případě, že se text posune díky změnám samotného textu nebo díky úpravě parametrů sazby. Příkladem takového prostředku v~systému LaTeX je odkaz na číslo odpovídající umístění značky v~textu, například návěští ($\backslash${\tt ref\{navesti\}} -- podle umístění návěští se bude jednat o~číslo kapitoly, podkapitoly, obrázku, tabulky nebo podobného číslovaného prvku), na stránku, která obsahuje danou značku ($\backslash${\tt pageref\{navesti\}}), nebo na literární odkaz ($\backslash${\tt cite\{identifikator\}}).
-
-Rovnice, na které se budeme v~textu odvolávat, opatříme pořadovými čísly při pravém okraji příslušného řádku. Tato pořadová čísla se píší v~kulatých závorkách. Číslování rovnic může být průběžné v~textu nebo v~jednotlivých kapitolách.
-
-Jste-li na pochybách při sazbě matematického textu, snažte se dodržet způsob sazby definovaný systémem LaTeX. Obsahuje-li vaše práce velké množství matematických formulí, doporučujeme dát přednost použití systému LaTeX.
-
-Mezeru neděláme tam, kde se spojují číslice s~písmeny v~jedno slovo nebo v~jeden znak -- například {\it 25krát}.
-
-Členicí (interpunkční) znaménka tečka, čárka, středník, dvojtečka, otazník a~vykřičník, jakož i~uzavírací závorky a~uvozovky se přimykají k~předcházejícímu slovu bez mezery. Mezera se dělá až za nimi. To se ovšem netýká desetinné čárky (nebo desetinné tečky). Otevírací závorka a~přední uvozovky se přimykají k~následujícímu slovu a~mezera se vynechává před nimi -- (takto) a~``takto''.
-
-Pro spojovací a~rozdělovací čárku a~pomlčku nepoužíváme stejný znak. Pro pomlčku je vyhrazen jiný znak (delší). V~systému TeX (LaTeX) se spojovací čárka zapisuje jako jeden znak ``pomlčka'' (například ``Brno-město''), pro sázení textu ve smyslu intervalu nebo dvojic, soupeřů a~podobně se ve zdrojovém textu používá dvojice znaků ``pomlčka'' (například ``zápas Sparta -- Slavie''; ``cena 23--25 korun''), pro výrazné oddělení části věty, pro výrazné oddělení vložené věty, pro vyjádření nevyslovené myšlenky a~v~dalších situacích (viz Pravidla českého pravopisu) se používá nejdelší typ pomlčky, která se ve zdrojovém textu zapisuje jako trojice znaků ``pomlčka'' (například ``Další pojem --- jakkoliv se může zdát nevýznamný --- bude neformálně definován v~následujícím odstavci.''). Při sazbě matematického mínus se při sazbě používá rovněž odlišný znak. V~systému TeX je ve zdrojovém textu zapsán jako normální mínus (tj. znak ``pomlčka''). Sazba v~matematickém prostředí, kdy se vzoreček uzavírá mezi dolary, zajistí vygenerování správného výstupu.
-
-Lomítko se píše bez mezer. Například školní rok 2008/2009.
-
-Pravidla pro psaní zkratek jsou uvedena v~Pravidlech českého pravopisu \cite{Pravidla}. I~z~jiných důvodů je vhodné, abyste tuto knihu měli po ruce. 
 
 
-\section{Co to je normovaná stránka?}
-Pojem {\it normovaná stránka} se vztahuje k~posuzování objemu práce, nikoliv k~počtu vytištěných listů. Z historického hlediska jde o~počet stránek rukopisu, který se psal psacím strojem na speciální předtištěné formuláře při dodržení průměrné délky řádku 60 znaků a~při 30 řádcích na stránku rukopisu. Vzhledem k~zápisu korekturních značek se používalo řádkování 2 (ob jeden řádek). Tyto údaje (počet znaků na řádek, počet řádků a~proklad mezi nimi) se nijak nevztahují ke konečnému vytištěnému výsledku. Používají se pouze pro posouzení rozsahu. Jednou normovanou stránkou se tedy rozumí 60*30 = 1800 znaků. Obrázky zařazené do textu se započítávají do rozsahu písemné práce odhadem jako množství textu, které by ve výsledném dokumentu potisklo stejně velkou plochu.
-
-Orientační rozsah práce v~normostranách lze v~programu Microsoft Word zjistit pomocí funkce {\it Počet slov} v~menu {\it Nástroje}, když hodnotu {\it Znaky (včetně mezer)} vydělíte konstantou 1800. Do rozsahu práce se započítává pouze text uvedený v~jádru práce. Části jako abstrakt, klíčová slova, prohlášení, obsah, literatura nebo přílohy se do rozsahu práce nepočítají. Je proto nutné nejdříve označit jádro práce a~teprve pak si nechat spočítat počet znaků. Přibližný rozsah obrázků odhadnete ručně. Podobně lze postupovat i~při použití OpenOffice. Při použití systému LaTeX pro sazbu je situace trochu složitější. Pro hrubý odhad počtu normostran lze využít součet velikostí zdrojových souborů práce podělený konstantou cca 2000 (normálně bychom dělili konstantou 1800, jenže ve zdrojových souborech jsou i~vyznačovací příkazy, které se do rozsahu nepočítají). Pro přesnější odhad lze pak vyextrahovat holý text z~PDF (např. metodou cut-and-paste nebo {\it Save as Text...}) a~jeho velikost podělit konstantou 1800. 
 
 
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Závěr}
-Závěrečná kapitola obsahuje zhodnocení dosažených výsledků se zvlášť vyznačeným vlastním přínosem studenta. Povinně se zde objeví i zhodnocení z pohledu dalšího vývoje projektu, student uvede náměty vycházející ze zkušeností s řešeným projektem a uvede rovněž návaznosti na právě dokončené projekty.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%=========================================================================

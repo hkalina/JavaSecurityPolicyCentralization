@@ -1,7 +1,22 @@
 
 ## Bezpečnost ##
 
-Co je to bezpečnost...
+Protože se tato práce zabývá bezpečností, což je pojem, který lze v různých souvislostech chápat zcela odlišně, je nanejvýš vhodné nejprve specifikovat co termínem bezpečnosti míníme a z kterého pohledu se jí budeme zabývat.
+
+Scott Oaks definuje ve své knize Java Security [0, 1.1] bezpečnost jako souhrn následujících kritérií:
+
+* Bezpečí vůči zákeřnému software - programy by neměly být schopny poškodit prostředí uživatelova počítače.
+* Bezpečí vůči Velkému bratru - programům by mělo být bráněno ve šmírování uživatele a jeho okolí - programy by neměly být schopny svévolně procházet soukromé informace na počítači na kterém běží, ani ze sítě ke které je tento počítač připojen.
+* Autentizace - identita autorů programu by měla být ověřována. (elektronický podpis)
+* Šifrování - data odesílaná a přijímaná programem by měla být šifrována.
+* Auditovatelnost - potenciálně škodlivé operace by měly být vždy logovány.
+* Dobrá specifikace - program by měla doprovázet specifikace bezpečnostních pravidel které program dodržuje.
+* Verifikace - pro prováděné operace by měla být stanovena pravidla proti kterým by měly být verifikovány.
+* Dobré vychování - programům by mělo být bráněno v užívání příliš mnoha systémových prostředků.
+
+V souvislosti s víceuživatelskými prostředími se pak pojem bezpečnosti vyskytuje ještě v další rovině, kdy nejde o přístup programu k hostitelskému systému, ale o přístup uživatele k programu.
+
+V této práci se však budeme zabývat bezpečností pouze ve smyslu v jakém ji definují první tři kritéria, tedy v bezpečí prostředí a dat hostitele před programy.
 
 ## Java ##
 

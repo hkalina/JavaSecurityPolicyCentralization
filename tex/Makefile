@@ -13,22 +13,22 @@ $(CO).ps: $(CO).dvi
 	dvips $(CO)
 
 $(CO).pdf: clean
-	pdflatex $(CO)
+	pdflatex -halt-on-error $(CO)
 	bibtex $(CO)
-	pdflatex $(CO)
-	pdflatex $(CO)
+	pdflatex -halt-on-error $(CO)
+	pdflatex -halt-on-error $(CO)
 
 $(CO).dvi: $(CO).tex $(CO).bib
-	latex $(CO)
+	latex -halt-on-error $(CO)
 	bibtex $(CO)
-	latex $(CO)
-	latex $(CO)
+	latex -halt-on-error $(CO)
+	latex -halt-on-error $(CO)
 
 desky:
 #	latex desky
 #	dvips desky
 #	dvipdf desky
-	pdflatex desky
+	pdflatex -halt-on-error desky
 
 clean:
 	rm -f *.dvi *.log $(CO).blg $(CO).bbl $(CO).toc *.aux $(CO).out $(CO).lof
