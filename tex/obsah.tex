@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Teoretický úvod}
+\chapter{Bezpečnost v Javě}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %=============================================================================
@@ -35,9 +35,8 @@ V této práci se však budeme zabývat bezpečností ve smyslu prvních tří u
 
 Programy v jazyce Java bývají překládány do platformě nezávislého a efektivněji než kód v jazyce Java interpretovatelného mezikódu, takzvaného bytekódu.
 Bytekód bývá zpravidla interpretován virtuálním strojem Javy (JVM - Java Virtual Machine).
-JVM je abstraktní výpočetní stroj, podobně jako například Turingův stroj.
-Stejně jako reálný výpočetní stroj má svoji instrukční sadu a paměť se kterou může manipulovat, ale na rozdíl od něj pro něj neexistuje jeho fyzická implementace, pouze emulovaná implementace softwarová.
-To znamená že její kód není prováděn nativně hardwarem, ale je interpretován speciálním programem, interpreterem, který sám zkompilován do nativního kódu dané platformy.
+JVM je abstraktní výpočetní stroj. Podobně jako reálné výpočetní stroje má svoji instrukční sadu a paměť se kterou může manipulovat, ale na rozdíl od nich pro něj neexistuje jeho fyzická implementace, pouze emulovaná implementace softwarová.
+To znamená že její kód není prováděn nativně hardwarem, ale je interpretován speciálním programem, interpreterem, který je sám zkompilován do nativního kódu dané platformy.
 To mimo nezávislosti na platformě přináší také vyšší stupeň abstrakce.
 
 Díky tomu, že programy nepřistupují ani nemohou přistupovat ke zdrojům fyzického stroje přímo, ale pouze zprostředkovaně skrze zdroje virtuální stroje Javy, si není těžké představit, že by použití takovéhoto virtuálního stroje mohlo mít i významný bezpečnostní efekt.
@@ -47,7 +46,7 @@ Protože programy v JVM mohou k fyzickým zdrojům počítače (např. k soubor�
 \section{Java Security Manager}
 %=============================================================================
 
-Pro maximální rozšiřitelnost omezení kladených na programy běžících na virtuáních strojích Javy nerozhoduje o povolení nebo zablokování operace samotná JVM, ale dotazuje se speciálního objektu třídy {\tt java.lang.SecurityManager}, nebo jeho podtřídy. Podtřída je třída dědící atributy a metody (operace, přijímané zprávy) své nadtřídy a reference na její instanci může být vložena do proměnné určené pro referenci na její nadtřídu. Jakákoli podtřída třídy SecurityManager tedy bude vždy přijímat všechny zprávy, které přijimá třída SecurityManager, přičemž ty které nebude sama implementovat, budou přejaty z její nadtřídy SecurityManager.
+Pro rozšiřitelnost omezení kladených na programy běžících na virtuáních strojích Javy nerozhoduje o povolení nebo zablokování operace samotná JVM, ale dotazuje se speciálního objektu třídy {\tt java.lang.SecurityManager}, nebo jeho podtřídy. Podtřída je třída dědící atributy a metody (operace, přijímané zprávy) své nadtřídy a reference na její instanci může být vložena do proměnné určené pro referenci na její nadtřídu. Jakákoli podtřída třídy SecurityManager tedy bude vždy přijímat všechny zprávy, které přijimá třída SecurityManager, přičemž ty které nebude sama implementovat, budou přejaty z její nadtřídy SecurityManager.
 
 Security manager, který JVM použije při svém startu lze ovlivnit skrze konfigurační proměnnou JVM -- {\tt java.security.manager}. Za běhu je možné aktuálně používaný Security manager zjistit voláním {\tt System.getSecurityManager() } a vypnout nebo vyměnit voláním {\tt System.setSecurityManager()}. Volání těchto metod bývá samo chráněno Security managerem, takže nehrozí že by se program neoprávněně zbavil omezení, které na něj uvalil Security manager např. vypnutím Security manageru.
 
@@ -122,12 +121,42 @@ public class TestovaciSM extends SecurityManager {
 Tento příklad je samozřejmě pouze demonstrativní, zbytečně obtěžuje uživatele požadováním povolení velkého množství operací, které jsou nezbytné pro spuštění sebejednodušší aplikace. Po rozšíření o ukládání povolených operací by ale mohl najít praktické uplatnění i podobně jednoduchý Security manager. Po rozšíření o grafické uživatelské rozhraní by mohl fungovat podobně jako interaktivní firewall.
 
 %=============================================================================
+\section{Access Controller}
+%=============================================================================
+
+Access controller je...
+
+Access controller je implementován jako objekt třídy {\tt AccessController}. Standardní Security manager na něj deleguje rozhodnutí, zda akci povolit či nikoliv. \cite[5.5]{oaks}
+
+\begin{verbatim}
+try {
+    // má tento program oprávnění připojit se na lokální port 6000?
+    AccessController.checkPermission(
+        new SocketPermission("localhost:6000", "connect")
+    );
+    System.out.println("Program má oprávnění připojit se na port");
+} catch (AccessControlException ace) {
+    System.out.println("Program nemá oprávnění připojit se na port");
+}
+\end{verbatim}
+
+Access controller je založen na čtyřen konceptech: \cite[5]{oaks}
+
+\begin{itemize}
+  \item Zdroje kódu (CodeSource): Objekt představující původ třídy -- adresu URL z které byla získána a certifikáty (elektronické podpisy), kterými byla opatřena \cite[5.1]{oaks}
+  \item Oprávnění (Permission): Objekt představující operaci o jejíž povolení se rozhoduje, konkrétně se skládá z trojice: typ oprávnění, název zdroje, povolené akce \cite[5.2]{oaks}
+  \item Politiky (Policy): Objekt představující souhrn oprávnění udělených danému zdrojovému kódu \cite[5.3]{oaks}
+  \item Ochranná doména (ProtectionDomain): Objekt představující zdrojové kódy a jejich oprávnění \cite[5.4]{oaks}
+\end{itemize}
+
+
+%=============================================================================
 \section{Zavaděče tříd}
 %=============================================================================
 
-Zavaděč (classloader) je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy (tedy názvu používaného v bytekódu, např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}) se pokusí vyhledat a načíst třídu daného názvu. \ref{refClassLoader}
+Zavaděč (classloader) je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy (tedy názvu používaného v bytekódu, např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}) se pokusí vyhledat a načíst třídu daného názvu. \cite{refClassLoader}
 
-Třída každého zavaděče musí být podtřídou třídy {\tt java.lang.ClassLoader} a musí implementovat metodu {\tt findClass()}, která provádí právě samotné vyhledání třídy podle názvu. Jejím výstupem je objekt třídy {\tt Class} představující samotnou třídu. K vytvoření objektu třídy Class metoda obvykle využívá zděděné metody ({\tt defineClass()}), které kromě názvu třídy a bytů samotných dat třídy předává také informace o původu a z něj vyplývajících oprávnění zapouzdřené v objektu tzv. ochrané domény ({\tt ProtectionDomain}). \ref{refClassLoader}
+Třída každého zavaděče musí být podtřídou třídy {\tt java.lang.ClassLoader} a musí implementovat metodu {\tt findClass()}, která provádí právě samotné vyhledání třídy podle názvu. Jejím výstupem je objekt třídy {\tt Class} představující samotnou třídu. K vytvoření objektu třídy Class metoda obvykle využívá zděděné metody ({\tt defineClass()}), které kromě názvu třídy a bytů samotných dat třídy předává také informace o původu a z něj vyplývajících oprávnění zapouzdřené v objektu tzv. ochrané domény ({\tt ProtectionDomain}). \cite{refClassLoader}
 
 Při programování běžných aplikací můžeme na objekty třídy {\tt Class} narazit například při snaze získat název třídy neznámého objektu jako řetězec za běhu aplikace:
 
@@ -139,8 +168,42 @@ Z hlediska bezpečnosti pro nás jsou ale classloadery zajímavé hlavně tím, 
 
 Původ může být určen dvěma způsoby -- na základě adresy souboru, z kterého byla třída načtena, nebo na základě elektronického podpisu, kterým byla třída při svém načítání opatřena.
 
-Původ třídy, zmíněný výše jako součást ochranné domény, je stanoven třídou ({\tt CodeSource}), jejíž první částí je URL adresa, ze které byla třída získána, a druhou částí je buď pole certifikátů ({\tt Certificate}) kterými byla třída podepsána nebo pole podepsaných ({\tt CodeSigner}). \ref{refClassLoader}
+Původ třídy, zmíněný výše jako součást ochranné domény, je stanoven třídou ({\tt CodeSource}), jejíž první částí je URL adresa, ze které byla třída získána, a druhou částí je buď pole certifikátů ({\tt Certificate}) kterými byla třída podepsána nebo pole podepsaných autorů ({\tt CodeSigner}). \cite{refClassLoader}
 
+%-----------------------------------------------------------------------------
+\subsection{Interní zavaděč tříd}
+%-----------------------------------------------------------------------------
+
+Protože samotné zavaděče tříd jsou samy třídami v Javě, vzniká problém jak načíst třídu samotného zavaděče tříd. K podobným účelům se používá tzv. interní zavaděč tříd. Interní zavaděč je součástí JVM, je napsán převážně v nativním kódu a k načítání tříd využívá nativní metody pro přístup k souborovému systému operačního systému. Interní zavaděč načítá třídy ze souborů, jejiž adresu odvozuje z názvu třídy, balíčku a proměnné prostředí CLASSPATH. \cite[3.2.1]{oaks}
+
+Je-li tedy JVM spuštěna následujícím příkazem:
+
+\begin{verbatim}
+java -classpath /srv/classes muj.program.Test
+\end{verbatim}
+
+Bude spuštěna metoda {\tt main()} třídy {\tt Test} v souboru:
+
+\begin{verbatim}
+/srv/classes/muj/program/Test.class
+\end{verbatim}
+
+O třídách načtených interním zavaděčem se často mluví jako o třídách bez zavaděče, protože jejich objekt {\tt Class} má referenci na zavaděč nastavenu na {\tt null}. \cite[3.2.1]{oaks}
+
+Interní zavaděč je v současnosti používán k načítání jen nejzákladnějších tříd, zejména tříd Java API, tedy tříd používajících součásti napsané v nativním kódu. Ostatní třídy z {\tt CLASSPATH} jsou obvykle načítány Zavaděčem tříd z URL.
+
+%-----------------------------------------------------------------------------
+\subsection{Zavaděč tříd z URL}
+%-----------------------------------------------------------------------------
+
+Zavaděč tříd z URL ({\tt URLClassLoader}) hledá třídy na URL adresách určených polem objektů {\tt URL} předaných jeho kontruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě. Používá se i k vyhledávání méně základních tříd z {\tt CLASSPATH} a zvládá třídy načítat i z JAR archivů. (Jde tedy o URL adresáře nebo JAR archivu.)
+
+\begin{verbatim}
+URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{
+    new URL("http://server/directory/"),
+    new URL("file:/srv/classes/")
+}, parentClassloader);
+\end{verbatim}
 
 
 

@@ -1,3 +1,6 @@
+import java.net.URLClassLoader;
+import java.net.URL;
+
 public class Program {
     /**
      * If you run this main method supplying the
@@ -9,6 +12,19 @@ public class Program {
     public static void main(String... strings) {
         
         System.out.print("This is my ClassLoader: " + Program.class.getClassLoader());
+        /*
+        URL[] urls = {
+        new URL("http://server/adresar/"),
+        new URL("file:/srv/classes/")
+        };
+        */
+        try{
+        URLClassLoader urlClassLoader = new URLClassLoader( new URL[] {
+        new URL("http://server/adresar/"),
+        new URL("file:/srv/classes/")
+        }, null);
+        }
+        catch(Exception e){}
         
         boolean x = TestovaciTridaA.test();
         
