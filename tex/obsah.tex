@@ -17,7 +17,7 @@ Scott Oaks definuje ve své knize Java Security bezpečnost jako souhrn následu
 \begin{itemize}
   \item Bezpečí vůči zákeřnému software - programy by neměly být schopny poškodit prostředí hostitelského počítače.
   \item Bezpečí vůči Velkému bratru - programům by mělo být bráněno ve šmírování uživatele -- programy by neměly být schopny svévolně číst soukromé informace na počítači na kterém běží, ani na síti ke které je tento počítač připojen.
-  \item Autentizace - identita autorů programu by měla být ověřována (typicky elektronickým podpisem).
+  \item Autentizace - identita autorů programu by měla být ověřována (typicky pomocí elektronickému podpisu).
   \item Šifrování - data odesílaná a přijímaná programem by měla být šifrována.
   \item Auditovatelnost - potenciálně škodlivé operace by měly být vždy zaznamenávány.
   \item Specifikovanost - program by měla doprovázet specifikace bezpečnostních pravidel, které program dodržuje.
@@ -118,21 +118,51 @@ public class TestovaciSM extends SecurityManager {
 }
 \end{verbatim}
 
-Tento příklad je samozřejmě pouze demonstrativní, zbytečně obtěžuje uživatele požadováním povolení velkého množství operací, které jsou nezbytné pro spuštění sebejednodušší aplikace. Po rozšíření o ukládání povolených operací by ale mohl najít praktické uplatnění i podobně jednoduchý Security manager. Po rozšíření o grafické uživatelské rozhraní by mohl fungovat podobně jako interaktivní firewall.
+Libovolný program v Javě pak pod tímto Security managerem spustíme již dříve zmíněným parametrem příkazového řádku:
+
+\begin{verbatim}
+java -Djava.security.manager=TestovaciSM HelloWorld
+\end{verbatim}
+
+Zkusíme-li spustit sebejednodušší program pod tímto Security managerem, uvidíme že množství kontrolovaných operací je opravdu velké a tvorba Security manageru povolujícího operace vyžadované jednotlivými programy těmto programům by byla možná, ale velice náročná.
 
 %=============================================================================
-\section{Access Controller}
+\section{Access Controller a soubory bezpečnostní politiky}
 %=============================================================================
 
-Access controller je...
+Access controller je mechanismus, který standardní Security manager (od Javy verze 2) využívá pro rozhodnutí, zda operaci požadovanou uživatelským programem povolit či nikoliv. Access controller je přitom schopný seznam povolených operací načítat ze souboru bezpečnostní politiky. Vzniká tak mnohem snazší způsob definice bezpečnostních politik, jimiž budou programy omezeny -- namísto tvorby vlastní třídy Security manageru tak pro stanovení bezpečnostní politiky stačí upravovat obsah konfiguračního souboru používaného Access controllerem pro stanovení bezpečnostní politiky. Tento soubor budeme dále nazývat jen soubor bezpečnostní politiky. \cite[5]{oaks}
 
-Access controller je implementován jako objekt třídy {\tt AccessController}. Standardní Security manager na něj deleguje rozhodnutí, zda akci povolit či nikoliv. \cite[5.5]{oaks}
+Oprávnění jsou programům v rámci bezpečnostní politiky mohou být přidělena na základě tří kritérií: \cite{refPolicyFiles}
+
+\begin{itemize}
+  \item {\tt codeBase}: Operaci žádá metoda ze třídy pocházející z URL adresy odpovídající zadané.
+  \item {\tt signedBy}: Operaci žádá metoda ze třídy podepsané podpisem odpovídajícím zadanému aliasu.
+  \item {\tt principal}: Operaci žádá kód spuštěný uživatelem s daným oprávněním.
+\end{itemize}
+
+Povolované operace jsou definovány za pomoci tří kritérií: \cite{jdkdocPolicyFiles}
+
+\begin{itemize}
+  \item {\tt permission\_class\_name}: Typ oprávnění -- název podtřídy třídy {\tt Permission}.
+  \item {\tt target\_name}: Název zdroje -- souboru, serveru a portu apod.
+  \item {\tt action}: Název povolované operace, např. {\tt read} pro čtení a {\tt delete} pro smazání souboru.
+\end{itemize}
+
+Způsob použití bude upřesněn v kapitole Soubory bezpečnostní politiky.
+
+%-----------------------------------------------------------------------------
+\subsection{Access Controller}
+%-----------------------------------------------------------------------------
+
+Access controller je třídou {\tt java.security.AccessController} a voláním jeho statických metod na něj standardní security manager deleguje rozhodnutí o legálnosti provedení potenciálně nežádoucí operace uživatelského programu. Konkrétně kontrolu obstarává metoda {\tt checkPermission(Permission)}, která v případě neoprávněnosti požadavku na provedení operace způsobí vyhození vyjímky {\tt AccessControlException}. Jejím vstupem je objekt třídy {\tt Permission}, která reprezentuje oprávnění, jehož vlastnictví je testováno. \cite[5.5]{oaks}
+
+Následující příklad ukazuje způsob, jakým se lze Access controlleru dotázat na oprávněnost požadavku: \cite[5.5]{oaks}
 
 \begin{verbatim}
 try {
-    // má tento program oprávnění připojit se na lokální port 6000?
+    // má tento program oprávnění připojit se na lokální port 80?
     AccessController.checkPermission(
-        new SocketPermission("localhost:6000", "connect")
+        new SocketPermission("localhost:80", "connect")
     );
     System.out.println("Program má oprávnění připojit se na port");
 } catch (AccessControlException ace) {
@@ -140,7 +170,7 @@ try {
 }
 \end{verbatim}
 
-Access controller je založen na čtyřen konceptech: \cite[5]{oaks}
+Access controller je založen na čtyř konceptech: \cite[5]{oaks}
 
 \begin{itemize}
   \item Zdroje kódu (CodeSource): Objekt představující původ třídy -- adresu URL z které byla získána a certifikáty (elektronické podpisy), kterými byla opatřena \cite[5.1]{oaks}
@@ -148,6 +178,11 @@ Access controller je založen na čtyřen konceptech: \cite[5]{oaks}
   \item Politiky (Policy): Objekt představující souhrn oprávnění udělených danému zdrojovému kódu \cite[5.3]{oaks}
   \item Ochranná doména (ProtectionDomain): Objekt představující zdrojové kódy a jejich oprávnění \cite[5.4]{oaks}
 \end{itemize}
+
+%-----------------------------------------------------------------------------
+\subsection{Soubory bezpečnostní politiky}
+%-----------------------------------------------------------------------------
+
 
 
 %=============================================================================
@@ -196,7 +231,7 @@ Interní zavaděč je v současnosti používán k načítání jen nejzákladn�
 \subsection{Zavaděč tříd z URL}
 %-----------------------------------------------------------------------------
 
-Zavaděč tříd z URL ({\tt URLClassLoader}) hledá třídy na URL adresách určených polem objektů {\tt URL} předaných jeho kontruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě. Používá se i k vyhledávání méně základních tříd z {\tt CLASSPATH} a zvládá třídy načítat i z JAR archivů. (Jde tedy o URL adresáře nebo JAR archivu.)
+Zavaděč tříd z URL ({\tt URLClassLoader}) hledá třídy na URL adresách určených polem objektů {\tt URL} předaných jeho kontruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě -- používá se i k vyhledávání méně základních tříd z {\tt CLASSPATH} a dokáže třídy načítat nejen z adresářů, ale i z JAR archivů, je-li jako adresa uvedena adresa JAR archivu. \cite[3.2.5]{oaks}
 
 \begin{verbatim}
 URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{
