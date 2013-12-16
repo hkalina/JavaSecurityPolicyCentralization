@@ -1,0 +1,5 @@
+/* Bezpecnostni politika povolujici pristup k vybranym zaznamum */
+grant {
+  permission ZaznamPermission "Lucka", "nacteni";
+  permission java.net.SocketPermission "host:1234", "connect,resolve";
+};

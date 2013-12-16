@@ -4,6 +4,9 @@
 run:
 	java -cp "game:score" -Djava.security.manager -Djava.security.policy=kim.policy com.gamedev.games.ExampleGame get 123
 
+debug:
+	java -cp "game:score" -Djava.security.manager -Djava.security.policy=kim.policy -Djava.security.debug=all com.gamedev.games.ExampleGame get 123
+
 build:
 	javac */com/scoredev/*/*.java
 
