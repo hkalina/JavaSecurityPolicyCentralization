@@ -1,0 +1,11 @@
+
+grant codeBase "file:/home/honza/Dropbox/FIT/Bakalarka/JavaSecurityPolicyCentralization/priklady/highscore/game/" {
+  permission com.scoredev.scores.HighScorePermission "ExampleGame";
+};
+
+grant codeBase "file:/home/honza/Dropbox/FIT/Bakalarka/JavaSecurityPolicyCentralization/priklady/highscore/score/" {
+  permission com.scoredev.scores.HighScorePermission "ExampleGame";
+  permission java.util.PropertyPermission "user.home","read";
+  permission java.io.FilePermission "/home/honza/.highscore","read";
+};
+
