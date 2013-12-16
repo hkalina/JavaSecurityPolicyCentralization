@@ -1,5 +1,12 @@
 /* Bezpecnostni politika povolujici pristup k vybranym zaznamum */
-grant {
+
+grant codeBase "file:/home/honza/Dropbox/FIT/Bakalarka/JavaSecurityPolicyCentralization/priklady/3-databaze/program/" {
   permission ZaznamPermission "Lucka", "nacteni";
-  permission java.net.SocketPermission "host:1234", "connect,resolve";
 };
+
+grant codeBase "file:/home/honza/Dropbox/FIT/Bakalarka/JavaSecurityPolicyCentralization/priklady/3-databaze/knihovna/" {
+  permission ZaznamPermission "Lucka", "nacteni";
+  permission java.util.PropertyPermission "user.home","read";
+  permission java.io.FilePermission "/home/honza/Dropbox/FIT/Bakalarka/JavaSecurityPolicyCentralization/priklady/3-databaze/knihovna/-","read,write";
+};
+

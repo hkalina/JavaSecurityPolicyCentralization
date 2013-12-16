@@ -1,8 +1,7 @@
 class Program {
-    public static void main(String[] args){
-        
+    public static void main(String[] args) throws Exception {
         DatabazeVSouboru databaze = new DatabazeVSouboru();
-        databaze.nactiZaznam("Lucka");
-        
+        databaze.ulozZaznam("Lucka","12345");
+        System.out.println(databaze.nactiZaznam("Lucka"));
     }
 }

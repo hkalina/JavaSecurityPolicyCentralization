@@ -1,5 +1,6 @@
 import java.security.BasicPermission;
 
+// musí být public!
 public class ZaznamPermission extends BasicPermission {
     
     public ZaznamPermission(String name) {
