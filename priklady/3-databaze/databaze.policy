@@ -5,8 +5,7 @@ grant codeBase "file:/home/honza/Dropbox/FIT/Bakalarka/JavaSecurityPolicyCentral
 };
 
 grant codeBase "file:/home/honza/Dropbox/FIT/Bakalarka/JavaSecurityPolicyCentralization/priklady/3-databaze/knihovna/" {
-  permission ZaznamPermission "Lucka", "nacteni";
-  permission java.util.PropertyPermission "user.home","read";
+  permission ZaznamPermission "*", "nacteni";
   permission java.io.FilePermission "/home/honza/Dropbox/FIT/Bakalarka/JavaSecurityPolicyCentralization/priklady/3-databaze/knihovna/-","read,write";
 };
 

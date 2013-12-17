@@ -293,7 +293,7 @@ class DatabazeVSouboru {
 \end{verbatim}
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-\subsubsection{Příklad s knihovnou pro přístup k databázi}
+\subsubsection{Příklad s knihovnou pro přístup k databázi}\label{databazeVsouboru}
 %'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 \begin{verbatim}
@@ -306,12 +306,11 @@ class DatabazeVSouboru {
     
     // protože oprávnění má, bez ohledu na to že volající kód nemá
     // oprávnění přistupovat k databázovému souboru záznam načteme
-    AccessController.doPrivileged(new PrivilegedAction<Zaznam>() {
+    return AccessController.doPrivileged(new PrivilegedAction<Zaznam>() {
       public Zaznam run() {
         // Zde bude práce s databázovým souborem
-        
       }
-    }
+    });
   }
 }
 \end{verbatim}
@@ -319,6 +318,42 @@ class DatabazeVSouboru {
 %-----------------------------------------------------------------------------
 \subsection{Soubory bezpečnostní politiky}
 %-----------------------------------------------------------------------------
+
+Tato kapitola popisuje implementaci bezpečnostních politik za pomoci souborů bezpečnostní politiky.
+
+Soubor bezpečnostní politiky se skládá z deklarací původů tříd a jim přidělovaných oprávnění.
+Původ třídy je zde stanoven na základě podpisu JAR archivu z kterého byla třída získána (direktiva {\tt signedBy}), URL kořene systému balíčků tříd, ze kterého byla třída získána (direktiva {\tt codeBase}) nebo obou těchto kritérií najednou. \cite[5.3.1]{oaks}
+
+Syntaxe souboru bezpečnostní politiky, používané implementací bezpečnostní politiky, {\tt sun.security.provider.PolicyFile}, je následující: \cite[5.3.1]{oaks}
+
+\begin{verbatim}
+grant [signedBy <podepsaný>] [, codeBase <kořen balíčků>] {
+    permission <třída oprávnění> [<název zdroje> [, <povolované operace>]];
+    ...
+};
+\end{verbatim}
+
+Význam jednotlivých součástí 
+
+%,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+\subsubsection{Příklad souboru bezpečnostní politiky}
+%'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Tento příklad ukazuje jednoduchou bezpečnostní politiku pro přístup k databázi v souboru za pomoci knihovny z příkladu v kapitole \ref{databazeVsouboru}.
+
+Programu zde má přiděleno oprávnění k načtení záznamu "Lucka", nemůže ale přistupovat k s samotným databázovým souborů. K těmto má oprávnění přistupovat jen knihovna zpřístupňující tuto databázi. Z implementačních důvodů, rozebraných v kapitole \ref{implementaceAC}, je nezbytné přidělit také knihovně oprávnění ke všem záznamům v databázi, jinak by jakákoli kontrola oprávněnosti požadavku prováděná v kódu knihovny skončila vždy neúspěšně.
+
+\begin{verbatim}
+grant codeBase "file:/srv/program/" {
+  permission ZaznamPermission "Lucka", "nacteni";
+};
+grant codeBase "file:/srv/knihovna/" {
+  permission ZaznamPermission "*", "nacteni";
+  permission java.io.FilePermission "/srv/knihovna/data/-","read,write";
+};
+\end{verbatim}
+
+
 
 Rozdíl mezi - a * na konci adresy atd...
 

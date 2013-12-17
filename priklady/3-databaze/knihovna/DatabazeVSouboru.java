@@ -15,12 +15,6 @@ class DatabazeVSouboru {
     // Kontrola opravneni Access controllerem
     AccessController.checkPermission(new ZaznamPermission(klic, "nacteni"));
     
-    // Kontrolova opravneni Security managerem
-    SecurityManager sm = System.getSecurityManager();
-    if (sm != null) {
-        sm.checkPermission(new ZaznamPermission(klic, "nacteni"));
-    }
-    
     // protože oprávnění má, bez ohledu na to že volající kód nemá
     // oprávnění přistupovat k databázovému souboru záznam načteme
     return AccessController.doPrivileged(new PrivilegedAction<String>() {
@@ -43,12 +37,6 @@ class DatabazeVSouboru {
     
     // Kontrola opravneni Access controllerem
     AccessController.checkPermission(new ZaznamPermission(klic, "ulozeni"));
-    
-    // Kontrolova opravneni Security managerem
-    SecurityManager sm = System.getSecurityManager();
-    if (sm != null) {
-        sm.checkPermission(new ZaznamPermission(klic, "ulozeni"));
-    }
     
     // protože oprávnění má, bez ohledu na to že volající kód nemá
     // oprávnění přistupovat k databázovému souboru záznam uložíme
