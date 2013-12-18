@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Bezpečnost v Javě (Teoretický úvod)}
+\chapter{Bezpečnost v Javě}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %=============================================================================
@@ -140,12 +140,12 @@ Zde uvedený Security manager je opravdu pouze demonstrativní, v čemž se mů�
 Stanovení bezpečnostní politiky vytvořením Security manageru ale nepochybně možné je. Vyžaduje ale znalosti programování v Javě od správce počítače na němž JVM běží a od Javy verze 2 se již pro stanovení bezpečnostní politiky nepoužívá.
 
 %=============================================================================
-\section{Zavaděče tříd (Classloader)}
+\section{Zavaděče tříd}
 %=============================================================================
 
 Než se dostaneme k v současnosti využívanému způsobu stanovování bezpečnostní politiky, pozastavíme se nad tématem zavádění tříd.
 Ačkoli se na první pohled může zdát, že toto téma s bezpečností příliš nesouvisí, opak je pravdou.
-Jen a pouze zavaděč tříd, který třídu do paměti zavádí totiž může určit původ třídy, od kterého se oprávnění kódu této třídy odvozuje.
+Jen a pouze zavaděč tříd (classloader), který třídu do paměti zavádí totiž může určit původ třídy, od kterého se oprávnění kódu této třídy odvozuje.
 
 Zavaděč je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy (tedy názvu používaného v bytekódu, např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}) se pokusí vyhledat a načíst třídu daného názvu. \cite{refClassLoader}
 
@@ -155,6 +155,8 @@ Třída každého zavaděče musí být podtřídou třídy {\tt java.lang.Class
 Class tridaObjektuX = x.getClass();
 String nazevTridyObjektuX = c.getName();
 \end{verbatim}
+
+Každý objekt v Javě si totiž uchovává referenci na svoji třídu, již zmíněný objekt třídy {\tt Class}, obsahující mimo jiného také právě název třídy ve formě textového řetězce.
 
 Jako původ třídy ({\tt CodeSource}) souhrně označujeme URL adresu, ze které byla třída získána, a elektronické podpisy, kterými přitom byl její JAR archiv opatřen.
 Na základě původu je třída zařazena do ochranné domény. Mají-li dvě třídy stejný původ, je jim přiřazena stejná ochranná doména. \cite[5.1]{oaks}\cite{sourceSecureClassLoader}
@@ -230,7 +232,7 @@ Access controller rozhoduje o povolení nebo nepovolení operace na základně p
 \subsection{Implementace Access Controlleru}\label{implementaceAC}
 %-----------------------------------------------------------------------------
 
-Access controller je třídou {\tt java.security.AccessController} a voláním jeho statických metod na něj standardní security manager deleguje rozhodnutí o legálnosti provedení potenciálně nežádoucí operace uživatelského programu. Konkrétně kontrolu obstarává metoda {\tt checkPermission(Permission)}, která v případě neoprávněnosti požadavku na provedení operace způsobí vyhození vyjímky {\tt AccessControlException}. Jejím vstupem je objekt třídy {\tt Permission}, která reprezentuje oprávnění, jehož vlastnictví je testováno. \cite[5.5]{oaks}\cite[6]{oaks}
+Access controller je implementován třídou {\tt AccessController} a voláním jeho statických metod na něj standardní Security manager deleguje rozhodnutí o legálnosti provedení potenciálně nežádoucí operace uživatelského programu. Konkrétně kontrolu obstarává metoda {\tt checkPermission(Permission)}, která v případě neoprávněnosti požadavku na provedení operace způsobí vyhození vyjímky {\tt AccessControlException}. Jejím vstupem je objekt třídy {\tt Permission}, která reprezentuje oprávnění, jehož vlastnictví je testováno. \cite[5.5]{oaks}\cite[6]{oaks}
 
 Následující příklad ukazuje způsob, jakým se může kód dotázat Access controlleru, zdali má zadané oprávnění: \cite[5.5]{oaks}
 
@@ -259,7 +261,7 @@ Access controller rozhoduje o povolení nebo nepovolení operace na základně p
 %\end{itemize}
 
 %-----------------------------------------------------------------------------
-\subsection{Privilegované bloky kódu}
+\subsection{Privilegované bloky kódu}\label{privilegovaneBloky}
 %-----------------------------------------------------------------------------
 
 Vraťme se nyní k našemu příkladu, kdy chceme různým programům přidělovat oprávnění k jednotlivým databázovým záznamům jako k samostatným zdrojům systému, ale nechceme jim povolit přístup k samotnému databázovému souboru.
@@ -276,7 +278,7 @@ Právě tento problém řeší privilegované bloky kódu. Kód v privilegované
 \subsubsection{Příklad použití privilegovaného bloku}
 %'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-Vykonávání privilegovaného bloku je implementováno jako nativní metoda Access controlleru, které je předán objekt (pod)třídy {\tt PrivilegedAction}, jehož metoda {\tt run()} je spuštěna privilegovaně.
+Vykonávání privilegovaného bloku je implementováno jako nativní metoda Access controlleru {\tt doPrivileged()}, které je předán objekt (pod)třídy {\tt PrivilegedAction}, jehož metoda {\tt run()} je spuštěna privilegovaně, tedy bez ohledu na oprávnění třídy volající metodu obsahující vykonání privilegovaného bloku.
 Tento příklad ukazuje jednoduchý příklad použití privilegovaného bloku: \cite{refAccessController}
 
 \begin{verbatim}
@@ -296,22 +298,49 @@ class DatabazeVSouboru {
 \subsubsection{Příklad s knihovnou pro přístup k databázi}\label{databazeVsouboru}
 %'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+Tento příklad ukazuje možnou implementaci knihovny pro přístup k databázi, jak byla navržena v kapitole \ref{privilegovaneBloky}.
+
 \begin{verbatim}
 class DatabazeVSouboru {
   public Zaznam nactiZaznam(String klic){
     
     // mimo privilegovaný blok ověříme, že volající kód má oprávnění
-    // k záznamu o který žádá
     AccessController.checkPermission(new ZaznamPermission(klic, "nacteni"));
     
-    // protože oprávnění má, bez ohledu na to že volající kód nemá
-    // oprávnění přistupovat k databázovému souboru záznam načteme
+    // s oprávněními knihovny, bez ohledu na oprávnění volajícího kódu...
     return AccessController.doPrivileged(new PrivilegedAction<Zaznam>() {
       public Zaznam run() {
-        // Zde bude práce s databázovým souborem
+        // ...provedeme požadovanou operaci nad datovými soubory databáze
       }
     });
   }
+}
+\end{verbatim}
+
+Každá metoda knihovny zpřístupňující záznam v databázi neprve ověří oprávněnost požadavku na přístup k danému záznamu.
+Je-li požadavek oprávněný, je v rámci privilegovaného bloku provedena operace nad datovými soubory databáze.
+Díky tomu nebudou oprávnění k datovým souborům vyžadována od kódu volajícího tuto metodu, ale pouze od této třídy samotné.
+
+%-----------------------------------------------------------------------------
+\subsection{Třídy oprávnění}
+%-----------------------------------------------------------------------------
+
+Třída oprávnění představuje typ zdroje, ke kterému lze přidělovat oprávnění.
+
+Třída oprávnění musí být podtřídou třídy {\tt Permission}. Pro snazší implementaci je místo ní možné použít její podtřídu {\tt BasicPermission}.
+Aby ji bylo možné použít, musí být definován její konstruktor odpovídající parametrům oprávnění předávaným souborem bezpečnostní politiky a musí být veřejně přístupná -- opatřená specifikátorem přístupu {\tt public}.
+
+%,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+\subsubsection{Příklad třídy oprávnění}
+%'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Tento příklad ukazuje nejjednodušší způsob vytvoření vlastní třídy oprávnění na oprávnění použitém v příkladu s knihovnou pro přístup k databázi po záznamech v kapitole \ref{databazeVsouboru}.
+
+\begin{verbatim}
+public class ZaznamPermission extends java.security.BasicPermission {
+    public ZaznamPermission(String name, String actions) {
+        super(name, actions);
+    }
 }
 \end{verbatim}
 
@@ -324,7 +353,7 @@ Tato kapitola popisuje implementaci bezpečnostních politik za pomoci souborů 
 Soubor bezpečnostní politiky se skládá z deklarací původů tříd a jim přidělovaných oprávnění.
 Původ třídy je zde stanoven na základě podpisu JAR archivu z kterého byla třída získána (direktiva {\tt signedBy}), URL kořene systému balíčků tříd, ze kterého byla třída získána (direktiva {\tt codeBase}) nebo obou těchto kritérií najednou. \cite[5.3.1]{oaks}
 
-Syntaxe souboru bezpečnostní politiky, používané implementací bezpečnostní politiky, {\tt sun.security.provider.PolicyFile}, je následující: \cite[5.3.1]{oaks}
+Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je definována následovně: \cite[5.3.1]{oaks}
 
 \begin{verbatim}
 grant [signedBy <podepsaný>] [, codeBase <kořen balíčků>] {
@@ -333,15 +362,13 @@ grant [signedBy <podepsaný>] [, codeBase <kořen balíčků>] {
 };
 \end{verbatim}
 
-Význam jednotlivých součástí 
+Deklarace oprávnění se skládá z názvu třídy oprávnění a parametrů jejího konstruktoru oddělených čárkou.
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 \subsubsection{Příklad souboru bezpečnostní politiky}
 %'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-Tento příklad ukazuje jednoduchou bezpečnostní politiku pro přístup k databázi v souboru za pomoci knihovny z příkladu v kapitole \ref{databazeVsouboru}.
-
-Programu zde má přiděleno oprávnění k načtení záznamu "Lucka", nemůže ale přistupovat k s samotným databázovým souborů. K těmto má oprávnění přistupovat jen knihovna zpřístupňující tuto databázi. Z implementačních důvodů, rozebraných v kapitole \ref{implementaceAC}, je nezbytné přidělit také knihovně oprávnění ke všem záznamům v databázi, jinak by jakákoli kontrola oprávněnosti požadavku prováděná v kódu knihovny skončila vždy neúspěšně.
+Tento příklad ukazuje jednoduchou bezpečnostní politiku, opět v kontextu příkladu knihovny pro přístup k databázi z kapitoly \ref{databazeVsouboru}.
 
 \begin{verbatim}
 grant codeBase "file:/srv/program/" {
@@ -352,6 +379,20 @@ grant codeBase "file:/srv/knihovna/" {
   permission java.io.FilePermission "/srv/knihovna/data/-","read,write";
 };
 \end{verbatim}
+
+Programu zde má přiděleno oprávnění k načtení záznamu "Lucka", nemůže ale přistupovat k s samotným databázovým souborů. K těmto má oprávnění přistupovat jen knihovna zpřístupňující tuto databázi. Kvůli způsobu implementace kontroly oprávnění Access controllerem (popsaným v kapitole \ref{implementaceAC}) je nezbytné přidělit knihovně oprávnění ke všem záznamům v databázi, jinak by žádná kontrola oprávněnosti požadavku nemohla skončit pozitivně.
+
+%,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+\subsubsection{Zástupné znaky}
+%'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+URL kořene systému balíčků může být ukončeno zástupnými znaky pomlčka ({\tt -}) a hvězdička ({\tt *}).
+
+Zatímco {\tt /*} odpovídá všem souborům v daném adresáři, {\tt /-} odpovídá všem souborům v daném adresáři i jeho podadresářích, rekurzivně.
+\cite{jdkdocPolicyFiles}
+
+
+
 
 
 
@@ -370,18 +411,15 @@ Způsob použití bude upřesněn v kapitole Soubory bezpečnostní politiky.
 
 
 
-
-\begin{verbatim}
-http://docs.oracle.com/javase/7/docs/api/java/lang/ClassLoader.html
-http://docs.oracle.com/javase/7/docs/api/java/lang/Class.html
-http://docs.oracle.com/javase/jndi/tutorial/beyond/misc/classloader.html
-http://www.linuxsoft.cz/article.php?id_article=1123
-\end{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Možnosti správy JVM v prostředí Red Hat JBoss}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Návrh systému}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
