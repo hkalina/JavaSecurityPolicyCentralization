@@ -391,29 +391,63 @@ URL kořene systému balíčků může být ukončeno zástupnými znaky pomlčk
 Zatímco {\tt /*} odpovídá všem souborům v daném adresáři, {\tt /-} odpovídá všem souborům v daném adresáři i jeho podadresářích, rekurzivně.
 \cite{jdkdocPolicyFiles}
 
+%-----------------------------------------------------------------------------
+\subsection{Nastavení souboru a třídy bezpečnostní politiky}
+%-----------------------------------------------------------------------------
+
+Nastavení souboru a třídy bezpečnostní politiky umožňuje správci nebo uživateli počítače stanovit bezpečnostní politiku aplikovanou na programy v Javě běžící na tomto počítači bez potřeby znalostí programování.
+
+Toto nastavení se provádí úpravou konfiguračního souboru {\tt java.security}, jehož přesné umístění je platformně závislé. Typicky je v umístění {\tt \$JRE\_HOME/lib/security/java.policy} pro celý systém, nebo v umístění {\tt \$USER\_HOME/.java.policy} pro jednotlivé uživatele. \cite{refSecurity}
+Jeho význačnější proměnné jsou: \cite[5.3.1]{oaks}
+
+\begin{verbatim}
+policy.provider=sun.security.provider.PolicyFile
+policy.url.1=file:${java.home}/lib/security/java.policy
+policy.url.2=file:${user.home}/.java.policy
+\end{verbatim}
+
+V tomto souboru lze tedy globálně nastavit používanou třídu bezpečnostní politiky a adresu standardně používaného souboru bezpečnostní politiky pro celý systém nebo vybraného uživatele.
+
+Bezpečnostní politiku je dále možné rozšířit při startu JVM o vlastní soubor bezpečnostní politiky úpravou konfigurační proměnné parametrem příkazu jímž program budeme spouštět: \cite[5.3.1]{oaks}
+
+\begin{verbatim}
+java -Djava.security.policy=dalsi_soubor_politiky.policy ProgramABC
+\end{verbatim}
+
+V tomto případě bude uvedený soubor bezpečnostní politiky použit zároveň s výše uvedeným standardním souborem bezpečnostní politiky. Chceme-li standardní soubor bezpečnostní politiky zcela nahradit, stačí namísto rovnítka v definici konfigurační proměnné použít rovnítka dvě: \cite[5.3.1]{oaks}
+
+\begin{verbatim}
+java -Djava.security.policy==jediny_soubor_politiky.policy ProgramABC
+\end{verbatim}
+
+Obsah této konfigurační proměnné je možné změnit také za běhu programu, má-li daná část programu potřebná oprávnění:
+
+\begin{verbatim}
+System.setProperty("java.security.policy", "jiny_soubor_politky.policy");
+\end{verbatim}
+
+Tato konfigurační proměnná je čtena při inicializaci Access controlleru. Na jejím základě je následně soubor bezpečnostní politiky načten a aplikován. Chceme-li soubor bezpečnostní politiky vyměnit za běhu, pouhá změna obsahu této konfigurační proměnné proto nestačí -- je třeba zapříčinit nové načtení souboru bezpečnostní politiky. K tomuto účelu je možné použít metodu třídy {\tt Policy}, která právě toto provádí:
+
+\begin{verbatim}
+Policy.getPolicy().refresh();
+\end{verbatim}
+
+Problémem je, že tato metoda je označena jako nedoporučovaná (deprecated), protože je implementačně závislá -- zatímco u implementace používající soubory bezpečnostní politiky správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. Navíc i v případě různých implementací politiky založené na souborech se může chovat odlišně, například v závislosti na strategii vyrovnávací paměti kolekce oprávnění ({\tt PermissionCollection}) -- může znovunačíst bezpečnostní politiku pro celou JVM, ale také třeba jen pro danou ochranou doménu. \cite{refPolicy}
 
 
-
-
-
-Rozdíl mezi - a * na konci adresy atd...
-
-Povolované operace jsou definovány za pomoci tří kritérií: \cite{jdkdocPolicyFiles}
-
-\begin{itemize}
-  \item {\tt permission\_class\_name}: Typ oprávnění -- název podtřídy třídy {\tt Permission}.
-  \item {\tt target\_name}: Název zdroje -- souboru, serveru a portu apod.
-  \item {\tt action}: Název povolované operace, např. {\tt read} pro čtení a {\tt delete} pro smazání souboru.
-\end{itemize}
-
-Způsob použití bude upřesněn v kapitole Soubory bezpečnostní politiky.
-
-
+ŘEŠENÍ?
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Možnosti správy JVM v prostředí Red Hat JBoss}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+V distribuovaném prostředí Red Hat JBoss Application Server jsou aplikační servery seskupeny v tzv. doméně.
+Doména je tvořena skupinou počítačů, tzv. hostitelů (hosts), z niž jeden je nakonfigurován jako řadič domény (domain controller).
+Na každém hostiteli může běžet více virtuálních serverů (JVM), přičemž každý virtuální server poskytuje své služby na své sadě portů.
+Každý virtuální server je členem jedné skupiny serverů (server group), které jsou typické stejnou skladbou nainstalovaných aplikací (deployments).
+
+
 
 
 
@@ -430,4 +464,8 @@ Způsob použití bude upřesněn v kapitole Soubory bezpečnostní politiky.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Závěr}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
 
