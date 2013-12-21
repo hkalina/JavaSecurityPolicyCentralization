@@ -1,0 +1,4 @@
+/* Bezpecnostni politika povolujici vsechno vsem */
+grant {
+  permission java.security.AllPermission;
+};
