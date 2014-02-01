@@ -16,7 +16,7 @@ class Program {
     
   }
   
-  // nahrade deprecated metody Policy.refresh()
+  // nahrada deprecated metody Policy.refresh()
   private static void refreshReplacement(){
     try{
       Class classOfPolicy = Policy.getPolicy().getClass();
