@@ -388,7 +388,7 @@ Programu zde má přiděleno oprávnění k načtení záznamu "Lucka", nemůže
 
 URL kořene systému balíčků může být ukončeno zástupnými znaky pomlčka ({\tt -}) a hvězdička ({\tt *}).
 
-Zatímco {\tt /*} odpovídá všem souborům v daném adresáři, {\tt /-} odpovídá všem souborům v daném adresáři i jeho podadresářích, rekurzivně.
+Zatímco {\tt /*} odpovídá všem souborům v daném adresáři, {\tt /-} odpovídá všem souborům v daném adresáři i jeho podadresářích, rekurzivně. V obou případech jsou zahrnuty jak soubory tříd ({\tt .class}), tak i celé archivy tříd ({\tt .jar}/{\tt .war}/{\tt .ear}).
 \cite{jdkdocPolicyFiles}
 
 %-----------------------------------------------------------------------------
@@ -406,9 +406,9 @@ policy.url.1=file:${java.home}/lib/security/java.policy
 policy.url.2=file:${user.home}/.java.policy
 \end{verbatim}
 
-V tomto souboru lze tedy globálně nastavit používanou třídu bezpečnostní politiky a adresu standardně používaného souboru bezpečnostní politiky pro celý systém nebo vybraného uživatele.
+V tomto souboru lze tedy globálně nastavit používanou třídu bezpečnostní politiky a adresu standardně používaného souboru bezpečnostní politiky pro celý systém nebo uživatele systému, pod kterým JVM běží.
 
-Bezpečnostní politiku je dále možné rozšířit při startu JVM o vlastní soubor bezpečnostní politiky úpravou konfigurační proměnné parametrem příkazu jímž program budeme spouštět: \cite[5.3.1]{oaks}
+Bezpečnostní politiku je dále možné rozšířit při startu JVM o vlastní soubor bezpečnostní politiky úpravou konfigurační proměnné parametrem příkazu, jímž program budeme spouštět: \cite[5.3.1]{oaks}
 
 \begin{verbatim}
 java -Djava.security.policy=dalsi_soubor_politiky.policy ProgramABC
@@ -434,18 +434,22 @@ Policy.getPolicy().refresh();
 
 Problémem je, že tato metoda je označena jako nedoporučovaná (deprecated), protože je implementačně závislá -- zatímco u implementace používající soubory bezpečnostní politiky správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. Navíc i v případě různých implementací politiky založené na souborech se může chovat odlišně, například v závislosti na strategii vyrovnávací paměti kolekce oprávnění ({\tt PermissionCollection}) -- může znovunačíst bezpečnostní politiku pro celou JVM, ale také třeba jen pro danou ochranou doménu. \cite{refPolicy}
 
-
-%ŘEŠENÍ?
-
+Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy} -- {\tt sun.security.provider.PolicyFile}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Možnosti správy JVM v prostředí Red Hat JBoss}
+\chapter{JVM v prostředí Red Hat JBoss}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Wildfly, dříve známý jako JBoss AS, je aplikační server -- poskytuje běhové prostředí aplikacím............... \cite{theServerSideAppServer}
 
 V distribuovaném prostředí Red Hat JBoss Application Server jsou aplikační servery seskupeny v tzv. doméně.
 Doména je tvořena skupinou počítačů, tzv. hostitelů (hosts), z niž jeden je nakonfigurován jako řadič domény (domain controller).
-Na každém hostiteli může běžet více virtuálních serverů (JVM), přičemž každý virtuální server poskytuje své služby na své sadě portů.
+Na každém hostiteli může běžet více virtuálních serverů (JVM), přičemž každý virtuální server poskytuje své služby a služby svých aplikací na své sadě portů.
 Každý virtuální server je členem jedné skupiny serverů (server group), které jsou typické stejnou skladbou nainstalovaných aplikací (deployments).
+
+
+
+
 
 
 
