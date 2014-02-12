@@ -437,20 +437,32 @@ Problémem je, že tato metoda je označena jako nedoporučovaná (deprecated), 
 Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy} -- {\tt sun.security.provider.PolicyFile}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{JVM v prostředí Red Hat JBoss}
+\chapter{Prostředí Red Hat JBoss}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Wildfly, dříve známý jako JBoss AS, je aplikační server -- poskytuje běhové prostředí aplikacím............... \cite{theServerSideAppServer}
 
-V distribuovaném prostředí Red Hat JBoss Application Server jsou aplikační servery seskupeny v tzv. doméně.
-Doména je tvořena skupinou počítačů, tzv. hostitelů (hosts), z niž jeden je nakonfigurován jako řadič domény (domain controller).
-Na každém hostiteli může běžet více virtuálních serverů (JVM), přičemž každý virtuální server poskytuje své služby a služby svých aplikací na své sadě portů.
-Každý virtuální server je členem jedné skupiny serverů (server group), které jsou typické stejnou skladbou nainstalovaných aplikací (deployments).
 
+Wildfly je schopno tvořit distribuované prostředí -- takzvanou doménu. Doména je tvořena skupinou hostitelů (hosts). Hostitelem je jedna instalace Wildfly, přičemž na jediném počítači může běžet více instalací Wildfly, typicky však jeden hostitel odpovídá jednomu počítači.
 
+Jeden z hostitelů plní funkci doménového řadiče (domain controller). Tento hostitel je nositelem jediného platného konfiguračního souboru domény ({\tt domain.xml}). Každý z hostitelů je konfigurován svým konfiguračním souborem ({\tt host.xml}), jež určuje zda-li je hostitel doménovým řadičem nebo v opačném případě adresu doménového řadiče na kterém by se hostitel měl registrovat. \cite{jbossDomainSetup}
 
+Na každém hostiteli může běžet více serverů -- instancí aplikačního serveru běžících ve vlastních JVM. Každý server má vlastní jméno, jímž se registruje v doméně, sadu portů na kterých poskytuje své služby a JVM ve které běží. \cite{jbossDomainSetup}
 
+Server je také zařazen do jedné ze skupin serverů, jež jsou definovány v konfiguračním souboru domény. Přiřazení serveru do skupiny je součástí definice serveru v konfiguračním souboru hostitele. \cite{jbossDomainSetup}
 
+Skupiny serverů tedy seskupují servery napříč hostiteli s některými společnými vlastnostmi -- aplikace (deployment) je typicky nasazována na celou skupinu serverů najednou a konfigurace skupiny umožňuje provést nastavení (např. nastavit parametr JVM) na všech serverech skupiny najednou. \cite{jbossDomainSetup}
+
+%-----------------------------------------------------------------------------
+\subsection{Použití Security Manageru}
+%-----------------------------------------------------------------------------
+
+Nakonfigurovat použití Security manageru na aplikační server Wildfly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností při startu JVM. To je nejjednodušeji možné udělat přidáním parametru příkazu {\tt java} do spoštěcího skriptu Wildfly (standalone.sh/domain.sh/standalone.bat/domain.bat):
+
+\begin{verbatim}
+JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
+JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
+\end{verbatim}
 
 
 
