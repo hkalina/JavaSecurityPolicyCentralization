@@ -43,7 +43,7 @@ Díky tomu, že programy nepřistupují ani nemohou přistupovat ke zdrojům fyz
 Protože programy v JVM mohou k fyzickým zdrojům počítače (např. k souborům nebo k síti) přistupovat jen skrze JVM, zablokování takového přístupu ze strany JVM není nikterak složité - JVM stačí odmítnout takový požadavek a interpretovaný program nemá možnost JVM obejít.
 
 %=============================================================================
-\section{Java Security Manager}
+\section{Java Security Manager} \label{securityManager}
 %=============================================================================
 
 Pro maximální nastavitelnost omezení kladených na programy běžících na virtuáních strojích Javy nerozhoduje o povolení nebo zablokování operace nad zdrojem JVM samotná JVM, ale dotazuje se speciálního objektu třídy {\tt java.lang.SecurityManager}, nebo jeho podtřídy.
@@ -392,7 +392,7 @@ Zatímco {\tt /*} odpovídá všem souborům v daném adresáři, {\tt /-} odpov
 \cite{jdkdocPolicyFiles}
 
 %-----------------------------------------------------------------------------
-\subsection{Nastavení souboru a třídy bezpečnostní politiky}
+\subsection{Nastavení souboru a třídy bezpečnostní politiky}\label{souborPolitiky}
 %-----------------------------------------------------------------------------
 
 Nastavení souboru a třídy bezpečnostní politiky umožňuje správci nebo uživateli počítače stanovit bezpečnostní politiku aplikovanou na programy v Javě běžící na tomto počítači bez potřeby znalostí programování.
@@ -437,7 +437,7 @@ Problémem je, že tato metoda je označena jako nedoporučovaná (deprecated), 
 Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy} -- {\tt sun.security.provider.PolicyFile}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Prostředí Red Hat JBoss}
+\chapter{Distribuované prostředí Red Hat JBoss}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Wildfly, dříve známý jako JBoss AS, je aplikační server -- poskytuje běhové prostředí aplikacím............... \cite{theServerSideAppServer}
@@ -453,18 +453,34 @@ Server je také zařazen do jedné ze skupin serverů, jež jsou definovány v k
 
 Skupiny serverů tedy seskupují servery napříč hostiteli s některými společnými vlastnostmi -- aplikace (deployment) je typicky nasazována na celou skupinu serverů najednou a konfigurace skupiny umožňuje provést nastavení (např. nastavit parametr JVM) na všech serverech skupiny najednou. \cite{jbossDomainSetup}
 
+
+
+
+
 %-----------------------------------------------------------------------------
 \subsection{Použití Security Manageru}
 %-----------------------------------------------------------------------------
 
-Nakonfigurovat použití Security manageru na aplikační server Wildfly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností při startu JVM. To je nejjednodušeji možné udělat přidáním parametru příkazu {\tt java} do spoštěcího skriptu Wildfly (standalone.sh/domain.sh/standalone.bat/domain.bat):
+Nakonfigurovat použití Security manageru na aplikační server Wildfly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu Wildfly (standalone.sh / domain.sh / standalone.bat / domain.bat) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné tak dosáhneme nastavení použití Security manageru a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
 
 \begin{verbatim}
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{verbatim}
 
+Je-li účelem nasazení bezpečnostních politik na aplikační server omezení uživatelských aplikací, je možné modulům samotného aplikačního serveru přidělit všechna oprávnění a dále se zabývat jen oprávněními těchto aplikací. Pro takový případ je nutné přidělit oprávnění {\tt AllPermission} ochraným doménám s kořenem balíčků v umístěních odpovídajících modulům aplikačního serveru:
 
+\begin{verbatim}
+grant codeBase "file:${jboss.home.dir}/jboss-modules.jar" {
+    permission java.security.AllPermission;
+};
+grant codeBase "file:${jboss.home.dir}/bundles/-" {
+    permission java.security.AllPermission;
+};
+grant codeBase "file:${jboss.home.dir}/modules/-" {
+    permission java.security.AllPermission;
+};
+\end{verbatim}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

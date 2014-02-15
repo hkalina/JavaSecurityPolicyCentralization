@@ -19,5 +19,8 @@
 * [The policy class, default policy class - PolicyFile](http://docstore.mik.ua/orelly/java-ent/security/ch05_03.htm)
 * [Java Authentication and Authorization Service - včetně bezpečnostních politik](http://cs.wikipedia.org/wiki/Java_Authentication_and_Authorization_Service)
 
-
 * [JBoss - model, VFS, classloading](http://soa.dzone.com/articles/a-look-inside-jboss-microconta)
+
+* [AS8:  JBoss Security Manager Implementation Plan](https://community.jboss.org/wiki/AS8JBossSecurityManagerImplementationPlan)
+* [EAP 5.1 : Running under the Java Security Manager](https://community.jboss.org/wiki/EAP51RunningUnderTheJavaSecurityManager)
+* [8.7. Running JBoss with a Java 2 security manager](https://docs.jboss.org/jbossas/docs/Server_Configuration_Guide/4/html/Security_on_JBoss-Running_JBoss_with_a_Java_2_security_manager.html)
