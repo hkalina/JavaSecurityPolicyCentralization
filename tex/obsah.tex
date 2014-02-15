@@ -43,22 +43,22 @@ Díky tomu, že programy nepřistupují ani nemohou přistupovat ke zdrojům fyz
 Protože programy v JVM mohou k fyzickým zdrojům počítače (např. k souborům nebo k síti) přistupovat jen skrze JVM, zablokování takového přístupu ze strany JVM není nikterak složité - JVM stačí odmítnout takový požadavek a interpretovaný program nemá možnost JVM obejít.
 
 %=============================================================================
-\section{Java Security Manager} \label{securityManager}
+\section{Java security manager} \label{securityManager}
 %=============================================================================
 
-Pro maximální nastavitelnost omezení kladených na programy běžících na virtuáních strojích Javy nerozhoduje o povolení nebo zablokování operace nad zdrojem JVM samotná JVM, ale dotazuje se speciálního objektu třídy {\tt java.lang.SecurityManager}, nebo jeho podtřídy.
+Pro maximální nastavitelnost omezení kladených na programy běžících na virtuáních strojích Javy nerozhoduje o povolení nebo zablokování operace nad zdrojem JVM samotná JVM, ale dotazuje se speciálního objektu třídy {\it java.lang.SecurityManager}, nebo jeho podtřídy.
 
-Podtřída je třída dědící atributy a metody (operace, přijímané zprávy) své nadtřídy a reference na její instanci může být vložena do proměnné určené pro referenci na její nadtřídu. Jakákoli podtřída třídy SecurityManager tedy bude vždy přijímat všechny zprávy, které přijimá třída SecurityManager, přičemž ty, které nebude sama implementovat, budou přejaty z její nadtřídy SecurityManager.
+Podtřída je třída dědící atributy a metody (operace, přijímané zprávy) své nadtřídy a reference na její instanci může být vložena do proměnné určené pro referenci na její nadtřídu. Jakákoli podtřída třídy {\it SecurityManager} tedy bude vždy přijímat všechny zprávy, které přijimá třída {\it SecurityManager}, přičemž ty, které nebude sama implementovat, budou přejaty z její nadtřídy {\it SecurityManager}.
 
-Security manager, který JVM použije při svém startu lze ovlivnit skrze konfigurační proměnnou JVM -- {\tt java.security.manager}. Za běhu je možné aktuálně používaný Security manager zjistit voláním {\tt System.getSecurityManager() } a vypnout nebo vyměnit voláním {\tt System.setSecurityManager()}. Volání těchto metod bývá samo chráněno Security managerem, takže nehrozí že by se program neoprávněně zbavil omezení, které na něj uvalil Security manager vypnutím nebo vyměněním Security manageru.
+Security manager, který JVM použije při svém startu lze ovlivnit skrze konfigurační proměnnou JVM -- {\it java.security.manager}. Za běhu je možné aktuálně používaný security manager zjistit voláním {\it System.getSecurityManager() } a vypnout nebo vyměnit voláním {\it System.setSecurityManager()}. Volání těchto metod je samo chráněno security managerem, takže nehrozí, že by se program neoprávněně zbavil omezení, které na něj uvalil security manager jeho vypnutím nebo výměnou.
 
-Hodnotu konfigurační proměnné {\tt java.security.manager} po startu JVM je možné nastavit za pomoci k tomu určeného parametru {\tt -D}. Pro spuštění programu s výchozím Security managerem můžeme tedy použít příkaz:
+Hodnotu konfigurační proměnné {\it java.security.manager} po startu JVM je možné nastavit za pomoci k tomu určeného parametru {\tt -D}. Pro spuštění programu s výchozím security managerem můžeme tedy použít příkaz:
 
 \begin{verbatim}
 java -Djava.security.manager=default ProgramABC
 \end{verbatim}
 
-Základní možné hodnoty proměnné {\tt java.security.manager} a jim odpovídající třídy objektů security managera popisuje následující tabulka.
+Základní možné hodnoty proměnné {\it java.security.manager} a jim odpovídající třídy objektů security manageru popisuje následující tabulka.
 
 \begin{center}
     \begin{tabular}{| l | l |}
@@ -73,7 +73,7 @@ Základní možné hodnoty proměnné {\tt java.security.manager} a jim odpovíd
     \end{tabular}
 \end{center}
 
-Poslední řádek demonstruje použití vlastní třídy objektu security managera. Způsob vytvoření vlastního Security manageru bude podrobněji rozebrán v další kapitole. Jestliže je zde uvedena neexistující třída, skončí inicializace JVM vyjímkou a vykonávání programu nebude vůbec zahájeno:
+Poslední řádek demonstruje použití vlastní třídy objektu security manageru. Způsob vytvoření vlastní třídy security manageru bude podrobněji rozebrán v další kapitole. Jestliže je zde uvedena neexistující třída, skončí inicializace JVM vyjímkou a vykonávání programu nebude vůbec zahájeno:
 
 \begin{verbatim}
 Error occurred during initialization of VM
@@ -84,28 +84,28 @@ java.lang.InternalError: Could not create SecurityManager: neexistujici.SM
     at java.lang.ClassLoader.getSystemClassLoader(ClassLoader.java:1468)
 \end{verbatim}
 
-Tím že je zabráněno startu JVM v případě chybné konfigurace Security manageru -- je tedy uplatněn bezpečnostní princip, podle kterého musí systém zůstat bezpečný i v případě poruchového stavu.
+Tím, že je zabráněno startu JVM v případě chybné konfigurace security manageru, je tedy uplatněn bezpečnostní princip, kdy systém zůstane bezpečný i v případě poruchového stavu.
 
 %=============================================================================
 \section{Implementace vlastního Security manageru}
 %=============================================================================
 
-V této podkapitole bude vysvětlen způsob stanovení bezpečnostní politiky vytvořením vlastního Security manageru.
-Security manager je objekt, na který JVM při požadavku Java API deleguje rozhodnutí o povolení nebo nepovolení operace nad zdrojem.
-Tento objekt je instancí třídy {\tt java.lang.SecurityManager} nebo její podtřídy.
+V této podkapitole bude vysvětlen způsob stanovení bezpečnostní politiky vytvořením vlastního security manageru.
+Security manager je objekt, na který JVM při požadavku na Java API deleguje rozhodnutí o povolení nebo nepovolení operace nad zdrojem.
+Tento objekt musí být instancí třídy {\it java.lang.SecurityManager} nebo její podtřídy. \cite{tutorialsTSM}
 Algoritmus používaný Java API pro rozhodnutí o vykonání nebo nevykonání potenciálně nebezpečné operace je následující: \cite[4.1.1]{oaks}
 
 \begin{enumerate}
-  \item Uživatelská aplikace žádá Java API o provedení dané operace
-  \item Java API se dotáže Security manageru zda operaci povolit zavoláním patřičné metody Security manageru.
-  \item Nemá-li být operace povolena, vrátí Security manager vyjímku {\tt SecurityException}, která je předána uživatelské aplikaci, čímž je vykonání operace zabráněno.
+  \item Uživatelská aplikace žádá prostřednictvím Java API o provedení dané operace
+  \item Java API se dotáže security manageru zda operaci povolit zavoláním patřičné metody security manageru.
+  \item Nemá-li být operace povolena, vrátí Security manager vyjímku {\it SecurityException}, která je předána uživatelské aplikaci, čímž je vykonání operace zabráněno.
   \item Není-li vyhozena žádná vyjímka, operace se považuje za povolenou a je provedena.
 \end{enumerate}
 
-Vlastní Security manager tedy vytvoříme rozšířením třídy {\tt SecurityManager}, přičemž přepíšeme metody rozhodující o povolení akce, kterou chceme povolit, nebo pro kterou chceme stanovit vlastní algoritmus rozhodující zda akci povolit nebo ne.
-Protože standardní Security manager implicitně všechny operace zakazuje, stačí nám implementovat metody autorizující provedení operací, které chceme povolit a operacemi které nikdy povolit chtít nebudeme se nebudeme muset zabývat.
+Vlastní Security manager tedy vytvoříme rozšířením třídy {\it SecurityManager}, přičemž přepíšeme metody rozhodující o povolení akce, kterou chceme povolit, nebo pro kterou chceme stanovit vlastní algoritmus rozhodující zda akci povolit nebo ne.
+Protože standardní security manager implicitně všechny operace zakazuje, stačí nám implementovat metody autorizující provedení operací, které chceme povolit a operacemi které nikdy povolit chtít nebudeme se nebudeme muset zabývat.
 
-Příklad níže ukazuje jednoduchý Security manager, který o povolení každé akce rozhodne na základě interakce s uživatelem. Při pokusu programu o provedení potenciálně nebezpečné operace je uživateli zobrazen dotaz, zda chce tuto operaci povolit nebo ne. V případě negativní odpovědi je jejímu provedení vrácením vyjímky {\tt SecurityException} zabráněno.
+Příklad níže ukazuje jednoduchý security manager, který o povolení každé akce rozhodne na základě interakce s uživatelem. Při pokusu programu o provedení potenciálně nebezpečné operace je uživateli zobrazen dotaz, zda chce tuto operaci povolit nebo ne. V případě negativní odpovědi je jejímu provedení vrácením vyjímky {\it SecurityException} zabráněno.
 
 \begin{verbatim}
 public class TestovaciSM extends SecurityManager {
@@ -121,23 +121,23 @@ public class TestovaciSM extends SecurityManager {
 }
 \end{verbatim}
 
-Takto vytvořený Security manager pak můžeme na vlastní program nechat použít za pomoci dříve zmíněného příkazu:
+Takto vytvořený security manager pak můžeme na vlastní program nechat použít za pomoci dříve zmíněného příkazu:
 
 \begin{verbatim}
 System.setSecurityManager(new TestovaciSM());
 \end{verbatim}
 
-Jinak (pro libovolný program) můžeme použití tohoto Security manageru nastavit při startu JVM:
+Jinak (pro libovolný program) můžeme použití tohoto security manageru nastavit při startu JVM:
 
 \begin{verbatim}
 java -Djava.security.manager=TestovaciSM HelloWorld
 \end{verbatim}
 
-Nutno dodat že tato konfigurační proměnná je uplatněna při startu JVM, její změnou za běhu JVM nebude použití Security manageru ovlivněno.
+Nutno dodat že tato konfigurační proměnná je uplatněna při startu JVM, její změnou za běhu JVM nebude použití security manageru ovlivněno.
 
-Zde uvedený Security manager je opravdu pouze demonstrativní, v čemž se můžeme utvrdit, spustíme-li jej nad jednoduchou aplikací Hello world. Množství dotazů kladených na Security manager je i u takto primitivní aplikace příliš velké, než aby je bylo možné nechat zodpovědět uživatelem.
+Zde uvedený security manager je opravdu pouze demonstrativní, v čemž se můžeme utvrdit, spustíme-li jej nad jednoduchou aplikací Hello world. Množství dotazů kladených na security manager je i u takto primitivní aplikace příliš velké, než aby je bylo možné nechat zodpovědět uživatelem.
 
-Stanovení bezpečnostní politiky vytvořením Security manageru ale nepochybně možné je. Vyžaduje ale znalosti programování v Javě od správce počítače na němž JVM běží a od Javy verze 2 se již pro stanovení bezpečnostní politiky nepoužívá.
+Stanovení bezpečnostní politiky vytvořením security manageru ale nepochybně možné je. Vyžaduje ale znalosti programování v Javě od správce počítače na němž JVM běží a od Javy verze 2 se již pro stanovení bezpečnostní politiky nepoužívá.
 
 %=============================================================================
 \section{Zavaděče tříd}
@@ -147,22 +147,22 @@ Než se dostaneme k v současnosti využívanému způsobu stanovování bezpeč
 Ačkoli se na první pohled může zdát, že toto téma s bezpečností příliš nesouvisí, opak je pravdou.
 Jen a pouze zavaděč tříd (classloader), který třídu do paměti zavádí totiž může určit původ třídy, od kterého se oprávnění kódu této třídy odvozuje.
 
-Zavaděč je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy (tedy názvu používaného v bytekódu, např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}) se pokusí vyhledat a načíst třídu daného názvu. \cite{refClassLoader}
+Zavaděč je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy (tedy názvu používaného v bytekódu, např. {\it java.lang.String} nebo {\it java.security.KeyStore\$Builder\$FileBuilder\$1}) se pokusí vyhledat a načíst třídu daného názvu. \cite{refClassLoader}
 
-Třída každého zavaděče musí být podtřídou třídy {\tt java.lang.ClassLoader} a musí implementovat metodu {\tt findClass()}, která provádí právě samotné vyhledání třídy podle názvu. Jejím výstupem je objekt třídy {\tt Class} představující samotnou třídu. Při programování běžných aplikací můžeme na objekty této třídy narazit například při snaze získat název třídy neznámého objektu jako řetězec za běhu aplikace: \cite{refClassLoader}
+Třída každého zavaděče musí být podtřídou třídy {\it java.lang.ClassLoader} a musí implementovat metodu {\it findClass()}, která provádí právě samotné vyhledání třídy podle názvu. Jejím výstupem je objekt třídy {\it Class} představující samotnou třídu. Při programování běžných aplikací můžeme na objekty této třídy narazit například při snaze získat název třídy neznámého objektu jako řetězec za běhu aplikace: \cite{refClassLoader}
 
 \begin{verbatim}
 Class tridaObjektuX = x.getClass();
 String nazevTridyObjektuX = c.getName();
 \end{verbatim}
 
-Každý objekt v Javě si totiž uchovává referenci na svoji třídu, již zmíněný objekt třídy {\tt Class}, obsahující mimo jiného také právě název třídy ve formě textového řetězce.
+Každý objekt v Javě si totiž uchovává referenci na svoji třídu, již zmíněný objekt třídy {\it Class}, obsahující mimo jiného také právě název třídy ve formě textového řetězce.
 
-Jako původ třídy ({\tt CodeSource}) souhrně označujeme URL adresu, ze které byla třída získána, a elektronické podpisy, kterými přitom byl její JAR archiv opatřen.
+Jako původ třídy ({\it CodeSource}) souhrně označujeme URL adresu, ze které byla třída získána, a elektronické podpisy, kterými přitom byl její JAR archiv opatřen.
 Na základě původu je třída zařazena do ochranné domény. Mají-li dvě třídy stejný původ, je jim přiřazena stejná ochranná doména. \cite[5.1]{oaks}\cite{sourceSecureClassLoader}
 
-Ochranná doména ({\tt ProtectionDomain}) je uskupení zdrojových kódů a oprávnění, které jsou tomuto kódu udělena.
-Speciálním případem je tzv. systémová ochranná doména, do které spadají třídy zavedení interním zavaděčem tříd (viz. \ref{interniZavadec}), jejiž reference na ochrannou doménu je nastavena na {\tt null} a jejich oprávnění nejsou omezené. \cite[5.4]{oaks}
+Ochranná doména ({\it ProtectionDomain}) je uskupení zdrojových kódů a oprávnění, které jsou tomuto kódu udělena.
+Speciálním případem je tzv. systémová ochranná doména, do které spadají třídy zavedení interním zavaděčem tříd (viz. \ref{interniZavadec}), jejiž reference na ochrannou doménu je nastavena na {\it null} a jejich oprávnění nejsou omezené. \cite[5.4]{oaks}
 
 %-----------------------------------------------------------------------------
 \subsection{Interní zavaděč tříd} \label{interniZavadec}
@@ -178,21 +178,21 @@ Je-li tedy JVM spuštěna následujícím příkazem:
 java -classpath /srv/classes muj.program.Test
 \end{verbatim}
 
-Bude spuštěna metoda {\tt main()} třídy {\tt Test}, jež bude hledána v souboru:
+Bude spuštěna třídní metoda {\it main()} třídy {\it Test}, jež bude hledána v souboru:
 
 \begin{verbatim}
 /srv/classes/muj/program/Test.class
 \end{verbatim}
 
-O třídách načtených interním zavaděčem se často mluví jako o třídách bez zavaděče, protože jejich objekt {\tt Class} má referenci na zavaděč nastavenu na {\tt null}. \cite[3.2.1]{oaks} Zároveň je {\tt null}ová také ochranná doména takto načtených tříd. Třídy načtené interním zavaděčem tak nemají svá oprávnění omezena.
+O třídách načtených interním zavaděčem se často mluví jako o třídách bez zavaděče, protože jejich objekt {\it Class} má referenci na zavaděč nastavenu na {\it null}. \cite[3.2.1]{oaks} Zároveň je {\it null}ová také ochranná doména takto načtených tříd. Třídy načtené interním zavaděčem tak nemají svá oprávnění omezena.
 
-Interní zavaděč je v současnosti používán k načítání jen nejzákladnějších tříd, zejména tříd Java API, tedy tříd používajících součásti napsané v nativním kódu. Ostatní třídy z {\tt CLASSPATH} jsou obvykle načítány Zavaděčem tříd z URL.
+Interní zavaděč je v současnosti používán k načítání jen nejzákladnějších tříd, zejména tříd Java API, tedy tříd používajících součásti napsané v nativním kódu. Ostatní třídy z {\it CLASSPATH} jsou obvykle načítány Zavaděčem tříd z URL.
 
 %-----------------------------------------------------------------------------
 \subsection{Zavaděč tříd z URL}
 %-----------------------------------------------------------------------------
 
-Zavaděč tříd z URL ({\tt URLClassLoader}) hledá třídy také na URL adresách určených polem objektů {\tt URL}, předaných jeho kontruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě -- používá se i k vyhledávání méně základních tříd z {\tt CLASSPATH} a dokáže třídy načítat nejen z adresářů, ale i z JAR archivů, je-li jako adresa uvedena adresa JAR archivu. \cite[3.2.5]{oaks}
+Zavaděč tříd z URL ({\it URLClassLoader}) hledá třídy také na URL adresách určených polem objektů {\it URL}, předaných jeho kontruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě -- používá se i k vyhledávání méně základních tříd z {\it CLASSPATH} a dokáže třídy načítat nejen z adresářů, ale i z JAR archivů, je-li jako adresa uvedena adresa JAR archivu. \cite[3.2.5]{oaks}
 
 \begin{verbatim}
 URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{
@@ -201,7 +201,7 @@ URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{
 }, parentClassloader);
 \end{verbatim}
 
-Zavaděč tříd z URL je jedním z bezpečných zavaděčů ({\tt SecureClassLoader}). To znamená že automaticky nastavuje ochranou doménu třídám, které načítá.
+Zavaděč tříd z URL je jedním z bezpečných zavaděčů ({\it SecureClassLoader}). To znamená že automaticky nastavuje ochranou doménu třídám, které načítá.
 Ochranná doména která bude zvolena závisí na následujících parametrech: \cite{refPolicyFiles}
 
 \begin{itemize}
@@ -216,23 +216,23 @@ Třídy, které mají všechny tyto parametry společné, patří do stejné och
 \section{Access Controller a soubory bezpečnostní politiky}
 %=============================================================================
 
-Access controller je mechanismus využívající ochranné domény tříd, který standardní Security manager (od Javy verze 2) využívá pro rozhodnutí, zda operaci požadovanou uživatelským programem povolit či nikoliv. Aby tedy byla aplikována omezení stanovená Access controller, musí být JVM spuštěna se standardním Security managerem. \cite[5]{oaks}
+Access controller je mechanismus využívající ochranné domény tříd, který standardní security manager (od Javy verze 2) využívá pro rozhodnutí, zda operaci požadovanou uživatelským programem povolit či nikoliv. Aby tedy byla aplikována omezení stanovená {\tt Access controller}em, musí být JVM spuštěna se standardním security managerem. \cite[5]{oaks}
 
-Access controller, stejně jako Security manager, umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zda však již nejsou jen zdroje samotné JVM. Access controller mohou využívat i uživatelské procesy pro omezení přístupu ke zdrojům, které poskytují. \cite[5]{oaks}
+Access controller, stejně jako security manager, umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zda však již nejsou jen zdroje samotné JVM. Access controller mohou využívat i uživatelské procesy pro omezení přístupu ke zdrojům, které poskytují. \cite[5]{oaks}
 
 Máme-li tedy knihovní třídu zprostředkovávající přístup k databázi v souboru po záznamech, při použití oprávnění jen na úrovni Java API by bylo možné programu přidělovat oprávnění jen k celému souboru. Access controller ale umožňuje považovat jednotlivé záznamy databáze v souboru za samostatné zdroje, čímž umožňuje různým programům přidělit oprávnění jen k vybraným záznamům v databázovém souboru.
 
-Access controller je schopný pravidla bezpečnostní politiky načítat z textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky. Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky, kterou budou programy v JVM omezeny -- namísto tvorby vlastní třídy Security manageru bude pro stanovení bezpečnostní politiky stačit upravovat obsah souboru bezpečnostní politiky. \cite[5]{oaks}
+Access controller je schopný pravidla bezpečnostní politiky načítat z textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky. Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky, kterou budou programy v JVM omezeny -- namísto tvorby vlastní třídy security manageru bude pro stanovení bezpečnostní politiky stačit upravovat obsah souboru bezpečnostní politiky. \cite[5]{oaks}
 
 Ochraná doména (Protection Domain) je uskupení zdrojových kódů a oprávnění, které jsou tomuto kódu udělena. Každá třída spadá vždy do jedné ochrané domény, která jí je přidělena zavaděčem při jejím načítání. Jen zavaděč totiž zná původ třídy, na základě kterého jsou třídy ochraným doménám přidělovány. Speciálním případem jsou třídy zavedené interním zavaděčem (viz. \ref{interniZavadec}), které spadají do systémové ochrané domény a mají tak vždy povoleno vše. \cite[5.4]{oaks}
 
-Access controller rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochraných domén tříd metod, jež vedly k zavolání metody provádějící citlivou operaci a dotazující se na její legálnost Access controlleru, ať už přímo nebo skrze Security manager.
+Access controller rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochraných domén tříd metod, jež vedly k zavolání metody provádějící citlivou operaci. Na legálnost operace se access controlleru může dotazovat samotná volaná metoda (voláním metody {\it checkPermission()}), nebo security manager na základě dotazu na legálnost aplikace od Java API.
 
 %-----------------------------------------------------------------------------
 \subsection{Implementace Access Controlleru}\label{implementaceAC}
 %-----------------------------------------------------------------------------
 
-Access controller je implementován třídou {\tt AccessController} a voláním jeho statických metod na něj standardní Security manager deleguje rozhodnutí o legálnosti provedení potenciálně nežádoucí operace uživatelského programu. Konkrétně kontrolu obstarává metoda {\tt checkPermission(Permission)}, která v případě neoprávněnosti požadavku na provedení operace způsobí vyhození vyjímky {\tt AccessControlException}. Jejím vstupem je objekt třídy {\tt Permission}, která reprezentuje oprávnění, jehož vlastnictví je testováno. \cite[5.5]{oaks}\cite[6]{oaks}
+Access controller je implementován třídou {\it AccessController} a voláním jeho statických metod na něj standardní security manager deleguje rozhodnutí o legálnosti provedení potenciálně nežádoucí operace uživatelského programu. Konkrétně kontrolu obstarává metoda {\it checkPermission(Permission)}, která v případě neoprávněnosti požadavku na provedení operace způsobí vyhození vyjímky {\it AccessControlException}. Jejím vstupem je objekt třídy {\it Permission}, která reprezentuje oprávnění, jehož vlastnictví je testováno. \cite[5.5]{oaks}\cite[6]{oaks}
 
 Následující příklad ukazuje způsob, jakým se může kód dotázat Access controlleru, zdali má zadané oprávnění: \cite[5.5]{oaks}
 
@@ -248,7 +248,7 @@ try {
 }
 \end{verbatim}
 
-Access controller rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochraných domén tříd metod, jež vedly k zavolání metody {\tt checkPermission()}. Konkrétně jde o metody nacházející se během volání {\tt checkPermission()} na zásobníku volání (Stack trace). Volala-li tedy metoda {\tt main} třídy {\tt Main} metodu {\tt secured} třídy {\tt Secured}, která následně zavolala metodu {\tt checkPermission()}, musí mít požadované oprávnění přiděleny ochrané domény tříd {\tt Main} i {\tt Secured}, aby toto volání neskončilo vyjímkou vyjadřující zamítnutí provedení operace ze strany Access controlleru. \cite[5.5]{oaks}\cite[6.1]{oaks}
+Access controller rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochraných domén tříd metod, jež vedly k zavolání metody {\it checkPermission()}. Konkrétně jde o metody nacházející se během volání {\it checkPermission()} na zásobníku volání (Stack trace). Volala-li tedy metoda {\it main} třídy {\it Main} metodu {\it secured} třídy {\it Secured}, která následně zavolala metodu {\it checkPermission()}, musí mít požadované oprávnění přiděleny ochrané domény tříd {\it Main} i {\it Secured}, aby toto volání neskončilo vyjímkou vyjadřující zamítnutí provedení operace ze strany Access controlleru. \cite[5.5]{oaks}\cite[6.1]{oaks}
 
 
 %Access controller je založen na čtyř konceptech: \cite[5]{oaks}
@@ -278,7 +278,7 @@ Právě tento problém řeší privilegované bloky kódu. Kód v privilegované
 \subsubsection{Příklad použití privilegovaného bloku}
 %'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-Vykonávání privilegovaného bloku je implementováno jako nativní metoda Access controlleru {\tt doPrivileged()}, které je předán objekt (pod)třídy {\tt PrivilegedAction}, jehož metoda {\tt run()} je spuštěna privilegovaně, tedy bez ohledu na oprávnění třídy volající metodu obsahující vykonání privilegovaného bloku.
+Vykonávání privilegovaného bloku je implementováno jako nativní metoda Access controlleru {\it doPrivileged()}, které je předán objekt (pod)třídy {\it PrivilegedAction}, jehož metoda {\it run()} je spuštěna privilegovaně, tedy bez ohledu na oprávnění třídy volající metodu obsahující vykonání privilegovaného bloku.
 Tento příklad ukazuje jednoduchý příklad použití privilegovaného bloku: \cite{refAccessController}
 
 \begin{verbatim}
@@ -327,8 +327,8 @@ Díky tomu nebudou oprávnění k datovým souborům vyžadována od kódu volaj
 
 Třída oprávnění představuje typ zdroje, ke kterému lze přidělovat oprávnění.
 
-Třída oprávnění musí být podtřídou třídy {\tt Permission}. Pro snazší implementaci je místo ní možné použít její podtřídu {\tt BasicPermission}.
-Aby ji bylo možné použít, musí být definován její konstruktor odpovídající parametrům oprávnění předávaným souborem bezpečnostní politiky a musí být veřejně přístupná -- opatřená specifikátorem přístupu {\tt public}.
+Třída oprávnění musí být podtřídou třídy {\it Permission}. Pro snazší implementaci je místo ní možné použít její podtřídu {\it BasicPermission}.
+Aby ji bylo možné použít, musí být definován její konstruktor odpovídající parametrům oprávnění předávaným souborem bezpečnostní politiky a musí být veřejně přístupná -- opatřená specifikátorem přístupu {\it public}.
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 \subsubsection{Příklad třídy oprávnění}
@@ -351,9 +351,9 @@ public class ZaznamPermission extends java.security.BasicPermission {
 Tato kapitola popisuje implementaci bezpečnostních politik za pomoci souborů bezpečnostní politiky.
 
 Soubor bezpečnostní politiky se skládá z deklarací původů tříd a jim přidělovaných oprávnění.
-Původ třídy je zde stanoven na základě podpisu JAR archivu z kterého byla třída získána (direktiva {\tt signedBy}), URL kořene systému balíčků tříd, ze kterého byla třída získána (direktiva {\tt codeBase}) nebo obou těchto kritérií najednou. \cite[5.3.1]{oaks}
+Původ třídy je zde stanoven na základě podpisu JAR archivu z kterého byla třída získána (direktiva {\it signedBy}), URL kořene systému balíčků tříd, ze kterého byla třída získána (direktiva {\it codeBase}) nebo obou těchto kritérií najednou. \cite[5.3.1]{oaks}
 
-Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je definována následovně: \cite[5.3.1]{oaks}
+Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\it PolicyFile}, je definována následovně: \cite[5.3.1]{oaks}
 
 \begin{verbatim}
 grant [signedBy <podepsaný>] [, codeBase <kořen balíčků>] {
@@ -397,7 +397,7 @@ Zatímco {\tt /*} odpovídá všem souborům v daném adresáři, {\tt /-} odpov
 
 Nastavení souboru a třídy bezpečnostní politiky umožňuje správci nebo uživateli počítače stanovit bezpečnostní politiku aplikovanou na programy v Javě běžící na tomto počítači bez potřeby znalostí programování.
 
-Toto nastavení se provádí úpravou konfiguračního souboru {\tt java.security}, jehož přesné umístění je platformně závislé. Typicky je v umístění {\tt \$JRE\_HOME/lib/security/java.policy} pro celý systém, nebo v umístění {\tt \$USER\_HOME/.java.policy} pro jednotlivé uživatele. \cite{refSecurity}
+Toto nastavení se provádí úpravou konfiguračního souboru {\it java.security}, jehož přesné umístění je platformně závislé. Typicky je v umístění {\it \$JRE\_HOME/lib/security/java.policy} pro celý systém, nebo v umístění {\it \$USER\_HOME/.java.policy} pro jednotlivé uživatele. \cite{refSecurity}
 Jeho význačnější proměnné jsou: \cite[5.3.1]{oaks}
 
 \begin{verbatim}
@@ -426,26 +426,25 @@ Obsah této konfigurační proměnné je možné změnit také za běhu programu
 System.setProperty("java.security.policy", "jiny_soubor_politky.policy");
 \end{verbatim}
 
-Tato konfigurační proměnná je čtena při inicializaci Access controlleru. Na jejím základě je následně soubor bezpečnostní politiky načten a aplikován. Chceme-li soubor bezpečnostní politiky vyměnit za běhu, pouhá změna obsahu této konfigurační proměnné proto nestačí -- je třeba zapříčinit nové načtení souboru bezpečnostní politiky. K tomuto účelu je možné použít metodu třídy {\tt Policy}, která právě toto provádí:
+Tato konfigurační proměnná je čtena při inicializaci Access controlleru. Na jejím základě je následně soubor bezpečnostní politiky načten a aplikován. Chceme-li soubor bezpečnostní politiky vyměnit za běhu, pouhá změna obsahu této konfigurační proměnné proto nestačí -- je třeba zapříčinit nové načtení souboru bezpečnostní politiky. K tomuto účelu je možné použít metodu třídy {\it Policy}, která právě toto provádí:
 
 \begin{verbatim}
 Policy.getPolicy().refresh();
 \end{verbatim}
 
-Problémem je, že tato metoda je označena jako nedoporučovaná (deprecated), protože je implementačně závislá -- zatímco u implementace používající soubory bezpečnostní politiky správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. Navíc i v případě různých implementací politiky založené na souborech se může chovat odlišně, například v závislosti na strategii vyrovnávací paměti kolekce oprávnění ({\tt PermissionCollection}) -- může znovunačíst bezpečnostní politiku pro celou JVM, ale také třeba jen pro danou ochranou doménu. \cite{refPolicy}
+Problémem je, že tato metoda je označena jako nedoporučovaná (deprecated), protože je implementačně závislá -- zatímco u implementace používající soubory bezpečnostní politiky správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. Navíc i v případě různých implementací politiky založené na souborech se může chovat odlišně, například v závislosti na strategii vyrovnávací paměti kolekce oprávnění ({\it PermissionCollection}) -- může znovunačíst bezpečnostní politiku pro celou JVM, ale také třeba jen pro danou ochranou doménu. \cite{refPolicy}
 
-Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy} -- {\tt sun.security.provider.PolicyFile}.
+Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\it Policy} -- {\it sun.security.provider.PolicyFile}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Distribuované prostředí Red Hat JBoss}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Wildfly, dříve známý jako JBoss AS, je aplikační server -- poskytuje běhové prostředí aplikacím............... \cite{theServerSideAppServer}
+Wildfly, dříve známý jako JBoss AS, je aplikační server standardu Java EE. Poskytuje běhové prostředí Java EE aplikacím.
 
+Instalace Wildfly je možné spojit do domény a vytvořit tak distribuované prostředí. Každou instalaci Wildfly pak nazýváme hostitelem. Doména je tedy skupinou hostitelů (hosts), přičemž na jediném počítači může teoreticky běžet více hostitelů. Typicky však jeden hostitel odpovídá jednomu počítači.
 
-Wildfly je schopno tvořit distribuované prostředí -- takzvanou doménu. Doména je tvořena skupinou hostitelů (hosts). Hostitelem je jedna instalace Wildfly, přičemž na jediném počítači může běžet více instalací Wildfly, typicky však jeden hostitel odpovídá jednomu počítači.
-
-Jeden z hostitelů plní funkci doménového řadiče (domain controller). Tento hostitel je nositelem jediného platného konfiguračního souboru domény ({\tt domain.xml}). Každý z hostitelů je konfigurován svým konfiguračním souborem ({\tt host.xml}), jež určuje zda-li je hostitel doménovým řadičem nebo v opačném případě adresu doménového řadiče na kterém by se hostitel měl registrovat. \cite{jbossDomainSetup}
+Jeden z hostitelů plní funkci doménového řadiče (domain controller). Tento hostitel je nositelem jediného platného konfiguračního souboru domény ({\it domain.xml}). Každý z hostitelů je konfigurován svým konfiguračním souborem ({\it host.xml}), jež určuje zda-li je hostitel doménovým řadičem nebo v opačném případě adresu doménového řadiče na kterém by se hostitel měl registrovat. \cite{jbossDomainSetup}
 
 Na každém hostiteli může běžet více serverů -- instancí aplikačního serveru běžících ve vlastních JVM. Každý server má vlastní jméno, jímž se registruje v doméně, sadu portů na kterých poskytuje své služby a JVM ve které běží. \cite{jbossDomainSetup}
 
@@ -458,17 +457,17 @@ Skupiny serverů tedy seskupují servery napříč hostiteli s některými spole
 
 
 %-----------------------------------------------------------------------------
-\subsection{Použití Security Manageru}
+\subsection{Použití security manageru}
 %-----------------------------------------------------------------------------
 
-Nakonfigurovat použití Security manageru na aplikační server Wildfly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu Wildfly (standalone.sh / domain.sh / standalone.bat / domain.bat) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné tak dosáhneme nastavení použití Security manageru a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
+Nakonfigurovat použití security manageru na aplikační server Wildfly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\it -D} příkazu {\it java}. Ve spouštěcím skriptu Wildfly (standalone.sh / domain.sh / standalone.bat / domain.bat) je pro tyto potřeby používána proměnná {\it JAVA\_OPTS}. Připojením parametrů na konec této proměnné tak dosáhneme nastavení použití security manageru a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
 
 \begin{verbatim}
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{verbatim}
 
-Je-li účelem nasazení bezpečnostních politik na aplikační server omezení uživatelských aplikací, je možné modulům samotného aplikačního serveru přidělit všechna oprávnění a dále se zabývat jen oprávněními těchto aplikací. Pro takový případ je nutné přidělit oprávnění {\tt AllPermission} ochraným doménám s kořenem balíčků v umístěních odpovídajících modulům aplikačního serveru:
+Je-li účelem nasazení bezpečnostních politik na aplikační server omezení uživatelských aplikací, je možné modulům samotného aplikačního serveru přidělit všechna oprávnění a dále se zabývat jen oprávněními těchto aplikací. Pro takový případ je nutné přidělit oprávnění {\it AllPermission} ochraným doménám s kořenem balíčků v umístěních odpovídajících modulům aplikačního serveru:
 
 \begin{verbatim}
 grant codeBase "file:${jboss.home.dir}/jboss-modules.jar" {
