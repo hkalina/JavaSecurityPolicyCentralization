@@ -228,6 +228,12 @@ Ochraná doména (Protection Domain) je uskupení zdrojových kódů a oprávně
 
 Access controller rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochraných domén tříd metod, jež vedly k zavolání metody provádějící citlivou operaci. Na legálnost operace se access controlleru může dotazovat samotná volaná metoda (voláním metody {\it checkPermission()}), nebo security manager na základě dotazu na legálnost aplikace od Java API.
 
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=10cm]{fig/security-schema}
+  \caption{Schéma vzájemných souvislostí tříd zajišťujících bezpečnost v Javě}
+\end{figure}
+
 %-----------------------------------------------------------------------------
 \subsection{Implementace Access Controlleru}\label{implementaceAC}
 %-----------------------------------------------------------------------------
@@ -351,7 +357,7 @@ public class ZaznamPermission extends java.security.BasicPermission {
 Tato kapitola popisuje implementaci bezpečnostních politik za pomoci souborů bezpečnostní politiky.
 
 Soubor bezpečnostní politiky se skládá z deklarací původů tříd a jim přidělovaných oprávnění.
-Původ třídy je zde stanoven na základě podpisu JAR archivu z kterého byla třída získána (direktiva {\it signedBy}), URL kořene systému balíčků tříd, ze kterého byla třída získána (direktiva {\it codeBase}) nebo obou těchto kritérií najednou. \cite[5.3.1]{oaks}
+Původ třídy je zde stanoven na základě podpisu JAR archivu z kterého byla třída získána (direktiva {\it signedBy}), URL kořene systému balíčků tříd (packages), ze kterého byla třída získána (direktiva {\it codeBase}) nebo obou těchto kritérií najednou. \cite[5.3.1]{oaks}
 
 Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\it PolicyFile}, je definována následovně: \cite[5.3.1]{oaks}
 
@@ -362,7 +368,16 @@ grant [signedBy <podepsaný>] [, codeBase <kořen balíčků>] {
 };
 \end{verbatim}
 
-Deklarace oprávnění se skládá z názvu třídy oprávnění a parametrů jejího konstruktoru oddělených čárkou.
+Deklarace oprávnění se tedy skládá z názvu třídy oprávnění a parametrů jejího konstruktoru oddělených čárkou.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=14cm]{fig/policy-schema}
+  \caption{Schéma tříd podílejících se na politice postavené na souboru politiky.}
+\end{figure}
+
+Standardní implementace bezpečnostní politiky {\it PolicyFile} využívá {\it PolicyParser} pro převod jednotlivých textových bloků {\it grant} do objektové podoby.
+Takto získaný výčet objektů {\it GrantEntry} pak převádí na seznam objektů {\it PolicyEntry}, které ukládá do atributu {\it policyEntries} objektu vnitřní třídy {\it PolicyFile.PolicyInfo}.
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 \subsubsection{Příklad souboru bezpečnostní politiky}
@@ -440,7 +455,7 @@ Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovaným
 \chapter{Distribuované prostředí Red Hat JBoss}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Wildfly, dříve známý jako JBoss AS, je aplikační server standardu Java EE. Poskytuje běhové prostředí Java EE aplikacím.
+Wildfly, dříve známý jako JBoss AS, je aplikační server standardu Java EE. Poskytuje tedy běhové prostředí Java EE aplikacím.
 
 Instalace Wildfly je možné spojit do domény a vytvořit tak distribuované prostředí. Každou instalaci Wildfly pak nazýváme hostitelem. Doména je tedy skupinou hostitelů (hosts), přičemž na jediném počítači může teoreticky běžet více hostitelů. Typicky však jeden hostitel odpovídá jednomu počítači.
 
@@ -483,17 +498,22 @@ grant codeBase "file:${jboss.home.dir}/modules/-" {
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\chapter{Návrh systému}
+\chapter{Návrh systému}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Popis implementace systému}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\chapter{Závěr}
+\chapter{Testování systému}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Závěr}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
