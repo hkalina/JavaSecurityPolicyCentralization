@@ -11,3 +11,11 @@ Create an web application to allow edit and distribute Java Security Manager pol
 
 [ThesisManagement: Java Security Policy Centralization](https://thesis-managementsystem.rhcloud.com/thesis/show/80/java-security-policy-centralization)
 
+Rozsah 30-40 normostran. (1 normostrana = 1800 znaků pro odhad používat 2000 znaků)
+Obrázky se započítávají jako množství textu, které by ve výsledném dokumentu potisklo stejně velkou plochu.
+
+* Formulace cíle
+* Charakteristika současného stavu
+* Teoretická a odborná východiska řešených problémů
+* Specifikace etap
+

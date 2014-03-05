@@ -24,6 +24,9 @@ $(CO).dvi: $(CO).tex $(CO).bib
 	latex -halt-on-error $(CO)
 	latex -halt-on-error $(CO)
 
+znaky:
+	untex obsah.tex | wc -m
+
 desky:
 #	latex desky
 #	dvips desky
