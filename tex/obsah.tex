@@ -499,9 +499,11 @@ grant codeBase "file:${jboss.home.dir}/modules/-" {
 
 Cílem práce je vytvoření systému pro centralizovanou správu a distribuci bezpečnostních politik. Měl by umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény Wildfly a sledovat také, které bezpečnostní politiky jsou právě na kterých serverech domény Wildfly nasazeny.
 
-Jako příhodné se pro tento účel zdá využití rozšiřitelnosti systému Wildfly a implementace zmíněné funkcionality formou subsystému aplikačního serveru Wildfly.
+Jako příhodné se pro tento účel zdá využití rozšiřitelnosti systému Wildfly a implementace zmíněné funkcionality formou subsystému aplikačního serveru Wildfly. Subsystém je rozšířením aplikačního serveru a jeho konfigurace i přítomnost je nastavována zvlášť pro každý profil, přičemž profil je souhrnem konfigurace serveru a je nastavovaný pro celé skupiny serverů. Optimálním řešením by bylo takové rozšíření Widfly, jež by bylo nasazováno a konfigurováno nezávisle na profilech jednotlivých serverů. Takový koncept ale bohužel Wildfly neposkytuje.
 
-Subsystém je rozšířením aplikačního serveru a jeho konfigurace i přítomnost je nastavována zvlášť pro každý profil. Profil je souhrnem konfigurace serveru a je nastavovaný pro celé skupiny serverů.
+%=============================================================================
+\section{Způsob nastavení bezpečnostní politiky}
+%=============================================================================
 
 Uživatel i aplikace mohou se subsystémem komunikovat prostřednictvím JBoss native management API. To je navrženo pro maximální jednoduchost a k nejrůznějším nastavením, které by jinak byly reprezentovány objekty velkého množství tříd, je možné přistupovat jako ke stromu objektů obecných tříd uzel (ModelNode) a vlastnost (Property). Uzly tvoří strom a každý uzel může mít vlastnosti, jež obsahují samotnou konfiguraci aplikačního serveru ve formě textových řetězců (String), do kterých tedy musí být převedeny i hodnoty jiných datových typů. \cite{jbossDetypedManagement}
 
@@ -509,7 +511,31 @@ Klient JBoss native management API, kterým jsou zejména CLI rozhraní Wildfly 
 
 Rozšíření aplikačního serveru, kterým je například subsystém, vykonává svůj kód zejména v reakci na události, které si zaregistruje. Těmito událostmi bývá zpravidla načtení rozšíření a přidání a odebrání subsystému, často také operace nad uživatelským balíčkem (nasazení apod.) nebo právě operace nad definovanou konfigurační vlastností. \cite{jbossExtending}
 
-Jako vhodné řešení bylo tedy zvoleno nasazení bezpečnostní politiky v návaznosti na nastavení hodnoty konfigurační proměnné. Každý server aplikačního serveru bude mít v konfiguračním stromu svůj uzel a jeho vlastnost bude svojí hodnotou určovat soubor bezpečnostní politiky nasazený na daném serveru. Bude tato konfigurační proměnná nedefinovaná, bude to signálem pro nepoužití security manageru.
+Jako vhodné řešení bylo tedy zvoleno nasazení bezpečnostní politiky v návaznosti na nastavení hodnoty konfigurační proměnné. Každý server aplikačního serveru bude mít v konfiguračním stromu svůj uzel a jeho vlastnostmi bude bude určen soubor bezpečnostní politiky, jež by měl být nasazený na daném serveru a také to, zda by měl být security manager pro daný server vůbec zapnutý.
+
+Samotná operace provedení výměny bezpečnostní politiky a případného zapnutí/vypnutí security manageru pak bude spojena s událostí nastavení hodnoty dané vlastnosti. Vlastnosti bude přiřazena metoda, jež má být volána při zápisu do její hodnoty. Ta zajistí výměnu bezpečnostní politiky prostřednictvím k tomu určené třídy, jež bude součástí vytvářeného subsystému.
+
+%=============================================================================
+\section{Způsob šíření souborů bezpečnostní politiky}
+%=============================================================================
+
+Jelikož cílem práce není jen centralizovaná správa, ale i distribuce bezpečnostních politik, je nutné rovněž stanovit způsob, jakým soubory bezpečnostní politiky budou šířeny mezi servery Wildfly domény.
+
+Jako pravděpodobně nejjednoduší řešení, které by bylo možné navrhnout, lze označit vytvoření sdíleného adresáře, jež by byl přístupný z každého serveru domény, například protokolem NFS (Network File System).
+
+S tímto řešením však souvisí hned několik potíží. První z nich je vyšší platformní závislost -- zatímco Widlfy jakožto aplikace v Javě bez problému běží na mnoha platformách a pod různými operačními systémy, protokol NFS není napříč operačními systémy příliš podporován. Tento problém by bylo možné řešit použitím více rozšířeného protokolu umožňujícího vzdálený přístup k souborům, jakým je například FTP.
+
+Druhým problém je ale bezpečnost -- protokol FTP ani NSF samy o sobě nedokáží zaručit autenticitu serveru, ke kterému se klient připojuje. Případný útočník by se tak mohl vydávat za FTP/NFS server na němž jsou bezpečnostní politiky uložené a podvrhnout tak serverům domény vlastní bezpečnostní politiky. Tento problém by mohlo vyřešit použití lépe zabezpečeného protokolu, jakým je například SSH (Secure Shell), umožňující také vzdálený přístup k souborům prostřednictvím SSHFS (SSH Filesystem), nebo FTPS (FTP over SSL), kde se server vůči klientovi autentizuje za pomoci asymetrické kryptografie. \cite[3]{ssh}
+
+Použití těchto lépe zabezpečených protokolů zajistí bezpečnost systému, avšak umocní problém platformních omezení, obzvláště v případě protokolu SSH. Navíc i v případě dokonalého zajištění sdíleného adresáře bezpečnostních politik bude nutné zajistit také bezpečný přenos informací po JBoss Native API, pro bezpečný přenos informace, kterou bezpečnostní politiku má daný server použít.
+
+Budeme-li o této situaci uvažovat jako o řetězci bezpečnosti, dojdeme nejen k tomu, že bude celková bezpečnost odpovídat bezpečnosti nejhůře zabezpečeného článku řetězce, ale také k tomu že tento řetězec je výhodné mít co nejkratší.
+
+Jako výhodné se tak jeví, snažit se o přenos samotných bezpečnostních politik stejným komunikačním kanálem, jako informace, kterou bezpečnostní politiku použít.
+
+
+
+
 
 
 
