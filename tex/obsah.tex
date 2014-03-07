@@ -525,17 +525,15 @@ Jako pravděpodobně nejjednoduší řešení, které by bylo možné navrhnout,
 
 S tímto řešením však souvisí hned několik potíží. První z nich je vyšší platformní závislost -- zatímco Widlfy jakožto aplikace v Javě bez problému běží na mnoha platformách a pod různými operačními systémy, protokol NFS není napříč operačními systémy příliš podporován. Tento problém by bylo možné řešit použitím více rozšířeného protokolu umožňujícího vzdálený přístup k souborům, jakým je například FTP.
 
-Druhým problém je ale bezpečnost -- protokol FTP ani NSF samy o sobě nedokáží zaručit autenticitu serveru, ke kterému se klient připojuje. Případný útočník by se tak mohl vydávat za FTP/NFS server na němž jsou bezpečnostní politiky uložené a podvrhnout tak serverům domény vlastní bezpečnostní politiky. Tento problém by mohlo vyřešit použití lépe zabezpečeného protokolu, jakým je například SSH (Secure Shell), umožňující také vzdálený přístup k souborům prostřednictvím SSHFS (SSH Filesystem), nebo FTPS (FTP over SSL), kde se server vůči klientovi autentizuje za pomoci asymetrické kryptografie. \cite[3]{ssh}
+Druhým problém je ale bezpečnost -- protokoly FTP ani NFS samy o sobě nedokáží zaručit autenticitu serveru, ke kterému se klient připojuje. Případný útočník by se tak mohl vydávat za FTP/NFS server na němž jsou bezpečnostní politiky uložené a podvrhnout tak serverům domény vlastní bezpečnostní politiky. Tento problém by mohlo vyřešit použití lépe zabezpečeného protokolu, jakým je například SSH (Secure Shell), jež umožňuje vzdálený přístup k souborům prostřednictvím SSHFS (SSH Filesystem), nebo FTPS (FTP over SSL), kde se server vůči klientovi autentizuje za pomoci asymetrické kryptografie. \cite[3]{ssh}
 
 Použití těchto lépe zabezpečených protokolů zajistí bezpečnost systému, avšak umocní problém platformních omezení, obzvláště v případě protokolu SSH. Navíc i v případě dokonalého zajištění sdíleného adresáře bezpečnostních politik bude nutné zajistit také bezpečný přenos informací po JBoss Native API, pro bezpečný přenos informace, kterou bezpečnostní politiku má daný server použít.
 
-Budeme-li o této situaci uvažovat jako o řetězci bezpečnosti, dojdeme nejen k tomu, že bude celková bezpečnost odpovídat bezpečnosti nejhůře zabezpečeného článku řetězce, ale také k tomu že tento řetězec je výhodné mít co nejkratší.
+Problém bezpečnosti distribuce bezpečnostních politik je možné si představit jako řetěz. Řetěz je jen tak silný, jak silný je jeho nejslabší článek. Aby byl řetěz silný, je třeba mít silné všechny jeho články -- v tomto případě bezpečnost komunikačního kanálu, po kterém se přenáší soubory bezpečnostních politik a komunikačního kanálu, po kterém se přenáší informace, který soubor bezpečnostní politiky by měl daný server použít.
 
-Jako výhodné se tak jeví, snažit se o přenos samotných bezpečnostních politik stejným komunikačním kanálem, jako informace, kterou bezpečnostní politiku použít.
+Touto úvahou lze dojít k závěru, že optimálním řešením je minimalizovat počet článků řetězu -- sloučit tyto dva komunikační kanály do jediného a nadále řešit bezpečnost jen tohoto jediného komunikačního kanálu.
 
-
-
-
+Toto lze implementovat za pomoci uzlů konfiguračního stromu jednotlivých politik představujících jednotlivé soubory politik. Vlastností tohoto uzlu by pak obsah samotného souboru bezpečnostní politiky. Soubory bezpečnostní politiky by pak mohly uloženy jen a pouze v konfiguračním stromu Wildfly, nebo by mohly zůstat soubory souborového systému na doménovém řadiči a být do konfiguračního stromu nahrávány naším subsystémem na straně doménového řadiče.
 
 
 
