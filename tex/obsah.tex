@@ -25,7 +25,7 @@ Scott Oaks definuje ve své knize Java Security bezpečnost jako souhrn následu
   \item Dbaní na dobré vychování - programům by mělo být bráněno v užívání příliš mnoha systémových prostředků.
 \end{itemize}
 
-V souvislosti s víceuživatelskými prostředími se pak pojem bezpečnosti vyskytuje ještě v další rovině, kdy nejde o bezpečí před běžícím programem, ale o způsob jakým může naopak program ověřit, kdo je jeho uživatelem a zdali má právo po něm žádat vykonání operace, o jejíž vykonání žádá.
+V souvislosti s víceuživatelskými prostředími se pak pojem bezpečnosti vyskytuje ještě v další rovině, kdy nejde o bezpečí systému před běžící aplikací, ale o způsob jakým může naopak program ověřit, kdo je jeho uživatelem a zdali má právo po něm žádat vykonání operace, o jejíž vykonání žádá.
 
 V této práci se však budeme zabývat bezpečností ve smyslu prvních tří uvedených kritérií, tedy ve smyslu ochrany prostředí a dat hostitele před programy.
 
@@ -467,9 +467,9 @@ Server je také zařazen do jedné ze skupin serverů, jež jsou definovány v k
 
 Skupiny serverů tedy seskupují servery napříč hostiteli s některými společnými vlastnostmi -- aplikace (deployment) je typicky nasazována na celou skupinu serverů najednou a konfigurace skupiny umožňuje provést nastavení (např. nastavit parametr JVM) na všech serverech skupiny najednou. \cite{jbossDomainSetup}
 
-%-----------------------------------------------------------------------------
-\subsection{Použití security manageru}
-%-----------------------------------------------------------------------------
+%=============================================================================
+\section{Použití security manageru}
+%=============================================================================
 
 Nakonfigurovat použití security manageru na aplikační server Wildfly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\it -D} příkazu {\it java}. Ve spouštěcím skriptu Wildfly (standalone.sh / domain.sh / standalone.bat / domain.bat) je pro tyto potřeby používána proměnná {\it JAVA\_OPTS}. Připojením parametrů na konec této proměnné tak dosáhneme nastavení použití security manageru a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
 
@@ -509,7 +509,7 @@ Uživatel i aplikace mohou se subsystémem komunikovat prostřednictvím JBoss n
 
 Klient JBoss native management API, kterým jsou zejména CLI rozhraní Wildfly a Webová konzola Wildfly, tedy musí implementovat jen práci s tímto konfiguračním stromem. Jeho implementace tedy teoreticky nemusí vůbec záviset na typu informace v konfiguračním stromu. V praxi toto ale pochopitelně platí jen pro nízkoúrovňové nástroje sloužící k přímé úpravě konfiguračního stromu, jakým je CLI rozhraní Wildfly. Webová konzola naproti tomu pracuje s více konkrétními třídami objektů, jakými jsou server, skupina (server-group) nebo zdroj dat (datasource). Přestože pracuje se stejným konfiguračním stromem, tvořeným jen těmito dvěma datovými typy, je závislá na struktuře kterou uzly tohoto stromu tvoří. Jednoduchost JBoss native management API je tak znatelná spíše jen na stabilitě tohoto API a knihovně pro práci s ním -- {\it jboss-dmr}. \cite{jbossDetypedManagement}
 
-Rozšíření aplikačního serveru, kterým je například subsystém, vykonává svůj kód zejména v reakci na události, které si zaregistruje. Těmito událostmi bývá zpravidla načtení rozšíření a přidání a odebrání subsystému, často také operace nad uživatelským balíčkem (nasazení apod.) nebo právě operace nad definovanou konfigurační vlastností. \cite{jbossExtending}
+Rozšíření aplikačního serveru, kterým je například subsystém, vykonává svůj kód zejména v reakci na události, které si zaregistruje. Těmito událostmi bývá zpravidla načtení rozšíření a přidání a odebrání subsystému, často také operace nad uživatelským balíčkem (nasazení apod.) nebo právě operace nad definovanou konfigurační vlastností. \cite{wildflyExtending}
 
 Jako vhodné řešení bylo tedy zvoleno nasazení bezpečnostní politiky v návaznosti na nastavení hodnoty konfigurační proměnné. Každý server aplikačního serveru bude mít v konfiguračním stromu svůj uzel a jeho vlastnostmi bude bude určen soubor bezpečnostní politiky, jež by měl být nasazený na daném serveru a také to, zda by měl být security manager pro daný server vůbec zapnutý.
 
@@ -535,12 +535,28 @@ Touto úvahou lze dojít k závěru, že optimálním řešením je minimalizova
 
 Toto lze implementovat za pomoci uzlů konfiguračního stromu jednotlivých politik představujících jednotlivé soubory politik. Vlastností tohoto uzlu by pak obsah samotného souboru bezpečnostní politiky. Soubory bezpečnostní politiky by pak mohly uloženy jen a pouze v konfiguračním stromu Wildfly, nebo by mohly zůstat soubory souborového systému na doménovém řadiči a být do konfiguračního stromu nahrávány naším subsystémem na straně doménového řadiče.
 
+(DOPLNIT PODLE KONECNEHO ROZHODNUTI)
 
+%=============================================================================
+\section{Webové uživatelské rozhraní}
+%=============================================================================
 
+Součástí zadání práce bylo také vytvořit webové rozhraní pro komunikaci s uživatelem. Jelikož je samotné jádro řešení implementováno jako subsystém Wildfly, jako optimální řešení se nabízí implementovat uživatelské rozhraní tohoto subsystému jako rozšíření webové konzoly Wildfly.
+
+Webová konzola Wildfly je standardní součástí aplikačního serveru Wildfly. Je GWT aplikací běžící na straně klienta, ve webovém prohlížeči, a se serverem komunikuje prostřednictvím HTTP Management API. To je alternativou Native API -- plní stejnou funkci, ale běží nad protokolem HTTP. Tělem odpovědí serveru i tělem POST dotazů klienta je JSON reprezentace uzlu konfiguračního stromu ({\it ModelNode}). \cite{wildflyManagementAPIreference}
+
+(DOPLNIT OBRAZEK NAVRHU GUI)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Popis implementace systému}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%=============================================================================
+\section{První etapa}
+%=============================================================================
+
+V rámci první etapy implementace řešení byl implementován jednoduchý subsystém Wildfly za pomoci kostry subsystému z Maven repozitáře, podle dokumentace Wildfly 8 věnující se právě vytváření rozšíření Wildfly. \cite{wildflyExtending}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
