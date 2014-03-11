@@ -516,7 +516,7 @@ Jako vhodné řešení bylo tedy zvoleno nasazení bezpečnostní politiky v ná
 Samotná operace provedení výměny bezpečnostní politiky a případného zapnutí/vypnutí security manageru pak bude spojena s událostí nastavení hodnoty dané vlastnosti. Vlastnosti bude přiřazena metoda, jež má být volána při zápisu do její hodnoty. Ta zajistí výměnu bezpečnostní politiky prostřednictvím k tomu určené třídy, jež bude součástí vytvářeného subsystému.
 
 %=============================================================================
-\section{Způsob šíření souborů bezpečnostní politiky}
+\section{Způsob šíření souborů bezpečnostní politiky} \label{sireniSouboru}
 %=============================================================================
 
 Jelikož cílem práce není jen centralizovaná správa, ale i distribuce bezpečnostních politik, je nutné rovněž stanovit způsob, jakým soubory bezpečnostní politiky budou šířeny mezi servery Wildfly domény.
@@ -538,7 +538,7 @@ Toto lze implementovat za pomoci uzlů konfiguračního stromu jednotlivých pol
 (DOPLNIT PODLE KONECNEHO ROZHODNUTI)
 
 %=============================================================================
-\section{Webové uživatelské rozhraní}
+\section{Webové uživatelské rozhraní} \label{navrhGUI}
 %=============================================================================
 
 Součástí zadání práce bylo také vytvořit webové rozhraní pro komunikaci s uživatelem. Jelikož je samotné jádro řešení implementováno jako subsystém Wildfly, jako optimální řešení se nabízí implementovat uživatelské rozhraní tohoto subsystému jako rozšíření webové konzoly Wildfly.
@@ -557,7 +557,25 @@ Webová konzola Wildfly je standardní součástí aplikačního serveru Wildfly
 
 V rámci první etapy implementace řešení byl implementován jednoduchý subsystém Wildfly za pomoci kostry subsystému z Maven repozitáře, podle dokumentace Wildfly 8 věnující se právě vytváření rozšíření Wildfly. \cite{wildflyExtending}
 
+* Konfigurační uzly server=*
 
+%=============================================================================
+\section{Druhá etapa}
+%=============================================================================
+
+V rámci druhé etapy bylo uživatelské rozhraní pozměněno dle grafického návrhu předvedeného v kapitole \ref{navrhGUI}. [slovní popis gui] V souvislosti s touto změnou bylo nutné rozšířit rovněž subsystém Widlfy. Jeho dosavadní implementace neumožňovala výběr bezpečnostní politiky formou výběru v rozbalovací nabídce.
+
+Výběr formou rozbalovací nabídky vyžaduje od aplikace zobrazující nabídku znalost voleb, mezi nimiž může uživatel provádět výběr. To při dosavadní implementaci subsystému možné nebylo, neboť aplikace běžící na straně webového prohlížeče měla přístup k souborům (tedy i souborům bezpečnostních politik) možný jen právě prostřednicvím subsystému, který doposud přístup k seznamu souborů bezpečnostních politik neumožňoval.
+
+Do konfiguračního stromu subsystému tak vedle dosavadních uzlů server=* popsaných v minulé podkapitole přibyly uzly policy=*, jež reprezentovaly právě jednotlivé soubory bezpečnostní politiky, jež bylo možné jako bezpečnostní politiky jednotlivých serverů nastavit. Tyto uzly nebyly ukládány do konfiguračního XML souboru aplikačního serveru, ale byly při startu serveru vytvářeny načtením seznamu souborů nacházejících se v k tomu určeném adresáři aplikačního serveru.
+
+Hlavní nevýhodou tohoto přístupu byla přetrvávající potřeba zajištění přístupu k souborům bezpečnostních politik uložených na doménovém řadiči, nikoli však již na jednotlivých aplikačních serverech domény. (Více o tomto problému bylo zmíněno v kapitole \ref{navrhGUI}.)
+
+%=============================================================================
+\section{Třetí etapa}
+%=============================================================================
+
+V rámci třetí etapy implementace byl subsystém Wildfly upraven, aby konfigurační strom Wildfly nefungoval jen jako úložiště adres nastavených bezpečnostních politik, ale také jako uložiště samotných bezpečnostních politik. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému}
