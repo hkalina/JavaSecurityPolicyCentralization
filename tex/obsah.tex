@@ -557,25 +557,78 @@ Webová konzola Wildfly je standardní součástí aplikačního serveru Wildfly
 
 V rámci první etapy implementace řešení byl implementován jednoduchý subsystém Wildfly za pomoci kostry subsystému z Maven repozitáře, podle dokumentace Wildfly 8 věnující se právě vytváření rozšíření Wildfly. \cite{wildflyExtending}
 
-* Konfigurační uzly server=*
+Dle tohoto vzoru byl vytvořen subsystém, jehož jedinou funkcí bylo rozšíření konfiguračního stromu o uzly server=* uchovávající informaci o URL bezpečnostních politik, jež by měly být uloženy na jednotlivých serverech domény Wildfly odpovídajících svým jménem jménu tohoto konfiguračního uzlu. Tyto uzly fungovaly jako běžné uzly konfiguračního stromu Widfly -- administrátor měl možnost je vytvářet, odstraňovat a nastavovat jejich vlastnost {\it policy}, jež nesla právě samotnou URL nasazené bezpečnostní politiky.
+
+Na změnu této konfigurační vlastnosti zároveň server domény daný jménem uzlu reagoval právě nasazením dané bezpečnostní politiky, prostřednicvím registrace této události při tvorbě konfigurační vlastnosti {\it policy} uzlu {\it server=*}.
+
+Toho bylo dosaženo vytvořením třídy {\it ServerWriteAttributeHandler} a jejím uvedením v rámci volání provádějícího registraci samotné konfigurační vlastnosti:
+
+\begin{verbatim}
+resourceRegistration.registerReadWriteAttribute(POLICY,
+                null, ServerWriteAttributeHandler.INSTANCE);
+\end{verbatim}
+
+Není stanovena třída (na místě {\it null}) zprostředkovávající čtení tohoto konfigurační vlastnosti. Na čtení této vlastnosti není totiž vázána žádná akce, ani není nutné obsah vracený jako odpověď na pokus o čtení vlastnosti nikterak upravovat a je možné uživatele nechat číst samotnou vlastnost přímo.
+
+Aby byla bezpečnostní politika aplikována nejen na základě akce administrátora, ale také automaticky po startu serveru, byla její aplikace navázána také na akci přidání nového uzlu {\it server=*}. Odstranění takového uzlu pak bude navázáno na odebrání bezpečnostní politiky, stejně jako kdyby byla vlastnost policy nastavena na nedefinovanou.
+
+Obě akce je jsou implementovány jako třídy {\it ServerAdd} a {\it ServerRemove}, jež jsou na uzely typu {\it server=*} navázány skrze parametry konstruktoru třídy definující tento uzel konfiguračního stromu:
+
+\begin{verbatim}
+public class ServerDefinition extends SimpleResourceDefinition {
+    private ServerDefinition() {
+        super(JsmPolicyExtension.SERVER_PATH,
+                JsmPolicyExtension.getResourceDescriptionResolver("server"),
+                ServerAdd.INSTANCE,
+                ServerRemove.INSTANCE);
+    }
+}
+\end{verbatim}
+
+Konfigurační uzly {\it server=*} jsou ukládány do konfiguračního XML souboru domény Widlfly, jak je u konfigurační uzlů Wildfly běžné. Ukládání veškteré konfigurace subsystému je implementováno ve třídě {\it SubsystemParser}.
 
 %=============================================================================
 \section{Druhá etapa}
 %=============================================================================
 
-V rámci druhé etapy bylo uživatelské rozhraní pozměněno dle grafického návrhu předvedeného v kapitole \ref{navrhGUI}. [slovní popis gui] V souvislosti s touto změnou bylo nutné rozšířit rovněž subsystém Widlfy. Jeho dosavadní implementace neumožňovala výběr bezpečnostní politiky formou výběru v rozbalovací nabídce.
+V rámci druhé etapy bylo uživatelské rozhraní pozměněno dle grafického návrhu předvedeného v kapitole \ref{navrhGUI}. V souvislosti s touto změnou bylo nutné rozšířit rovněž subsystém Widlfy. Jeho dosavadní implementace neumožňovala výběr bezpečnostní politiky formou výběru v rozbalovací nabídce.
 
 Výběr formou rozbalovací nabídky vyžaduje od aplikace zobrazující nabídku znalost voleb, mezi nimiž může uživatel provádět výběr. To při dosavadní implementaci subsystému možné nebylo, neboť aplikace běžící na straně webového prohlížeče měla přístup k souborům (tedy i souborům bezpečnostních politik) možný jen právě prostřednicvím subsystému, který doposud přístup k seznamu souborů bezpečnostních politik neumožňoval.
 
-Do konfiguračního stromu subsystému tak vedle dosavadních uzlů server=* popsaných v minulé podkapitole přibyly uzly policy=*, jež reprezentovaly právě jednotlivé soubory bezpečnostní politiky, jež bylo možné jako bezpečnostní politiky jednotlivých serverů nastavit. Tyto uzly nebyly ukládány do konfiguračního XML souboru aplikačního serveru, ale byly při startu serveru vytvářeny načtením seznamu souborů nacházejících se v k tomu určeném adresáři aplikačního serveru.
+Do konfiguračního stromu subsystému tak vedle dosavadních uzlů {\it server=*} popsaných v minulé podkapitole přibyly uzly {\it policy=*}, jež reprezentovaly právě jednotlivé soubory bezpečnostní politiky, jež bylo možné jako bezpečnostní politiky jednotlivých serverů nastavit. Tyto uzly nebyly ukládány do konfiguračního XML souboru aplikačního serveru, ale byly vytvářeny ze seznamu souborů nacházejících se v k tomu určeném adresáři aplikačního serveru.
 
-Hlavní nevýhodou tohoto přístupu byla přetrvávající potřeba zajištění přístupu k souborům bezpečnostních politik uložených na doménovém řadiči, nikoli však již na jednotlivých aplikačních serverech domény. (Více o tomto problému bylo zmíněno v kapitole \ref{navrhGUI}.)
+Toto načítání seznamu souborů nebylo řešeno cestou ideální, za kterou by šlo nejspíše považovat přímé navázání jakéhokoli pokusu o čtení těchto konfiguračních uzlů na programovou obsluhu, jež by umožnila jako přímý výsledek tohoto dotazu vrátit přímo aktuální seznam souborů v adresáři bezpečnostních politik.
+
+Vzhledem k ranosti této verze a odstranění těchto schopností systému v pozdějších etapách vývoje bylo načtení seznamu souborů bezpečnostních politik řešeno přímým vytvořením těchto konfiguračních uzlů při startu aplikačního serveru na základě obsahu adresáře bezpečnostních politik ve chvíli startu aplikačního serveru.
+
+Hlavní nevýhodou tohoto přístupu byla přetrvávající potřeba zajištění přístupu k souborům bezpečnostních politik uložených na doménovém řadiči, nikoli však již na jednotlivých aplikačních serverech domény. Adresář bezpečnostních politik tak bylo nutné napříč aplikačními servery distribuovat jinou cestou. (Podrobněji popsanou v kapitole \ref{navrhGUI} zabývající se návrhem právě způsobu šíření souboru bezpečnostních politik.)
+
+Později odhaleným nedostatkem se pak stal fakt, že do konfigurační vlastnosti {\it policy} byla ukládána absolutní cesta k souboru bezpečnostní politiky, což by výrazně zkomplikovalo ostré nasazení implementovaného systému.
 
 %=============================================================================
 \section{Třetí etapa}
 %=============================================================================
 
-V rámci třetí etapy implementace byl subsystém Wildfly upraven, aby konfigurační strom Wildfly nefungoval jen jako úložiště adres nastavených bezpečnostních politik, ale také jako uložiště samotných bezpečnostních politik. 
+Třetí etapa představuje mezistav v přechodu z druhé etapy do etapy čtvrté, na rozdíl od ostatních etap od svého počátku nebyla plánována jako etapa poslední.
+
+Význam konfigurační vlastnosti {\it policy} uzlu {\it server=*} byl pozměněn. Absolutní URL adresa byla nahrazena jménem uzlu bezpečnostní politiky, {\it policy=*}, jehož atribut "file" nadále obsahoval samotnou absolutní URL adresu.
+
+Nadále tak nestačilo provádět aplikaci bezpečnostní politiky při změně atributu {\it policy} uzlu {\it server=*}, ale bylo nutné bezpečnostní politiku používanou aplikačním serverem vyměnit rovněž při změně obsahu vlastnosti {\it file} uzlu {\it policy=*}.
+
+Toto je řešeno analogicky jako právě v případě akce navázané na změnu atributu uzlu serveru.
+
+
+
+
+
+%=============================================================================
+\section{Čtvrtá etapa}
+%=============================================================================
+
+V rámci třetí etapy implementace byl subsystém Wildfly upraven, aby konfigurační strom Wildfly nefungoval jen jako úložiště adres nastavených bezpečnostních politik, ale také jako uložiště samotných bezpečnostních politik.
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému}
