@@ -533,9 +533,13 @@ Problém bezpečnosti distribuce bezpečnostních politik je možné si předsta
 
 Touto úvahou lze dojít k závěru, že optimálním řešením je minimalizovat počet článků řetězu -- sloučit tyto dva komunikační kanály do jediného a nadále řešit bezpečnost jen tohoto jediného komunikačního kanálu.
 
-Toto lze implementovat za pomoci uzlů konfiguračního stromu jednotlivých politik představujících jednotlivé soubory politik. Vlastností tohoto uzlu by pak obsah samotného souboru bezpečnostní politiky. Soubory bezpečnostní politiky by pak mohly uloženy jen a pouze v konfiguračním stromu Wildfly, nebo by mohly zůstat soubory souborového systému na doménovém řadiči a být do konfiguračního stromu nahrávány naším subsystémem na straně doménového řadiče.
+Toto lze implementovat za pomoci uzlů konfiguračního stromu jednotlivých politik představujících jednotlivé soubory politik. Vlastností tohoto uzlu by pak obsah samotného souboru bezpečnostní politiky. Soubory bezpečnostní politiky by pak mohly být nahrávány do těchto vlastností konfiguračních uzlů na straně doménového řadiče a naopak z nich čteny na straně ostatních členských serverů Wildfly domény.
 
-(DOPLNIT PODLE KONECNEHO ROZHODNUTI)
+Protože však použití standardní třídy bezpečnostní politiky ({\it sun.security.provider.PolicyFile}) vyžaduje soubory bezpečnostní politiky přístupné skrze URL adresu souboru, je na straně členských serverů třeba před aplikací bezpečnostní politiky obsah souboru bezpečnostní politiky zapsat do dočasného souboru.
+
+Protože bude tento postup nezbytné aplikovat na straně členských serverů domény, je zbytečné řešit toto na doménovém řadiči jinak. Ztrácí se tak také většina důvodů pro to, aby byly bezpečnostní politiky na straně doménového řadiče uloženy v souboru souborového systému.
+
+Jako výhodnějším řešením se tedy začíná jevit ukládat bezpečnostní politiky přímo do vlastností konfiguračních uzlů. Tím bude vyřešen i problém, jak ze strany aplikačního serveru detekovat, že byl soubor bezpečnostní politiky změněn. Zatímco v případě souboru by bylo nezbytné se periodicky dotazovat na čas poslední změny tohoto souboru, na změnu hodnoty konfigurační vlastnosti je možné navázat programovou událost, a tím zajistit aplikaci bezpečnostní politiky přímo v návaznosti na změnu hodnoty její konfigurační vlastnosti.
 
 %=============================================================================
 \section{Webové uživatelské rozhraní} \label{navrhGUI}
@@ -545,7 +549,11 @@ Součástí zadání práce bylo také vytvořit webové rozhraní pro komunikac
 
 Webová konzola Wildfly je standardní součástí aplikačního serveru Wildfly. Je GWT aplikací běžící na straně klienta, ve webovém prohlížeči, a se serverem komunikuje prostřednictvím HTTP Management API. To je alternativou Native API -- plní stejnou funkci, ale běží nad protokolem HTTP. Tělem odpovědí serveru i tělem POST dotazů klienta je JSON reprezentace uzlu konfiguračního stromu ({\it ModelNode}). \cite{wildflyManagementAPIreference}
 
-(DOPLNIT OBRAZEK NAVRHU GUI)
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=14cm]{fig/mockup}
+  \caption{Grafický návrh uživatelského rozhraní plánovaného rozšíření WildFly.}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Popis implementace systému}
@@ -609,30 +617,50 @@ Později odhaleným nedostatkem se pak stal fakt, že do konfigurační vlastnos
 \section{Třetí etapa}
 %=============================================================================
 
-Třetí etapa představuje mezistav v přechodu z druhé etapy do etapy čtvrté, na rozdíl od ostatních etap od svého počátku nebyla plánována jako etapa poslední.
+V rámci třetí etapy implementace byl subsystém Wildfly upraven, aby konfigurační strom Wildfly nefungoval jen jako úložiště adres nastavených bezpečnostních politik, ale také jako uložiště samotných bezpečnostních politik.
 
-Význam konfigurační vlastnosti {\it policy} uzlu {\it server=*} byl pozměněn. Absolutní URL adresa byla nahrazena jménem uzlu bezpečnostní politiky, {\it policy=*}, jehož atribut "file" nadále obsahoval samotnou absolutní URL adresu.
+Byl tedy pozměněn význam konfigurační vlastnosti {\it file} uzlu {\it policy=*}. Absulutní URL adresa souboru  bezpečnostní politiky byla nahrazena obsahem souboru bezpečnostní politiky.
+
+Zároveň byl změněn význam konfigurační vlastnosti {\it policy} uzlu {\it server=*}, jež doposud rovněž obsahoval URL adresu souboru bezpečnostní politiky nasazené na daném serveru. Nově byl nahrazen jménem uzlu {\it policy=*}, jehož bezpečnostní politika z jeho vlastnosti {\it file} byla na daný server nově nasazována.
 
 Nadále tak nestačilo provádět aplikaci bezpečnostní politiky při změně atributu {\it policy} uzlu {\it server=*}, ale bylo nutné bezpečnostní politiku používanou aplikačním serverem vyměnit rovněž při změně obsahu vlastnosti {\it file} uzlu {\it policy=*}.
 
-Toto je řešeno analogicky jako právě v případě akce navázané na změnu atributu uzlu serveru.
-
-
-
-
-
-%=============================================================================
-\section{Čtvrtá etapa}
-%=============================================================================
-
-V rámci třetí etapy implementace byl subsystém Wildfly upraven, aby konfigurační strom Wildfly nefungoval jen jako úložiště adres nastavených bezpečnostních politik, ale také jako uložiště samotných bezpečnostních politik.
-
-
-
+Toto je řešeno analogicky jako právě v případě akce navázané na změnu vlastnosti uzlu serveru -- vytvořením třídy {\it PolicyWriteAttributeHandler} a jejím navázáním na vlastnost uzlu bezpečnostní politiky.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Protože cílem této bakalářské práce nebylo jen vytvoření systému umožňujícího správu bezpečnostních politik nasazených na jednotlivých serverech distribuvaného systému ale také jeho otestování, tato kapitola se zabývá vytvořením testů, umožňujících otestovat implementované řešení.
+
+Testování je nedílnou součástí vývoje sofware a je užíváno k odhalení vad software a prokázání, že software dosáhl požadované úrovně kvality v zadaných kritériích. \cite{ivsTest}
+
+Testování je možné dělit do tří kategorií:
+
+\begin{enumerate}
+  \item {\textbf Jednotkové testování (Unit testing)}, kde se testují jednotlivé součásti systému (typicky třídy) zvlášť, v izolaci od ostatních součástí systému -- součásti systému, na kterých testovaná součást závisí jsou během testu nahrazeny jejich napodobeninami. Cílem je odhalit odlišnosti ve fungování součásti oproti specifikaci. \cite{ivsTest}
+  \item {\textbf Integrační testování (Integration testing)}, kde se testují celé podsystémy -- jednotlivé součásti systému ve spojení se součástmi, na kterých testovaná součást závisí. Cílem je odhalit chyby v propojení jednotlivých součástí a v jejich vzájemné interakci. \cite{ivsTest}
+  \item {\textbf Systémové testování (System testing)}, kde se testuje celý systém jako celek. Cílem je odhalit odlišnosti v chování systému vůči jeho specifikaci. \cite{ivsTest}
+\end{enumerate}
+
+
+%=============================================================================
+\section{Jednotkové testování (Unit testing)}
+%=============================================================================
+
+
+%=============================================================================
+\section{Integrační testování (Integration testing)}
+%=============================================================================
+
+
+%=============================================================================
+\section{Systémové testování (System testing)}
+%=============================================================================
+
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
