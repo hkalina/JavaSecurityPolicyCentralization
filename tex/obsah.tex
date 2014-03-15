@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Bezpečnost v Javě}
+\chapter{Bezpečnost v Javě} \label{teoretickyUvod}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %=============================================================================
@@ -468,29 +468,51 @@ Server je také zařazen do jedné ze skupin serverů, jež jsou definovány v k
 Skupiny serverů tedy seskupují servery napříč hostiteli s některými společnými vlastnostmi -- aplikace (deployment) je typicky nasazována na celou skupinu serverů najednou a konfigurace skupiny umožňuje provést nastavení (např. nastavit parametr JVM) na všech serverech skupiny najednou. \cite{jbossDomainSetup}
 
 %=============================================================================
-\section{Použití Java Security Manageru na WildFly}
+\section{Běh WildFly pod Java Security Managerem}
 %=============================================================================
 
 Nakonfigurovat použití security manageru na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\it -D} příkazu {\it java}. Ve spouštěcím skriptu WildFly ({\it standalone.sh} / {\it domain.sh} / {\it standalone.bat} / {\it domain.bat}) je pro tyto potřeby používána proměnná {\it JAVA\_OPTS}. Připojením parametrů na konec této proměnné tak dosáhneme nastavení použití security manageru a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
 
 \begin{verbatim}
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
-JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/WildFly.policy"
+JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{verbatim}
 
-Je-li účelem nasazení bezpečnostních politik na aplikační server omezení uživatelských aplikací, je možné modulům samotného aplikačního serveru přidělit všechna oprávnění a dále se zabývat jen oprávněními těchto aplikací. Pro takový případ je nutné přidělit oprávnění {\it AllPermission} ochranným doménám s kořenem balíčků v umístěních odpovídajících modulům aplikačního serveru:
+Jestliže budeme dále předpokládat, že cílem nasazení bezpečnostních politik na server je omezení možností uživatelských aplikací, můžeme od jemného přidělování jen nejnezbytnějších oprávnění součástem WildFly, které je nezbytně potřebují ustoupit k přidělení všech oprávnění součástem aplikačního serveru. Uživatelské aplikace prozatím ponecháme bez jakýchkoli oprávnění a vyzkoušíme účinky této bezpečnostní politiky:
 
 \begin{verbatim}
 grant codeBase "file:${jboss.home.dir}/jboss-modules.jar" {
-    permission java.security.AllPermission;
-};
-grant codeBase "file:${jboss.home.dir}/bundles/-" {
     permission java.security.AllPermission;
 };
 grant codeBase "file:${jboss.home.dir}/modules/-" {
     permission java.security.AllPermission;
 };
 \end{verbatim}
+
+S použitím této bezpečnostní politiky server WildFly skutečně bez problému nastartoval. Když však na tento server nasadíme aplikaci provádějící například čtení souboru uloženého v adresáři této aplikaci, zjistíme že aplikace nemá problém tento soubor číst. Do souboru ležícího mimo jeho adresář se ale naopak nedostane dokonce ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM bez ohledu na jejich kořen balíčků ({\it codeBase}).
+
+Aplikační server WildFly tedy s 
+
+Na základě znalostí uvedených v kapitole \ref{teoretickyUvod} jsem příčinu hledal 
+
+
+\cite{javaEEspec}
+
+
+
+
+
+
+
+%=============================================================================
+\section{Security manager WildFly}
+%=============================================================================
+
+
+
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -500,6 +522,8 @@ grant codeBase "file:${jboss.home.dir}/modules/-" {
 Cílem práce je vytvoření systému pro centralizovanou správu a distribuci bezpečnostních politik. Měl by umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény WildFly a sledovat také, které bezpečnostní politiky jsou právě na kterých serverech domény WildFly nasazeny.
 
 Jako příhodné se pro tento účel zdá využití rozšiřitelnosti systému WildFly a implementace zmíněné funkcionality formou subsystému aplikačního serveru WildFly. Subsystém je rozšířením aplikačního serveru a jeho konfigurace i přítomnost je nastavována zvlášť pro každý profil, přičemž profil je souhrnem konfigurace serveru a je nastavovaný pro celé skupiny serverů. Optimálním řešením by bylo takové rozšíření WildFly, jež by bylo nasazováno a konfigurováno nezávisle na profilech jednotlivých serverů. Takový koncept ale bohužel WildFly neposkytuje.
+
+Nadále proto budeme předpokládat, že všechny skupiny serverů, v rámci kterých chceme s bezpečnostními politikami manipulovat, používají stejný konfigurační profil.
 
 %=============================================================================
 \section{Způsob nastavení bezpečnostní politiky}
