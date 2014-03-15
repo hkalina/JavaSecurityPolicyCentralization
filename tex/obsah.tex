@@ -556,7 +556,7 @@ Webová konzola Wildfly je standardní součástí aplikačního serveru Wildfly
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Popis implementace systému}
+\chapter{Popis implementace systému} \label{implementace}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %=============================================================================
@@ -638,7 +638,7 @@ Testování je nedílnou součástí vývoje sofware a je užíváno k odhalení
 Testování je možné dělit do tří kategorií:
 
 \begin{enumerate}
-  \item {\textbf Jednotkové testování (Unit testing)}, kde se testují jednotlivé součásti systému (typicky třídy) zvlášť, v izolaci od ostatních součástí systému -- součásti systému, na kterých testovaná součást závisí jsou během testu nahrazeny jejich napodobeninami. Cílem je odhalit odlišnosti ve fungování součásti oproti specifikaci. \cite{ivsTest}
+  \item {\textbf Jednotkové testování (Unit testing)}, kde se testují jednotlivé součásti systému zvlášť, v izolaci od ostatních součástí systému -- součásti systému, na kterých testovaná součást závisí jsou během testu nahrazeny jejich napodobeninami. Cílem je odhalit odlišnosti ve fungování součásti oproti specifikaci. \cite{ivsTest}
   \item {\textbf Integrační testování (Integration testing)}, kde se testují celé podsystémy -- jednotlivé součásti systému ve spojení se součástmi, na kterých testovaná součást závisí. Cílem je odhalit chyby v propojení jednotlivých součástí a v jejich vzájemné interakci. \cite{ivsTest}
   \item {\textbf Systémové testování (System testing)}, kde se testuje celý systém jako celek. Cílem je odhalit odlišnosti v chování systému vůči jeho specifikaci. \cite{ivsTest}
 \end{enumerate}
@@ -648,26 +648,52 @@ Testování je možné dělit do tří kategorií:
 \section{Jednotkové testování (Unit testing)}
 %=============================================================================
 
+Jednotkové testy tedy umožňují testovat jednotlivé jednotky programu, kterými jsou typicky třídy. Každé třídě programu by pak měla být přidělena jedna třída testu, jež by měl ověřit korektnost chování této testované třídy.
+
+Testované jednotky by při jednotkovém testovaní měly být testovány ve vzájemné izolaci. K tomuto účelu se obvykle využívají tzv. mock objekty -- objekty napodobující chování objektů jednotek, od kterých má být testovaná jednotka izolována.
+
+
 
 %=============================================================================
 \section{Integrační testování (Integration testing)}
 %=============================================================================
+
+Integrační testy testují jednotlivé jednotky programu bez jejich vzájemné izolace. Umožňují tak testovat jak samotné testované jednotky, tak i schopnost jejich vzájemné spolupráce.
+
+
 
 
 %=============================================================================
 \section{Systémové testování (System testing)}
 %=============================================================================
 
+Systém jako celek byl testován hlavně na schopnost plnění základních požadavků zadání práce -- schopnosti zapnout a vypnout security manager a vyměnit používanou bezpečnostní politiku.
 
+K tomuto účelu byl vytvořen systémový test umožňující otestovat zmíněné schopnosti na běžícím aplikačním serveru Wildfly s nainstalovaným subsystémem pro nastavení bezpečnostní politiky, jež byl vytvořen v minulé kapitole \ref{implementace}.
 
+Tento test se skládá ze dvou částí -- agenta, aplikace nasazované na testovaný server, a manageru, testu vytvořeného za pomoci knihovny JUnit, řídícího proces samotného testování.
 
+Agent je Java EE aplikací nabízející své služby skrze rozhraní REST. Službami, jež poskytuje, je zejména otestování schopnosti provést vybranou akci z pozice aplikace nasazené na testovaném serveru. Klient rozhraní REST se tedy k této službě může připojit a požádat o otestování schopnosti provést vybranou operaci. Jako odpověď pak dostane informaci, zda-li se provedení této operace zdařilo, nebo zda bylo zmařeno Access controllerem.
 
+Mimo toho tato služba umožňuje manageru zjistit také některé další informace o aplikačním serveru, zjistitelné ze strany aplikace nasazené na tomto aplikačním serveru, jako je aktuálně používaná třída security manageru, používaná třída bezpečnostní politiky, nebo samotná přítomnost agenta na testovaném aplikačním serveru.
+
+Manager je část systémového testu běžící mimo aplikační server. Sestává z testů založených na knihovně JUnit a pomocných tříd {\it Domain} a {\it Server}.
+
+Třída {\it Server} zajišťuje komunikaci manageru s agentem nasazným na testovaném serveru Wildfly prostřednictvím protokolu REST. Některé testy, například testy vzájemného ovlivňování serverů mezi sebou, mohou vyžadovat monitoring více serverů Wildfly najednou. Na každém z nich pak musí být nasazena aplikace agenta a s každým z nich pak bude moci test komunikovat prostřednictvím samostatné instance třídy {\it Server}.
+
+Třída {\it Domain} mezitím zajišťuje komunikace se samotnou doménou aplikačních serverů prostřednicvím protokolu JBoss Native API. Umožňuje manipulovat s konfiguračním stromem Wildfly, zejména přidávat a upravovat hodnoty konfiguračních vlastností uzlů {\it server=*} a {\it policy=*} a tím nasazovat bezpečnostní politiky na jednotlivé servery Wildfly domény.
+
+Určitý problém, jež bylo nutno vyřešit, zde představuje způsob, jakým po skončení každého testu navrátit systém do původního stavu. Jelikož se jedná o testování zvně aplikačního serveru, není pro tento účel možné využít operaci {\it rollback}, jež se běžně automaticky provádí při selhání objektu ošetřujícího událost úpravy konfiguračního uzlu.
+
+Budeme-li však předpokládat že testy budou prováděny na k tomu určené doméně aplikačních serverů, můžeme pominout požadavek na navrácení původní konfigurace po ukončení testování a omezit navrácení do původního stavu na navrácení do stavu s prázdným konfiguračním uzlem subsystému, tedy bez jakýchkoli konfiguračních uzlů 
+{\it server=*} nebo {\it policy=*}.
+
+Další operací objektu domény tak bude navrácení subsystému do počátečního stavu. Toho bude dosaženo spojením operace odstranění uzlu subsystému {\it jsmpolicy} konfiguračního stromu a jeho opětovné přidání.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Závěr}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
+Cílem práce bylo navrhnout, vytvořit a otestovat systém pro centralizovanou správu a distribuci bezpečnostních politik Javy v distribuovaném prostředí aplikačního serveru Wildfly.
 
 
