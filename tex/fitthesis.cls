@@ -349,6 +349,10 @@ Práce je chráněna autorským zákonem a její užití bez udělení oprávně
 
 \newpage\fontfamily{\familydefault}\selectfont%
 %=================================================================================
+\begin{center}
+\includegraphics[width=16cm]{fig/zadani}
+\end{center}
+%=================================================================================
 \makeabstract\makedeclaration
 \clearpage
 \setcounter{tocdepth}{2}\setcounter{page}{1}
