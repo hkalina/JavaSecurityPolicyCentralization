@@ -478,7 +478,7 @@ JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{verbatim}
 
-Jestliže budeme dále předpokládat, že cílem nasazení bezpečnostních politik na server je omezení možností uživatelských aplikací, můžeme od jemného přidělování jen nejnezbytnějších oprávnění součástem WildFly, které je nezbytně potřebují ustoupit k přidělení všech oprávnění součástem aplikačního serveru. Uživatelské aplikace prozatím ponecháme bez jakýchkoli oprávnění a vyzkoušíme účinky této bezpečnostní politiky:
+Jestliže budeme dále předpokládat, že cílem nasazení bezpečnostních politik na server je omezení možností uživatelských aplikací, můžeme od jemného přidělování jen nejnezbytnějších oprávnění součástem WildFly které je nezbytně potřebují, ustoupit k přidělení všech oprávnění všem součástem aplikačního serveru. Uživatelské aplikace nyní ponecháme bez jakýchkoli oprávnění a vyzkoušíme účinky této bezpečnostní politiky:
 
 \begin{verbatim}
 grant codeBase "file:${jboss.home.dir}/jboss-modules.jar" {
@@ -489,18 +489,13 @@ grant codeBase "file:${jboss.home.dir}/modules/-" {
 };
 \end{verbatim}
 
-S použitím této bezpečnostní politiky server WildFly skutečně bez problému nastartoval. Když však na tento server nasadíme aplikaci provádějící například čtení souboru uloženého v adresáři této aplikaci, zjistíme že aplikace nemá problém tento soubor číst. Do souboru ležícího mimo jeho adresář se ale naopak nedostane dokonce ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM bez ohledu na jejich kořen balíčků ({\it codeBase}).
+S použitím této bezpečnostní politiky server WildFly skutečně bez problému nastartuje. Když však na tento server nasadíme aplikaci provádějící kupříkladu čtení souboru uloženého v adresáři této aplikaci, zjistíme že aplikace nemá problém tento soubor číst. Do souboru ležícího mimo jeho adresář se ale naopak nedostane dokonce ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM bez ohledu na jejich kořen balíčků ({\it codeBase}).
 
-Aplikační server WildFly tedy s 
+Protože použijeme-li naopak prázdný soubor bezpečnostní politiky, start server se nezdaří, je očividné že bezpečnostní politika byla nastavena správným způsobem, ale po startu aplikačního serveru byla aplikačním serverem nahrazena.
 
-Na základě znalostí uvedených v kapitole \ref{teoretickyUvod} jsem příčinu hledal 
+%Na základě znalostí uvedených v kapitole \ref{teoretickyUvod} jsem příčinu hledal \cite{javaEEspec}
 
-
-\cite{javaEEspec}
-
-
-
-
+{\it TODO }
 
 
 
