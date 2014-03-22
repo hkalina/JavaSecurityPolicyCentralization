@@ -15,19 +15,19 @@ Protože se tato práce zabývá bezpečností, což je pojem, který lze v růz
 Scott Oaks definuje ve své knize Java Security bezpečnost jako souhrn následujících kritérií: \cite[1.1]{oaks}
 
 \begin{itemize}
-  \item Bezpečí vůči zákeřnému software - programy by neměly být schopny poškodit prostředí hostitelského počítače.
-  \item Bezpečí vůči Velkému bratru - programům by mělo být bráněno ve šmírování uživatele -- programy by neměly být schopny svévolně číst soukromé informace na počítači na kterém běží, ani na síti ke které je tento počítač připojen.
-  \item Autentizace - identita autorů programu by měla být ověřována (typicky pomocí elektronickému podpisu).
-  \item Šifrování - data odesílaná a přijímaná programem by měla být šifrována.
-  \item Auditovatelnost - potenciálně škodlivé operace by měly být vždy zaznamenávány.
-  \item Specifikovanost - program by měla doprovázet specifikace bezpečnostních pravidel, které program dodržuje.
-  \item Verifikovanost - pro prováděné operace by měla být stanovena pravidla, proti kterým by měly být verifikovány.
-  \item Dbaní na dobré vychování - programům by mělo být bráněno v užívání příliš mnoha systémových prostředků.
+  \item {\bf Bezpečí vůči zákeřnému software} -- programy by neměly být schopny poškodit prostředí hostitelského počítače.
+  \item {\bf Bezpečí vůči Velkému bratru} -- programům by mělo být bráněno ve sledování uživatele -- programy by neměly být schopny svévolně číst soukromé informace na počítači na kterém běží, ani na síti ke které je tento počítač připojen.
+  \item {\bf Autentizace} -- identita autorů programu by měla být ověřována (typicky pomocí digitálního podpisu).
+  \item Šifrování -- data odesílaná a přijímaná programem by měla být šifrována.
+  \item Auditovatelnost -- potenciálně škodlivé operace by měly být vždy zaznamenávány.
+  \item Specifikovanost -- program by měla doprovázet specifikace bezpečnostních pravidel, které program dodržuje.
+  \item Verifikovanost -- pro prováděné operace by měla být stanovena pravidla, proti kterým by měly být verifikovány.
+  \item Dbaní na dobré vychování -- programům by mělo být bráněno v užívání příliš mnoha systémových prostředků.
 \end{itemize}
 
 V souvislosti s víceuživatelskými prostředími se pak pojem bezpečnosti vyskytuje ještě v další rovině, kdy nejde o bezpečí systému před běžící aplikací, ale o způsob jakým může naopak program ověřit, kdo je jeho uživatelem a zdali má právo po něm žádat vykonání operace, o jejíž vykonání žádá.
 
-V této práci se však budeme zabývat bezpečností ve smyslu prvních tří uvedených kritérií, tedy ve smyslu ochrany prostředí a dat hostitele před programy.
+Tato práce se zabývá bezpečností ve smyslu prvních tří bodů uvedeného výčtu (uvedeny tučně). Bude se tedy zabývat způsobem ochrany prostředí hostitelského počítače před jeho poškozením nebo neoprávněným sledováním ze strany běžících programů. Právě oprávnění programu pak souvisí s autentizací. Autentizací se myslí ověřování autorství programu. Právě od toho, kdo je autorem programu, se totiž mohou oprávnění programu odvozovat.
 
 %=============================================================================
 \section{Java}
@@ -60,6 +60,9 @@ java -Djava.security.manager=default ProgramABC
 
 Základní možné hodnoty proměnné {\it java.security.manager} a jim odpovídající třídy objektů security manageru popisuje následující tabulka.
 
+\begin{table}[tb]
+\label{parametryJavy}
+\caption{popis tabulky}
 \begin{center}
     \begin{tabular}{| l | l |}
     \hline
@@ -72,17 +75,20 @@ Základní možné hodnoty proměnné {\it java.security.manager} a jim odpovíd
     \hline
     \end{tabular}
 \end{center}
+\end{table}
+
+TODO: Ostatní řádky?
 
 Poslední řádek demonstruje použití vlastní třídy objektu security manageru. Způsob vytvoření vlastní třídy security manageru bude podrobněji rozebrán v další kapitole. Jestliže je zde uvedena neexistující třída, skončí inicializace JVM výjimkou a vykonávání programu nebude vůbec zahájeno:
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Vyjímka při spuštění JVM s neexistujícím správcem bezpečnosti, label=smEx]
 Error occurred during initialization of VM
 java.lang.InternalError: Could not create SecurityManager: neexistujici.SM
     at sun.misc.Launcher.<init>(Launcher.java:106)
     at sun.misc.Launcher.<clinit>(Launcher.java:57)
     at java.lang.ClassLoader.initSystemClassLoader(ClassLoader.java:1486)
     at java.lang.ClassLoader.getSystemClassLoader(ClassLoader.java:1468)
-\end{verbatim}
+\end{lstlisting}
 
 Tím, že je zabráněno startu JVM v případě chybné konfigurace security manageru, je tedy uplatněn bezpečnostní princip, kdy systém zůstane bezpečný i v případě poruchového stavu.
 
@@ -93,6 +99,7 @@ Tím, že je zabráněno startu JVM v případě chybné konfigurace security ma
 V této podkapitole bude vysvětlen způsob stanovení bezpečnostní politiky vytvořením vlastního security manageru.
 Security manager je objekt, na který JVM při požadavku na Java API deleguje rozhodnutí o povolení nebo nepovolení operace nad zdrojem.
 Tento objekt musí být instancí třídy {\it java.lang.SecurityManager} nebo její podtřídy. \cite{tutorialsTSM}
+
 Algoritmus používaný Java API pro rozhodnutí o vykonání nebo nevykonání potenciálně nebezpečné operace je následující: \cite[4.1.1]{oaks}
 
 \begin{enumerate}
@@ -107,19 +114,19 @@ Protože standardní security manager implicitně všechny operace zakazuje, sta
 
 Příklad níže ukazuje jednoduchý security manager, který o povolení každé akce rozhodne na základě interakce s uživatelem. Při pokusu programu o provedení potenciálně nebezpečné operace je uživateli zobrazen dotaz, zda chce tuto operaci povolit nebo ne. V případě negativní odpovědi je jejímu provedení vrácením výjimky {\it SecurityException} zabráněno.
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Jednoduchý testovací správce bezpečnosti, label=TestovaciSM]
 public class TestovaciSM extends SecurityManager {
-    @Override
-    public void checkPermission(Permission permission) {
-        
-        System.out.println("Povolit " + permission.toString() + " ?");
-        if(!askUser()){ // jestliže uživatel nezvolí "ano"
-            throw new SecurityException("Operace byla zakázána uživatelem");
-        }
-        
-    }
+	@Override
+	public void checkPermission(Permission permission) {
+		
+		System.out.println("Povolit " + permission.toString() + " ?");
+		if(!askUser()){ // jestlize uzivatel nezvoli "povolit"
+			throw new SecurityException("Operace byla zakazana uzivatelem");
+		}
+		
+	}
 }
-\end{verbatim}
+\end{lstlisting}
 
 Takto vytvořený security manager pak můžeme na vlastní program nechat použít za pomoci dříve zmíněného příkazu:
 
@@ -135,7 +142,13 @@ java -Djava.security.manager=TestovaciSM HelloWorld
 
 Nutno dodat že tato konfigurační proměnná je uplatněna při startu JVM, její změnou za běhu JVM nebude použití security manageru ovlivněno.
 
-Zde uvedený security manager je opravdu pouze demonstrativní, v čemž se můžeme utvrdit, spustíme-li jej nad jednoduchou aplikací Hello world. Množství dotazů kladených na security manager je i u takto primitivní aplikace příliš velké, než aby je bylo možné nechat zodpovědět uživatelem.
+Zde uvedený security manager je opravdu pouze demonstrativní, v čemž se můžeme utvrdit, spustíme-li jej nad jednoduchou aplikací Hello world. Na správce bezpečnosti bude i v tomto jednoduchém případě kladeno celkem 29 dotazů.
+
+Jelikož samotný výpis textu na standardní výstup není operací kontrolovanou správcem bezpečnosti, je příčinou všech dotazů na správce bezpečnosti inicializace samotného virtuálního stroje Javy.
+
+V 18 případech je příčinou dotazu čtení obsahu konfiguračních proměnných (Property), v 8 případech jde o manipulaci s vlákny (Thread) a ve zbývajících 3 případech jde o čtení samotného souboru spouštěné třídy ({\tt Program.class})
+
+Množství dotazů kladených na správce bezpečnosti je tedy i u takto primitivní aplikace příliš velký, než aby bylo možné nechat je zodpovídat uživatelem a vytvořit tak správce bezpečnosti pracujícího na principu interaktivní protipožární přepážky (firewall).
 
 Stanovení bezpečnostní politiky vytvořením security manageru ale nepochybně možné je. Vyžaduje ale znalosti programování v Javě od správce počítače na němž JVM běží a od Javy verze 2 se již pro stanovení bezpečnostní politiky nepoužívá.
 
