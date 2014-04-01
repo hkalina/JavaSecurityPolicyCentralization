@@ -218,17 +218,27 @@ String nameOfClass = classOfUnknown.getName(); // "java.lang.String"
 
 Každý objekt v Javě si totiž uchovává referenci na svoji třídu, představovanou již zmíněným objektem třídy {\tt Class}. Metody této třídy umožňují získávat různé informace o třídě, jako seznam atributů ({\tt java.lang.reflect.Field}), metod ({\tt java.lang.reflect.Method}), anotací ({\tt java.lang.annotation.Annotation}) nebo vnořených tříd, reprezentovaných opět objektem třídy {\tt Class}.
 
-Původ třídy ({\tt java.security.CodeSource}) zahrnuje:
+%-----------------------------------------------------------------------------
+\subsection{Zdroje kódu a ochranné domény}
+%-----------------------------------------------------------------------------
 
-\begin{enumerate}
-  \item URL adresu, ze které byla třída získána.
-  \item Digitální podpisy, kterými byl JAR archiv, z kterého byla třída získána, opatřen.
-\end{enumerate}
+Zdroj kódu ({\tt java.security.CodeSource}) je souhrnem informací určujících původ třídy: \cite{sourceCodeSource}
 
-Na základě původu je třída zařazena do ochranné domény. Mají-li dvě třídy stejný původ, je jim přiřazena stejná ochranná doména. \cite[5.1]{oaks}\cite{sourceSecureClassLoader}
+\begin{itemize}
+  \item {\tt location}: URL adresa, ze které byla třída načtena.
+  \item {\tt signers} / {\tt certs}: Množina podepsaných autorů a množina jejich certifikátů. Tyto dvě informace jsou vzájemně odvoditelné. Pro vytvoření objektu Zdroje kódu tak postačuje jedna z nich a druhá z ní pak může být kdykoli odvozena.
+\end{itemize}
 
-Ochranná doména ({\tt java.security.ProtectionDomain}) je uskupení zdrojových kódů a oprávnění, které jsou tomuto kódu udělena.
-Speciálním případem je tzv. systémová ochranná doména, do které spadají třídy zavedené interním zavaděčem tříd (viz. \ref{interniZavadec}). Jejich reference na ochrannou doménu je nastavena na {\tt null} a jejich oprávnění nejsou omezené. \cite[5.4]{oaks}
+Ochranná doména ({\tt java.security.ProtectionDomain}) je objektem spojujícím objekt třídy se zdrojem kódu a oprávněními. Konkrétně se skládá z následujících informací: \cite{sourceProtectionDomain}
+
+\begin{itemize}
+  \item {\tt codesource}: Zdroj kódu třídy reprezentovaný výše rozebranou třídou.
+  \item {\tt classloader}: Zavaděč tříd, kterým byla ochranná doména přidělena.
+  \item {\tt principals}: Role uživatele přihlášeného k programu.
+  \item {\tt permissions}: Oprávnění kódu třídy.
+\end{itemize}
+
+Každá třída spadá vždy do jedné ochranné domény, která může být společná více třídám. Za nastavení ochranné domény i zdroje kódu odpovídá zavaděč třídy. Jen ten totiž může původ třídy s znát, protože jen on s jistotou ví, odkud byl její kód získán a jak a zdali byl podepsán.
 
 %-----------------------------------------------------------------------------
 \subsection{Interní zavaděč tříd} \label{interniZavadec}
@@ -246,7 +256,7 @@ java -classpath /srv/classes muj.program.Test
 
 Bude spuštěna třídní metoda {\tt main()} třídy {\tt Test}, jež bude hledána v souboru {\tt /srv/classes/muj/program/Test.class}.
 
-O třídách načtených interním zavaděčem se často mluví jako o třídách bez zavaděče, protože jejich objekt {\tt Class} má referenci na zavaděč nastavenu na {\tt null}. \cite[3.2.1]{oaks} Zároveň je {\tt null}ová také ochranná doména takto načtených tříd. Třídy načtené interním zavaděčem tak nemají svá oprávnění omezena.
+O třídách načtených interním zavaděčem se často mluví jako o třídách bez zavaděče, protože jejich objekt {\tt Class} má referenci na zavaděč nastavenu na {\tt null}. \cite[3.2.1]{oaks} Zároveň je {\tt null}ová také ochranná doména takto načtených tříd. Třídy načtené interním zavaděčem tak nemají svá oprávnění omezena. \cite[5.4]{oaks}
 
 Interní zavaděč je v současnosti používán k načítání jen nejzákladnějších tříd, zejména tříd Java API, tedy tříd používajících součásti napsané v nativním kódu. Ostatní třídy z {\tt CLASSPATH} jsou obvykle načítány Zavaděčem tříd z URL.
 
@@ -266,32 +276,22 @@ Class myClass = classLoader.loadClass("my.package.MyClass");
 \end{lstlisting}
 
 Zavaděč tříd z URL je jedním z bezpečných zavaděčů ({\tt SecureClassLoader}). To znamená že automaticky nastavuje ochranou doménu třídám, které načítá.
-Ochranná doména která bude zvolena závisí na následujících parametrech, souhrně označovaných jako Zdroj kódu ({\tt 
-java.security.CodeSource}): \cite{refPolicyFiles}
 
-\begin{itemize}
-  \item {\tt codeBase}: URL adresa ze které byla třída načtena.
-  \item {\tt signedBy}: Alias podpisu, kterým byl JAR archiv z něhož byla třída načtena podepsán.
-  \item {\tt principal}: Operaci žádá kód spuštěný uživatelem s oprávněním uvedeným v pravidlu bezpečnostní politiky.
-\end{itemize}
-
-Třídy se stejným Zdrojem kódu patří do stejné Ochranné domény a mají tak stejná oprávnění. Navrácení vždy stejného objektu Ochranné domény přitom zajišťuje za pomoci asociativního pole {\tt SecureClassLoader.pdcache}, jehož klíčem je objekt Zdroje kódu a hodnotou objekt Ochranné domény. \cite{sourceSecureClassLoader}
+Třídy se stejným Zdrojem kódu (?) patří do stejné Ochranné domény a mají tak stejná oprávnění. Navrácení vždy stejného objektu Ochranné domény přitom zavaděč zajišťuje pomocí asociativního pole {\tt SecureClassLoader.pdcache}, jehož klíčem je objekt Zdroje kódu a hodnotou objekt Ochranné domény. \cite{sourceSecureClassLoader}
 
 %=============================================================================
 \section{Systém řízení přístupu a soubory bezpečnostní politiky}
 %=============================================================================
 
-Systém řízení přístupu (Access controller) je mechanismus využívající Ochranné domény tříd, který standardní správce bezpečnosti (v Javě verze 2 a novějších) využívá pro rozhodnutí, zda operaci požadovanou uživatelským programem povolit či nikoliv. Aby tedy byla aplikována omezení stanovená systémem řízení přístupu, musí být JVM spuštěna se standardním Správcem bezpečnosti. \cite[5]{oaks}
+Systém řízení přístupu ({\tt Access controller}) je mechanismus využívající Ochranné domény tříd, který standardní správce bezpečnosti (v Javě verze 2 a novějších) využívá pro rozhodnutí, zda operaci požadovanou uživatelským programem povolit či nikoliv. Aby tedy byla aplikována omezení stanovená systémem řízení přístupu, musí být JVM spuštěna se standardním Správcem bezpečnosti. \cite[5]{oaks}
 
-Access controller, stejně jako security manager, umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zda však již nejsou jen zdroje samotné JVM. Access controller mohou využívat i uživatelské procesy pro omezení přístupu ke zdrojům, které poskytují. \cite[5]{oaks}
+Systém řízení přístupu, stejně jako správce bezpečnosti, umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zde však již nejsou jen zdroje samotné JVM -- uživatelské procesy mohou systém řízení přístupu také využívat k omezení přístupu ke zdrojům, jež samy poskytují. \cite[5]{oaks}
 
-Máme-li tedy knihovní třídu zprostředkovávající přístup k databázi v souboru po záznamech, při použití oprávnění jen na úrovni Java API by bylo možné programu přidělovat oprávnění jen k celému souboru. Access controller ale umožňuje považovat jednotlivé záznamy databáze v souboru za samostatné zdroje, čímž umožňuje různým programům přidělit oprávnění jen k vybraným záznamům v databázovém souboru.
+Máme-li tedy například knihovní třídu zprostředkovávající přístup k databázi v souboru po záznamech, při použití oprávnění jen na úrovni Java API by bylo možné programu přidělovat oprávnění jen k celému souboru najednou. Jednotlivé záznamy databáze v souboru je možné považovat za samostatné zdroje a využít systém řízení přístupu k jejich ochraně.
 
-Access controller je schopný pravidla bezpečnostní politiky načítat z textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky. Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky, kterou budou programy v JVM omezeny -- namísto tvorby vlastní třídy security manageru bude pro stanovení bezpečnostní politiky stačit upravovat obsah souboru bezpečnostní politiky. \cite[5]{oaks}
+Systém řízení přístupu je schopný pravidla bezpečnostní politiky načítat z textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky. Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky, kterou budou programy v JVM omezeny -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení bezpečnostní politiky poupravit textový soubor bezpečnostní politiky. \cite[5]{oaks}
 
-Ochranná doména (Protection Domain) je uskupení zdrojových kódů a oprávnění, které jsou tomuto kódu udělena. Každá třída spadá vždy do jedné ochranné domény, která jí je přidělena zavaděčem při jejím načítání. Jen zavaděč totiž zná původ třídy, na základě kterého jsou třídy ochranným doménám přidělovány. Speciálním případem jsou třídy zavedené interním zavaděčem (viz. \ref{interniZavadec}), které spadají do systémové ochranné domény a mají tak vždy povoleno vše. \cite[5.4]{oaks}
-
-Access controller rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochranných domén tříd metod, jež vedly k zavolání metody provádějící citlivou operaci. Na legálnost operace se systému řízení přístupu může dotazovat samotná volaná metoda (voláním metody {\tt checkPermission()}), nebo správce bezpečnosti na základě dotazu na legálnost operace od Java API.
+Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochranných domén tříd metod, jež vedly k zavolání metody provádějící citlivou operaci. Na legálnost operace se systému řízení přístupu může dotazovat samotná volaná metoda (voláním metody {\tt checkPermission()}), nebo správce bezpečnosti na základě dotazu na legálnost operace od Java API.
 
 \begin{figure}[ht]
   \centering
@@ -320,16 +320,6 @@ try {
 \end{lstlisting}
 
 Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochranných domén tříd metod, jež vedly k zavolání metody {\tt checkPermission()}. Konkrétně jde o metody nacházející se během volání {\tt checkPermission()} na zásobníku volání (Stack trace). Volala-li tedy metoda {\tt main} třídy {\tt Main} metodu {\tt secured} třídy {\tt Secured}, která následně zavolala metodu {\tt checkPermission()}, musí mít požadované oprávnění přiděleny ochranné domény tříd {\tt Main} i {\tt Secured}, aby toto volání neskončilo výjimkou vyjadřující zamítnutí provedení operace ze strany Systému řízení přístupu. \cite[5.5]{oaks}\cite[6.1]{oaks}
-
-
-%Access controller je založen na čtyř konceptech: \cite[5]{oaks}
-%
-%\begin{itemize}
-%  \item Zdroje kódu (CodeSource): Objekt představující původ třídy -- adresu URL z které byla získána a certifikáty (elektronické podpisy), kterými byla opatřena %\cite[5.1]{oaks}
-%  \item Oprávnění (Permission): Objekt představující operaci o jejíž povolení se rozhoduje, konkrétně se skládá z trojice: typ oprávnění, název zdroje, povolené akce \cite[5.2]{oaks}
-%  \item Politiky (Policy): Objekt představující souhrn oprávnění udělených danému zdrojovému kódu \cite[5.3]{oaks}
-%  \item Ochranná doména (ProtectionDomain): Objekt představující zdrojové kódy a jejich oprávnění \cite[5.4]{oaks}
-%\end{itemize}
 
 %-----------------------------------------------------------------------------
 \subsection{Privilegované bloky kódu}\label{privilegovaneBloky}
