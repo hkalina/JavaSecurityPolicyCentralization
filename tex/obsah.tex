@@ -261,7 +261,7 @@ O třídách načtených interním zavaděčem se často mluví jako o třídác
 Interní zavaděč je v současnosti používán k načítání jen nejzákladnějších tříd, zejména tříd Java API, tedy tříd používajících součásti napsané v nativním kódu. Ostatní třídy z {\tt CLASSPATH} jsou obvykle načítány Zavaděčem tříd z URL.
 
 %-----------------------------------------------------------------------------
-\subsection{Zavaděč tříd z URL}
+\subsection{Zavaděč tříd z URL} \label{URLClassLoader}
 %-----------------------------------------------------------------------------
 
 Zavaděč tříd z URL ({\tt URLClassLoader}) hledá třídy také na URL adresách určených polem objektů {\tt URL}, předaných jeho konstruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě -- používá se i k vyhledávání méně základních tříd z {\tt CLASSPATH} a dokáže třídy načítat nejen z adresářů, ale i z JAR archivů, je-li jako adresa uvedena adresa JAR archivu. \cite[3.2.5]{oaks}
@@ -418,12 +418,12 @@ Původ třídy je zde stanoven na základě podpisu JAR archivu z kterého byla 
 
 Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je definována následovně: \cite[5.3.1]{oaks}
 
-\begin{verbatim}
-grant [signedBy <podepsaný>] [, codeBase <kořen balíčků>] {
-    permission <třída oprávnění> [<název zdroje> [, <povolované operace>]];
+\begin{lstlisting}[caption=Syntaxe souboru bezpečnostní politiky, label=syntaxeSouboruBP]
+grant [signedBy <autor>] [, codeBase <koren balicku>] {
+    permission <trida opravneni> [<nazev zdroje> [, <povolovane operace>]];
     ...
 };
-\end{verbatim}
+\end{lstlisting}
 
 Deklarace oprávnění se tedy skládá z názvu třídy oprávnění a parametrů jejího konstruktoru oddělených čárkou.
 
@@ -442,7 +442,7 @@ Takto získaný výčet objektů {\tt GrantEntry} pak převádí na seznam objek
 
 Tento příklad ukazuje jednoduchou bezpečnostní politiku, opět v kontextu příkladu knihovny pro přístup k databázi z kapitoly \ref{databazeVsouboru}.
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Příklad souboru bezpečnostní politiky, label=prikladSouboruBP]
 grant codeBase "file:/srv/program/" {
   permission ZaznamPermission "Lucka", "nacteni";
 };
@@ -450,7 +450,7 @@ grant codeBase "file:/srv/knihovna/" {
   permission ZaznamPermission "*", "nacteni";
   permission java.io.FilePermission "/srv/knihovna/data/-","read,write";
 };
-\end{verbatim}
+\end{lstlisting}
 
 Programu zde má přiděleno oprávnění k načtení záznamu \uv{Lucka}, nemůže ale přistupovat k s samotným databázovým souborů. K těm má oprávnění přistupovat jen knihovna zpřístupňující tuto databázi. Kvůli způsobu implementace kontroly oprávnění systémem řízení přístupu (popsaným v kapitole \ref{implementaceAC}) je nezbytné přidělit knihovně oprávnění ke všem záznamům v databázi, jinak by žádná kontrola oprávněnosti požadavku nemohla skončit pozitivně.
 
@@ -538,7 +538,7 @@ Skupiny serverů tedy seskupují servery napříč hostiteli s některými spole
 \section{Běh WildFly pod Java Security Managerem}
 %=============================================================================
 
-Nakonfigurovat použití security manageru na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné tak dosáhneme nastavení použití security manageru a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
+Nakonfigurovat použití Správce bezpečnosti na aplikačním serveru WildFly je možné stejně jako na jekékoli jiné aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné tak dosáhneme nastavení použití security manageru a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
 
 \begin{verbatim}
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
@@ -556,25 +556,61 @@ grant codeBase "file:${jboss.home.dir}/modules/-" {
 };
 \end{verbatim}
 
-S použitím této bezpečnostní politiky server WildFly skutečně bez problému nastartuje. Když však na tento server nasadíme aplikaci provádějící kupříkladu čtení souboru uloženého v adresáři této aplikaci, zjistíme že aplikace nemá problém tento soubor číst. Do souboru ležícího mimo jeho adresář se ale naopak nedostane dokonce ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM bez ohledu na jejich kořen balíčků ({\tt codeBase}).
+S použitím této bezpečnostní politiky se server WildFly skutečně bez potíží spustí. Když však na tento server nasadíme aplikaci provádějící kupříkladu čtení souboru uloženého v adresáři této aplikace, zjistíme že aplikace nemá problém tento soubor číst. Do souboru ležícího mimo jeho adresář se ale naopak nedostane dokonce ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM bez ohledu na jejich kořen balíčků ({\tt codeBase}).
 
-Protože použijeme-li naopak prázdný soubor bezpečnostní politiky, start server se nezdaří, je očividné že bezpečnostní politika byla nastavena správným způsobem, ale po startu aplikačního serveru byla aplikačním serverem nahrazena.
+Protože, použijeme-li naopak prázdný soubor bezpečnostní politiky, start serveru se nezdaří, je očividné že bezpečnostní politika byla nastavena správným způsobem, ale po startu aplikačního serveru byla aplikačním serverem ignorována.
 
-%Na základě znalostí uvedených v kapitole \ref{teoretickyUvod} jsem příčinu hledal \cite{javaEEspec}
-
-{\tt TODO }
-
-
+Krokováním programu jsem našel dvě překážky, jež způsobovaly neúčinost bezpečnostní politiky ze souboru bezpečnostní politiky. Obě popisují následující kapitoly.
 
 %=============================================================================
 \section{Security manager WildFly}
 %=============================================================================
 
+První překážka byla nalezena ve správci bezpečnosti WildFly -- správci bezpečnosti používaném ve WildFly za účelem maximální optimalizace rychlosti aplikačního serveru.
+
+Správce bezpečnosti WildFly používá vláknově lokální proměnnou {\tt CHECKING} pro omezení působnosti správce bezpečnosti. Je-li hodnota této proměnné referencí na objekt {\tt Boolean.TRUE}, jsou bezpečnostní kontroly akcí kontrolovaných správcem bezpečnosti prováděny. Jinak prováděny nejsou a kód pak běží stejně jako by správce bezpečnosti nebyl použit. \cite{sourceWildFlySecurityManager} (Dále v této kapitole bude používáno vyjádření, že správce bezpečnosti běží se zapnutými nebo s vypnutými kontrolami.)
+
+Všechna vlákna WildFly pak implicitně běží se správcem bezpečnosti s vypnutými kontrolami. Kontroly by měly být zapnuty před zahájením provádění uživatelského kódu a opět vypnuty po jeho opuštění. \cite{sourceWildFlySecurityManager}
+
+Toto je zvně správce bezpečnosti WildFly možné provést za pomoci metody {\tt WildFlySecurityManager.doChecked()}, jež zapne bezpečnostní kontroly správce bezpečnosti, provede kód jež jí je předán a následně bezpečnostní kontroly opět vypne. Zapnutí i vypnutí kontrol je přitom přeskočeno, byly-li už kontroly v době volání metody zapnuté, čímž je předejito problémům při vnořeném volání této metody. \cite{sourceWildFlySecurityManager}
+
+Problémem však byla absence použití této metody při volání uživatelského kódu vyřizujícího HTTP požadavky. Tento problém jsem vzhledem k jeho rozsahu dočasně, pro potřeby řešení této práce, vyřešil vytvořením záplaty:
+
+\begin{lstlisting}[caption=Záplata správce bezpečnosti WildFly nastavující bezpečnostní kontroly na implicitně zapnuté, label=patchSM]
+-    private static final InheritableThreadLocal<Boolean> CHECKING
+                 = new InheritableThreadLocal<>();
++    private static final InheritableThreadLocal<Boolean> CHECKING
+                 = new InheritableThreadLocal<Boolean>(){
++        protected Boolean initialValue(){
++            return TRUE;
++        }
++    };
+\end{lstlisting}
+
+Tato záplata zajišťuje inicializaci proměnné {\tt CHECKING} na hodnotu {\tt TRUE}. Tato proměnná je vláknově lokální, každé vlákno má tedy její hodnotu uloženou zvlášť, přestože se jedná o vlastnost jednoho objektu. Navíc je tato vláknově lokální proměnná dědičná -- to znamená, že při vytvoření nového vlákna dědí toto vlákno hodnotu této proměnné svého rodičovského vlákna. \cite{refInheritableThreadLocal}\cite{refThreadLocal}
+
+Hodnota proměnné je inicializována při prvním pokusu o získání její hodnoty metodou {\tt get()}, nebyla-li dříve nastavena voláním metody {\tt set()}. Hodnota na kterou je proměnná incializována je určena voláním metody svého objektu, {\tt initialValue()}. Tato metoda vrací implicitně {\tt null}. Jiné implicitní hodnoty lze dosáhnout přepsáním této metody vlastní implementací. Právě přepisem této metody je stanovena i implicitní hodnota proměnné {\tt CHECKING} v mé záplatě (Kód \ref{patchSM}). \cite{refThreadLocal}
+
+
+%=============================================================================
+\section{Zavaděč tříd modulů WildFly}
+%=============================================================================
+
+Hlavní překážkou v aplikaci bezpečnostní politiky ze souboru bezpečnostní politiky lze nalézt v zavaděči tříd modulů WildFly ({\tt org.jboss.modules.ModuleClassLoader}). Tento zavaděč zajišťuje načtení, a tím také přidělení oprávnění, tříd modulů WildFly. Mezi ty se však v tomto případě počítají také třídy balíčků uživatelských aplikací.
+
+Součástí práce zavaděče tříd je přidělovat třídám, které načítají, ochrannou doménu a tím také jejich oprávnění. Zatímco Zavaděč tříd z URL (popsaný v kapitole \ref{URLClassLoader}) přiděluje třídám oprávnění podle objektu bezpečnostní politiky (instance (pod)třídy {\tt java.lang.Policy}), Zavaděč tříd modulů WildFly přiděluje třídám oprávnění na základě oprávnění modulu, z něhož jsou načítány. Ta jsou v případě modulu z adresáře {\tt modules} neomezená (?) a v případě balíčku uživatelské aplikace určena konfiguračním souborem {\tt permission.xml} určeného specifikací Java EE. \cite{javaEEspec}
 
 
 
 
 
+
+
+
+
+
+
+% Na základě znalostí uvedených v kapitole \ref{teoretickyUvod} jsem příčinu hledal \cite{javaEEspec}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
