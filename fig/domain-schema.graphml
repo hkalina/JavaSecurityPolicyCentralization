@@ -18,7 +18,7 @@
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="90.08000000000001" width="211.3599999999999" x="389.18379519999985" y="75.5446175999995"/>
+          <y:Geometry height="90.08000000000001" width="211.3599999999999" x="426.18379519999985" y="75.5446175999995"/>
           <y:Fill color="#DDDDDD" transparent="false"/>
           <y:BorderStyle color="#333333" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.1328125" modelName="custom" textColor="#000000" visible="true" width="136.21533203125" x="37.57233398437495" y="3.0">ProtectionDomain<y:LabelModel>
@@ -63,7 +63,7 @@ PermissionCollection permissions</y:AttributeLabel>
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="28.0" width="142.24" x="555.8237951999995" y="241.6246175999995"/>
+          <y:Geometry height="28.0" width="142.24" x="550.8237951999995" y="241.6246175999995"/>
           <y:Fill color="#DDDDDD" transparent="false"/>
           <y:BorderStyle color="#333333" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.1328125" modelName="custom" textColor="#000000" visible="true" width="128.96630859375" x="6.6368457031250045" y="3.0">SecurityManager<y:LabelModel>
@@ -84,7 +84,7 @@ PermissionCollection permissions</y:AttributeLabel>
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="62.0" width="211.3599999999999" x="257.4637951999996" y="186.0846175999995"/>
+          <y:Geometry height="62.0" width="211.3599999999999" x="263.38718738569867" y="186.0846175999995"/>
           <y:Fill color="#DDDDDD" transparent="false"/>
           <y:BorderStyle color="#333333" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.1328125" modelName="custom" textColor="#000000" visible="true" width="92.765625" x="59.29718749999995" y="3.0">ClassLoader<y:LabelModel>
@@ -103,13 +103,12 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </node>
     <node id="n4">
-      <data key="d5"/>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.flowchart.dataBase">
-          <y:Geometry height="52.0" width="106.0" x="237.58379519999949" y="312.1246175999995"/>
+          <y:Geometry height="52.0" width="106.0" x="237.58379519999949" y="317.00461759999945"/>
           <y:Fill color="#E8EEF7" color2="#B7C9E3" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="14" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="20.296875" modelName="custom" textColor="#000000" visible="true" width="56.7392578125" x="24.63037109375" y="22.368517600000587">Classes<y:LabelModel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="14" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="20.296875" modelName="custom" textColor="#000000" visible="true" width="73.8974609375" x="16.05126953125" y="22.368517600000587">Class files<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
@@ -120,10 +119,9 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </node>
     <node id="n5">
-      <data key="d5"/>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.flowchart.dataBase">
-          <y:Geometry height="52.0" width="106.0" x="356.5837951999995" y="312.1246175999995"/>
+          <y:Geometry height="52.0" width="106.0" x="356.5837951999995" y="317.00461759999945"/>
           <y:Fill color="#E8EEF7" color2="#B7C9E3" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="14" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="20.296875" modelName="custom" textColor="#000000" visible="true" width="77.8349609375" x="14.08251953125" y="22.368517600000587">Policy files<y:LabelModel>
@@ -161,7 +159,7 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       <data key="d4"/>
       <data key="d6">
         <y:SVGNode>
-          <y:Geometry height="57.0" width="36.0" x="647.3037951999997" y="293.6246175999995"/>
+          <y:Geometry height="57.0" width="36.0" x="617.3037951999997" y="299.6246175999995"/>
           <y:Fill color="#FFCC00" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
           <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="19.1328125" modelName="custom" textColor="#000000" visible="true" width="56.15869140625" x="-10.079345703125" y="61.0">Java API<y:LabelModel>
@@ -203,10 +201,10 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="28.0" width="106.0" x="253.18379519999985" y="118.5446175999995"/>
+          <y:Geometry height="62.0" width="154.4000000000001" x="226.94379519999984" y="89.58461759999952"/>
           <y:Fill color="#DDDDDD" transparent="false"/>
           <y:BorderStyle color="#333333" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.1328125" modelName="custom" textColor="#000000" visible="true" width="42.24462890625" x="31.877685546875" y="3.0">Class<y:LabelModel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.1328125" modelName="custom" textColor="#000000" visible="true" width="42.24462890625" x="56.077685546875045" y="3.0">Class<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
@@ -215,13 +213,12 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
           </y:NodeLabel>
           <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="false">
             <y:AttributeLabel/>
-            <y:MethodLabel/>
+            <y:MethodLabel>getProtectionDomain()</y:MethodLabel>
           </y:UML>
         </y:UMLClassNode>
       </data>
     </node>
     <edge id="e0" source="n0" target="n1">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -232,7 +229,6 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </edge>
     <edge id="e1" source="n1" target="n2">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -243,7 +239,6 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </edge>
     <edge id="e2" source="n3" target="n0">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -254,7 +249,6 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </edge>
     <edge id="e3" source="n4" target="n3">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="-65.62918433556943" ty="31.017698751862493"/>
@@ -265,7 +259,6 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </edge>
     <edge id="e4" source="n5" target="n6">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -276,7 +269,6 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </edge>
     <edge id="e5" source="n6" target="n3">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="22.6366078143009" ty="13.356887421277246"/>
@@ -287,7 +279,6 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </edge>
     <edge id="e6" source="n2" target="n7">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -298,7 +289,6 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </edge>
     <edge id="e7" source="n1" target="n8">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="-24.040000000000305" sy="14.02381990000049" tx="0.0" ty="0.0"/>
@@ -309,12 +299,23 @@ Set&lt;ProtectionDomain&gt; domains</y:AttributeLabel>
       </data>
     </edge>
     <edge id="e8" source="n3" target="n9">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
           <y:LineStyle color="#000000" type="line" width="1.0"/>
           <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="e9" source="n9" target="n0">
+      <data key="d8"/>
+      <data key="d9"/>
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:LineStyle color="#000000" type="dashed" width="1.0"/>
+          <y:Arrows source="none" target="plain"/>
           <y:BendStyle smoothed="false"/>
         </y:PolyLineEdge>
       </data>

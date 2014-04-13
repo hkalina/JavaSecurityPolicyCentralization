@@ -283,9 +283,11 @@ Třídy se stejným Zdrojem kódu (?) patří do stejné Ochranné domény a maj
 \section{Systém řízení přístupu a soubory bezpečnostní politiky}
 %=============================================================================
 
-Systém řízení přístupu ({\tt Access controller}) je mechanismus využívající Ochranné domény tříd, který standardní správce bezpečnosti (v Javě verze 2 a novějších) využívá pro rozhodnutí, zda operaci požadovanou uživatelským programem povolit či nikoliv. Aby tedy byla aplikována omezení stanovená systémem řízení přístupu, musí být JVM spuštěna se standardním Správcem bezpečnosti. \cite[5]{oaks}
+Systém řízení přístupu ({\tt java.security.AccessController}) je mechanismus využívající ochranné domény tříd na zásobníku volání k rozhodnutí, zda operaci požadovanou programem povolit či nikoliv. 
 
-Systém řízení přístupu, stejně jako správce bezpečnosti, umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zde však již nejsou jen zdroje samotné JVM -- uživatelské procesy mohou systém řízení přístupu také využívat k omezení přístupu ke zdrojům, jež samy poskytují. \cite[5]{oaks}
+Na oprávněnost volajícího kódu provést vybranou akci se jej může dotazovat uživatelský kód a veškeré rozhodování na něj zároveň deleguje standardní správce bezpečnosti v Javě verze 2 a novějších. \cite[5]{oaks}
+
+Systém řízení přístupu tedy stejně jako správce bezpečnosti umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zde však již nejsou jen zdroje samotné JVM, díky tomu že uživatelské procesy mohou systém řízení přístupu také využívat k omezení přístupu ke zdrojům, jež samy poskytují. \cite[5]{oaks}
 
 Máme-li tedy například knihovní třídu zprostředkovávající přístup k databázi v souboru po záznamech, při použití oprávnění jen na úrovni Java API by bylo možné programu přidělovat oprávnění jen k celému souboru najednou. Jednotlivé záznamy databáze v souboru je možné považovat za samostatné zdroje a využít systém řízení přístupu k jejich ochraně.
 
@@ -297,7 +299,16 @@ Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na z
   \centering
   \includegraphics[width=12cm]{fig/domain-schema}
   \caption{Diagram datových toků oprávnění tříd v Javě}
+  \label{diagramDatovychToku}
 \end{figure}
+
+Diagram datových toků na obrázku \ref{diagramDatovychToku} ukazuje putování informace o oprávněních třídy ze souboru bezpečnostní politiky až k systému řízení přístupu a správci bezpečnosti.
+
+Ochranné domény a tím i oprávnění třídy jsou třídám přidělovány při jejich zavádění. Objekty ochranných domény vytváří zavaděč tříd a to na základě jejich zdroje kódu ({\tt CodeSource}). Na oprávnění, která má zdroji kódu (a tedy i vytvořené ochranné doméně) zavaděč přidělit, se dotazuje aktuálně používaného objektu bezpečnostní politiky ({\tt Policy}).
+
+Výstupem zavaděče tříd pak je objekt třídy, jež nese referenci na svoji ochrannou doménu, která je společná všem objektům se stejným zdrojem kódu. (Matoucí zde může být fakt, že reference na ochrannou doménu není atributem třídy {\tt java.lang.Class}, ale třídy představující třídu v nativním kódu.)
+
+Na základě oprávnění v ochranné doméně třídy pak rozhoduje systém řízení přístupu ({\tt java.security.AccessController}). Na ten pak rozhodování deleguje také standardní správce bezpečnosti ({\tt java.lang.SecurityManager}).
 
 %-----------------------------------------------------------------------------
 \subsection{Implementace Systému řízení přístupu}\label{implementaceAC}
