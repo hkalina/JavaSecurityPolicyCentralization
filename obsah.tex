@@ -258,13 +258,13 @@ Bude spuštěna třídní metoda {\tt main()} třídy {\tt Test}, jež bude hled
 
 O třídách načtených interním zavaděčem se často mluví jako o třídách bez zavaděče, protože jejich objekt {\tt Class} má referenci na zavaděč nastavenu na {\tt null}. \cite[3.2.1]{oaks} Zároveň je {\tt null}ová také ochranná doména takto načtených tříd. Třídy načtené interním zavaděčem tak nemají svá oprávnění omezena. \cite[5.4]{oaks}
 
-Interní zavaděč je v současnosti používán k načítání jen nejzákladnějších tříd, zejména tříd Java API, tedy tříd používajících součásti napsané v nativním kódu. Ostatní třídy z {\tt CLASSPATH} jsou obvykle načítány Zavaděčem tříd z URL.
+Interní zavaděč je v současnosti používán k načítání jen nejzákladnějších tříd, zejména tříd Java API, tedy tříd používajících součásti napsané v nativním kódu. Ostatní třídy z {\tt CLASSPATH} jsou obvykle načítány Zavaděčem tříd z URL (viz. \ref{URLClassLoader}).
 
 %-----------------------------------------------------------------------------
 \subsection{Zavaděč tříd z URL} \label{URLClassLoader}
 %-----------------------------------------------------------------------------
 
-Zavaděč tříd z URL ({\tt URLClassLoader}) hledá třídy také na URL adresách určených polem objektů {\tt URL}, předaných jeho konstruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě -- používá se i k vyhledávání méně základních tříd z {\tt CLASSPATH} a dokáže třídy načítat nejen z adresářů, ale i z JAR archivů, je-li jako adresa uvedena adresa JAR archivu. \cite[3.2.5]{oaks}
+Zavaděč tříd z URL ({\tt URLClassLoader}) hledá třídy také na URL adresách určených polem objektů {\tt URL}, předaných jeho konstruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě -- používá se k vyhledávání méně základních tříd v umístěných určených proměnnou {\tt CLASSPATH}. Dokáže třídy načítat nejen z adresářů, ale i z JAR archivů je-li jako adresa uvedena adresa JAR archivu. \cite[3.2.5]{oaks}
 
 \begin{lstlisting}[caption=Vytvoření vlastní instance zavaděče tříd z URL, label=urlclassloader]
 URLClassLoader classLoader = new URLClassLoader(new URL[]{
@@ -277,7 +277,7 @@ Class myClass = classLoader.loadClass("my.package.MyClass");
 
 Zavaděč tříd z URL je jedním z bezpečných zavaděčů ({\tt SecureClassLoader}). To znamená že automaticky nastavuje ochranou doménu třídám, které načítá.
 
-Třídy se stejným Zdrojem kódu (?) patří do stejné Ochranné domény a mají tak stejná oprávnění. Navrácení vždy stejného objektu Ochranné domény přitom zavaděč zajišťuje pomocí asociativního pole {\tt SecureClassLoader.pdcache}, jehož klíčem je objekt Zdroje kódu a hodnotou objekt Ochranné domény. \cite{sourceSecureClassLoader}
+Třídy pocházející ze stejného zdroje (s odpovídajícím {\tt CodeSource}) patří do stejné ochranné domény a mají tak stejná oprávnění. Navrácení vždy stejného objektu ochranné domény přitom zavaděč zajišťuje pomocí asociativního pole {\tt SecureClassLoader.pdcache}, jehož klíčem je objekt zdroje kódu a hodnotou objekt ochranné domény. \cite{sourceSecureClassLoader}
 
 %=============================================================================
 \section{Systém řízení přístupu a soubory bezpečnostní politiky}
@@ -294,21 +294,6 @@ Máme-li tedy například knihovní třídu zprostředkovávající přístup k 
 Systém řízení přístupu je schopný pravidla bezpečnostní politiky načítat z textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky. Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky, kterou budou programy v JVM omezeny -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení bezpečnostní politiky poupravit textový soubor bezpečnostní politiky. \cite[5]{oaks}
 
 Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochranných domén tříd metod, jež vedly k zavolání metody provádějící citlivou operaci. Na legálnost operace se systému řízení přístupu může dotazovat samotná volaná metoda (voláním metody {\tt checkPermission()}), nebo správce bezpečnosti na základě dotazu na legálnost operace od Java API.
-
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=12cm]{fig/domain-schema}
-  \caption{Diagram datových toků oprávnění tříd v Javě}
-  \label{diagramDatovychToku}
-\end{figure}
-
-Diagram datových toků na obrázku \ref{diagramDatovychToku} ukazuje putování informace o oprávněních třídy ze souboru bezpečnostní politiky až k systému řízení přístupu a správci bezpečnosti.
-
-Ochranné domény a tím i oprávnění třídy jsou třídám přidělovány při jejich zavádění. Objekty ochranných domény vytváří zavaděč tříd a to na základě jejich zdroje kódu ({\tt CodeSource}). Na oprávnění, která má zdroji kódu (a tedy i vytvořené ochranné doméně) zavaděč přidělit, se dotazuje aktuálně používaného objektu bezpečnostní politiky ({\tt Policy}).
-
-Výstupem zavaděče tříd pak je objekt třídy, jež nese referenci na svoji ochrannou doménu, která je společná všem objektům se stejným zdrojem kódu. (Matoucí zde může být fakt, že reference na ochrannou doménu není atributem třídy {\tt java.lang.Class}, ale třídy představující třídu v nativním kódu.)
-
-Na základě oprávnění v ochranné doméně třídy pak rozhoduje systém řízení přístupu ({\tt java.security.AccessController}). Na ten pak rozhodování deleguje také standardní správce bezpečnosti ({\tt java.lang.SecurityManager}).
 
 %-----------------------------------------------------------------------------
 \subsection{Implementace Systému řízení přístupu}\label{implementaceAC}
@@ -501,7 +486,7 @@ Nastavenou třídou bezpečnostní politiky je v příkladu implicitní třída 
 
 Implicitně jsou používány právě první dvě uvedená umístění -- {\tt \${java.home}/lib/security/java.policy} pro celý systém a {\tt \${user.home}/.java.policy} jako jeho rozšíření pro jednotlivé uživatele. \cite{refSecurity}
 
-Bezpečnostní politiku je dále možné rozšířit při startu JVM o vlastní soubor bezpečnostní politiky úpravou konfigurační proměnné parametrem příkazu, jímž program budeme spouštět: \cite[5.3.1]{oaks}
+Bezpečnostní politiku je dále možné rozšířit při startu JVM o vlastní soubor bezpečnostní politiky. Stačí nastavit konfigurační proměnnou {\tt java.security.policy} při startu JVM: \cite[5.3.1]{oaks}
 
 \begin{verbatim}
 java -Djava.security.policy=dalsi_soubor_politiky.policy ProgramABC
@@ -527,7 +512,40 @@ Policy.getPolicy().refresh();
 
 Problémem je, že tato metoda je označena jako nedoporučovaná ({\tt deprecated}), protože je implementačně závislá -- zatímco u implementace používající soubory bezpečnostní politiky správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. Navíc i v případě různých implementací politiky založené na souborech se může chovat odlišně, například v závislosti na strategii vyrovnávací paměti kolekce oprávnění ({\tt PermissionCollection}) -- může znovu načíst bezpečnostní politiku pro celou JVM, ale také třeba jen pro danou ochranou doménu. \cite{refPolicy}
 
-Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy} -- {\tt sun.security.provider.PolicyFile}.
+Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy}, {\tt sun.security.provider.PolicyFile}, a na ní postavených nebo na ni delegujících implementacích.
+
+%-----------------------------------------------------------------------------
+\subsection{Nestatická oprávnění tříd a JAAS}\label{nestatickaOpravneni}
+%-----------------------------------------------------------------------------
+
+TODO
+
+
+
+
+
+
+%=============================================================================
+\section{Celkový pohled na bezpečnost v Javě}
+%=============================================================================
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=14cm]{fig/domain-schema}
+  \caption{Diagram datových toků oprávnění tříd v Javě}
+  \label{diagramDatovychToku}
+\end{figure}
+
+Diagram datových toků na obrázku \ref{diagramDatovychToku} ukazuje putování informace o oprávněních třídy ze souboru bezpečnostní politiky až k systému řízení přístupu a správci bezpečnosti. Souvislé černé šipky představují přenos informace o oprávněních, zatímco hnědé o třídách. Přerušované šipky představují reference. Směr šipky pak vede z třídy objektu s referenční proměnnou do třídy referencovaného objektu.
+
+Ochranné domény a tím i statická oprávnění třídy jsou třídám přidělovány při jejich zavádění. Objekty ochranných domén ({\tt ProtectionDomain}) vytváří zavaděč tříd a to na základě jejich zdroje kódu ({\tt CodeSource}). Na statická oprávnění, která má zdroji kódu (a tedy i vytvořené ochranné doméně) zavaděč přidělit, se dotazuje aktuálně používaného objektu bezpečnostní politiky ({\tt Policy}).
+
+Výstupem zavaděče tříd pak je objekt třídy ({\tt java.lang.Class}), jež nese referenci na svoji ochrannou doménu, která je společná všem objektům se stejným zdrojem kódu.
+
+Systém řízení přístupu ({\tt java.security.AccessController}) pak rozhoduje na základě oprávnění v ochranné doméně a není-li ochranná doména označena jako používající výhradě statická oprávnění, také na základě odpovědi objektu bezpečnostní politiky ({\tt Policy}).
+
+Na systém řízení přístupu pak rozhodování deleguje také standardní správce bezpečnosti ({\tt java.lang.SecurityManager}).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Distribuované prostředí Red Hat JBoss}
