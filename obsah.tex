@@ -515,13 +515,31 @@ Problémem je, že tato metoda je označena jako nedoporučovaná ({\tt deprecat
 Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy}, {\tt sun.security.provider.PolicyFile}, a na ní postavených nebo na ni delegujících implementacích.
 
 %-----------------------------------------------------------------------------
-\subsection{Nestatická oprávnění tříd a JAAS}\label{nestatickaOpravneni}
+\subsection{JAAS a dynamická oprávnění}\label{nestatickaOpravneni}
 %-----------------------------------------------------------------------------
 
-TODO
+Autentizační a autorizační služba Javy (JAAS -- Java Authentication and Authorization Service) je součástí Java SDK od {\it Java 2 SDK, Standard Edition (J2SDK), v 1.3} a je používána ke dvěma účelům: \cite{jaasReference}
+
+\begin{itemize}
+  \item Autentizace uživatelů -- umožňuje spolehlivou a bezpečnou identifikaci uživatele spouštějícího kód Javy. \cite{jaasReference}
+  \item Autorizace uživatelů -- umožňuje zjistit, zdali má uživatel oprávnění provést požadovanou operaci. \cite{jaasReference}
+\end{itemize}
+
+JAAS staví na systému oprávnění a bezpečnostních politik popsaném v minulých kapitolách. Zatímco bez použití JAAS závisí oprávnění kódu v Javě výhradně na jeho zdroji, v případě použití JAAS závisí oprávnění kódu také na oprávněních uživatele, jež tento kód spouští.
+
+Oprávnění kódu podnikového informačního systému tak může záviset na tom, zda-li s ním právě pracuje mzdová účetní, ředitel nebo vedoucí IT.
+
+Doposud však oprávnění byla třídám přidělována při jejich zavádění zavaděčem tříd. To vylučuje jakékoli změny oprávnění třídy za běhu aplikace, natož použití různých sad oprávnění pro jednu třídu v jeden čas pro různé případy (souběžně přihlášené uživatele).
+
+Toto JAAS řeší zavedením dvou sad oprávnění třídy:
+
+\begin{itemize}
+  \item {\bf Statická oprávnění} -- jsou získávány z objektu bezpečnostní politiky (voláním metody {\tt Policy.getPermissions()}) při zavádění třídy a ukládány v objektu ochranné domény. Měly by mezi nimi být všechna oprávnění náležející kódu z daného zdroje bez ohledu na uživatele, který spuštění kódu třídy způsobil.
+  \item {\bf Dynamická oprávnění} -- jsou získávány z objektu bezpečnostní politiky (voláním {\tt Policy.implies()}) při každém požadavku na ověření povolenosti dané operace (při každém volání metody {\tt ProtectionDomain.implies()}).
+\end{itemize}
 
 
-
+(TODO)
 
 
 
