@@ -33,7 +33,7 @@ Systém pro centralizovanou distribuci a výměnu bezpečnostních politik byl i
 WildFly a webové uživatelské rozhraní bylo vytvořeno jako rozšíření administrační webové konzole WildFly, HAL.
 
 Práce je členěna do 7 kapitol, z nichž 1. je úvod, 2. -- 3. představuje informace potřebné pro implementaci práci tohoto zaměření,
-4. a 5. popisuje samotnou implementaci systému, 6. kapitola popisuje jeho testování a poslední kapitolou je závěr.
+4. a 5. popisuje samotnou implementaci systému, 6. kapitola popisuje jeho testování a výsledky práce jsou shrnuty v Závěru.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Bezpečnost v Javě} \label{teoretickyUvod}
@@ -828,47 +828,45 @@ Toto je řešeno analogicky jako právě v případě akce navázané na změnu 
 \chapter{Testování systému}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Protože cílem této bakalářské práce nebylo jen vytvoření systému umožňujícího správu bezpečnostních politik nasazených na jednotlivých serverech distribuovaného systému ale také jeho otestování, tato kapitola se zabývá vytvořením testů, umožňujících otestovat implementované řešení.
+Protože cílem této bakalářské práce nebylo jen vytvoření systému umožňujícího správu bezpečnostních politik nasazených na jednotlivých serverech distribuovaného systému ale také jeho otestování, tato kapitola se zabývá tvorbou testů, umožňujících otestovat implementované řešení.
 
-Testování je nedílnou součástí vývoje software a je užíváno k odhalení vad software a prokázání, že software dosáhl požadované úrovně kvality v zadaných kritériích. \cite{ivsTest}
+Testování je nedílnou součástí vývoje software a je užíváno k odhalení vad software a prokázání, že software dosáhl požadované úrovně kvality v zadaných kritériích. Obvykle se provádí za pomoci automatizovaných programů, takzvaných testů. \cite{ivsTest}
 
-Testování je možné dělit do tří kategorií:
+Testy se běžně dělí následovně: \cite{testsTypes}\cite{ivsTest}
 
 \begin{enumerate}
-  \item {\textbf Jednotkové testování (Unit testing)}, kde se testují jednotlivé součásti systému zvlášť, v izolaci od ostatních součástí systému -- součásti systému, na kterých testovaná součást závisí jsou během testu nahrazeny jejich napodobeninami. Cílem je odhalit odlišnosti ve fungování součásti oproti specifikaci. \cite{ivsTest}
-  \item {\textbf Integrační testování (Integration testing)}, kde se testují celé podsystémy -- jednotlivé součásti systému ve spojení se součástmi, na kterých testovaná součást závisí. Cílem je odhalit chyby v propojení jednotlivých součástí a v jejich vzájemné interakci. \cite{ivsTest}
-  \item {\textbf Systémové testování (System testing)}, kde se testuje celý systém jako celek. Cílem je odhalit odlišnosti v chování systému vůči jeho specifikaci. \cite{ivsTest}
+  
+  \item {\textbf Jednotkové testy (Unit tests)} testují jednotlivé jednotky systému. Jednotkou je typicky třída programovacího jazyka. Každá jednotka se testuje samostatně, s maximální snahou o izolaci od ostatních součástí systému. Jejich cílem je především ověřit, zda jednotlivé jednotky splňují svoji specifikaci -- dodávají na základě testovacího vstupu odpovídající výstup. Nijak neřeší problémy v komunikaci jednotlivých jednotek mezi sebou nebo se zbytkem systému (v tomto případě aplikačním serverem WildFly). \cite{testsTypes}\cite{ivsTest}
+  
+  \item {\textbf Systémové testy (System tests)} testují celý systém jako jediný celek a umožňují ověřit zda systém jako celek dokáže plnit svůj účel, pro který byl vytvořen. Testovaný systém ovlivňují a kontrolují zpravidla z jeho vnějšku. \cite{testsTypes}\cite{ivsTest}
+  
+  \item {\textbf Integrační testy (Integration tests)} jsou mezistupněm mezi jednotkovými a systémovými testy. Jak jejich název napovídá, jejich hlavním účelem je ověřit zda spolu testované jednotky správně spolupracují. \cite{testsTypes}\cite{ivsTest}
+  
 \end{enumerate}
 
+Protože lze systémové testy někdy chápat také jako zvláštní případ integračních testů, jsou systémové testy někdy mezi integrační testy zahrnovány. \cite{testsUnitVsInteg}
 
 %=============================================================================
-\section{Jednotkové testování (Unit testing)}
+\section{Jednotkové testy}
 %=============================================================================
 
-Jednotkové testy tedy umožňují testovat jednotlivé jednotky programu, kterými jsou typicky třídy. Každé třídě programu by pak měla být přidělena jedna třída testu, jež by měl ověřit korektnost chování této testované třídy.
+Jednotkové testy tedy umožňují testovat jednotlivé jednotky systému a těmito jednotkami, po kterých se systém testuje, jsou typicky třídy programovacího jazyka. Každé třídě programu by v ideálním případě měla být přidělena jedna třída testu, jež by měla ověřit správnost fungování této třídy.
 
-Testované jednotky by při jednotkovém testovaní měly být testovány ve vzájemné izolaci. K tomuto účelu se obvykle využívají tzv. mock objekty -- objekty napodobující chování objektů jednotek, od kterých má být testovaná jednotka izolována.
+Testované jednotky by měly být testovány ve vzájemné izolaci. Toho se dosahuje buď jejich vhodným návrhem, nebo použitím napodobenin objektů ({\it mock object}) z jiných jednotek, na kterých tato jednotka závisí.
 
-(TODO)
+Komplikace jež by mohly ohrozit samotnou výměnu bezpečnostní politiky nebo správce bezpečnosti vyplývají převážně z integrace s aplikačním serverem WildFly. Vytvoření jednotkových testů pro výměnu bezpečnostní politiky a správce bezpečnosti by tedy nebylo příliš užitečné.
 
-%=============================================================================
-\section{Integrační testování (Integration testing)}
-%=============================================================================
-
-Integrační testy testují jednotlivé jednotky programu bez jejich vzájemné izolace. Umožňují tak testovat jak samotné testované jednotky, tak i schopnost jejich vzájemné spolupráce.
-
-(TODO)
-
+Byly však vytvořeny jednotkové testy pro testování podpůrných součástí implementovaného subsystému -- testy syntaktické kontroly souborů bezpečnostní politiky a práce s konfiguračním podstromem DMR subsystému.
 
 %=============================================================================
-\section{Systémové testování (System testing)}
+\section{Integrační testy}
 %=============================================================================
 
-Systém jako celek byl testován hlavně na schopnost plnění základních požadavků zadání práce -- schopnosti zapnout a vypnout security manager a vyměnit používanou bezpečnostní politiku.
+Integrační testy testují systém jako celek. Implementovaný systém byl tímto způsobem testován na schopnost plnění základních požadavků daných zadáním této práce -- schopnosti zapnout a vypnout správce bezpečnosti a vyměnit používanou bezpečnostní politiku skrze administrační protokol WildFly.
 
-K tomuto účelu byl vytvořen systémový test umožňující otestovat zmíněné schopnosti na běžícím aplikačním serveru WildFly s nainstalovaným subsystémem pro nastavení bezpečnostní politiky, jež byl vytvořen v minulé kapitole \ref{implementace}.
+Byl tedy vytvořen integrační test umožňující otestovat zmíněné schopnosti na běžícím aplikačním serveru WildFly s nainstalovaným subsystémem pro nastavení bezpečnostní politiky, jehož vytvoření je popsáno v kapitole \ref{implementace}.
 
-Tento test se skládá ze dvou částí -- agenta, aplikace nasazované na testovaný server, a manageru, testu vytvořeného za pomoci knihovny JUnit, řídícího proces samotného testování.
+Tento test se skládá ze dvou částí -- agenta, aplikace nasazované na testovaný server, a manažeru -- testu vytvořeného za pomoci knihovny JUnit, řídícího proces samotného testování.
 
 Agent je Java EE aplikací nabízející své služby skrze rozhraní REST. Službami, jež poskytuje, je zejména otestování schopnosti provést vybranou akci z pozice aplikace nasazené na testovaném serveru. Klient rozhraní REST se tedy k této službě může připojit a požádat o otestování schopnosti provést vybranou operaci. Jako odpověď pak dostane informaci, zda-li se provedení této operace zdařilo, nebo zda bylo zmařeno Access controllerem.
 
