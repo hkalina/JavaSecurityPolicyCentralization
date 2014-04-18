@@ -6,34 +6,28 @@
 \chapter{Úvod} \label{uplnyUvod}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Je-li tématem jakékoli prezentace libovolný server, téměř vždy přijde dříve či později řeč na problematiku bezpečnosti.
-Okolo bezpečnosti serverů obecně bylo zpracováno již mnoho prací.
+Okolo bezpečnosti serverů poskytujících své služby počítačům v síti bylo již zpracováno mnoho různých prací.
+Tato práce se však nezabývá problémem, jak útočníkům v síti zabránit v útoku na server zvenčí -- zabývá se problémem,
+jak omezit možnosti aplikací běžících v daném systému a zabránit jim v přístupu ke zdrojům tohoto systému,
+na které nemají nárok.
 
-Mezi prvními mechanismy, kterými se vynasnažíme server zabezpečit, bude pravděpodobně protipožární přepážka (Firewall), jež předejde útokům na služby poskytované serverem, jež nebyly určeny veřejnosti nebo koncovým zákazníkům.
+Tato omezení mohou plnit různé účely -- od zabránění vzájemnému přístupu k datům jedné aplikace druhou aplikací jiného provozovatele,
+v rámci serveru sdíleného mezi více provozovateli aplikací, po zabránění škodám na jiných aplikacích a službách v případě úspěšného prolomení
+zabezpečení jedné z aplikací běžích na serveru sdíleného více aplikacemi.
 
-Hned dalším opatřením, kterým se server budeme snažit zabezpečit, budou oprávnění operačního systému, ať již unixová, nebo např. SELinuxu. Tím můžeme znemožnit neoprávněný přístup jednoho softwarového serveru k datům jiného softwarového serveru.
+Pro podobné účely se obvykle využívají oprávnění na úrovni operačního systému. Ty však, ať už jsou unixová nebo podrobnější SElinuxová,
+nejsou schopny rozlišit jednotlivé aplikace běžící v rámci jediného procesu aplikačního serveru, jakým je například WildFly.
 
-Běží-li ale v rámci jednoho softwarového serveru aplikace různých provozovatelů, například jedná-li
-se o poskytování webhostingu nebo hostování aplikací, žádný z těchto mechanismů nebude nic platný.
+Tento problém je možné vyřešit na úrovni virtuálního stroje Javy, uvnitř kterého aplikační server běží, za pomoci tzv. správce bezpečnosti (Security Manager)
+a bezpečnostních politik (Security Policy). Ty umožňují omezovat oprávnění kódu jednotlivých tříd v Javě.
+Jejich obecné použití je podrobně popsáno v kapitole \ref{teoretickyUvod}, jejich použitím v rámci aplikačního serveru WildFly se pak zabývá kapitola \ref{jboss}.
 
-Firewall ani operační systém neoprávněnému přístupu jedné aplikace k datům jiné aplikace, v případě že obě běží v rámci jednoho počítače, v rámci jediného procesu a tedy i pod jediným uživatelským účtem, nemůže nijak zabránit.
+V prostředí datových center pak jsou aplikační servery spojovány do centrálně spravovaných distribuovaných prostředí, takzvaných domén.
+V tomto prostředí se může jako velmi užitečná projevit možnost centrální správy těchto bezpečnostních politik napříč servery této domény.
 
-Jednotlivé aplikace běžící v rámci jediného aplikačního serveru je schopný rozlišit, kromě samotného aplikačního serveru, jen virtuální stroj Javy, běhové prostředí v němž aplikační server běží.
-
-Na úrovni virtuálního stroje Javy je tak možné vyladit oprávnění jednotlivých aplikací a součástí aplikačního serveru mimořádně jemně, za pomoci tzv. bezpečnostních politik.
-
-Pohybujeme-li se ale v prostředí velkých poskytovatelů hostovaných aplikací, jediný server leckterým aplikacím
-mnohdy nestačí a požadavky kladené na aplikaci jsou rozprostírány mezi celé skupiny aplikačních serverů.
-
-Právě v tu chvíli se objevuje potřeba spravovat bezpečnostní politiky nasazené na jednotlivých serverech centrálně, napříč tímto distribuovaným prostředím.
-
-Právě cetralizací správy bezpečnostních politik v Javě se proto zabývá tato práce.
-
-Systém pro centralizovanou distribuci a výměnu bezpečnostních politik byl implementován jako rozšíření aplikačního serveru
-WildFly a webové uživatelské rozhraní bylo vytvořeno jako rozšíření administrační webové konzole WildFly, HAL.
-
-Práce je členěna do 7 kapitol, z nichž 1. je úvod, 2. -- 3. představuje informace potřebné pro implementaci práci tohoto zaměření,
-4. a 5. popisuje samotnou implementaci systému, 6. kapitola popisuje jeho testování a výsledky práce jsou shrnuty v Závěru.
+Řešení umožňující centrální správu bezpečnostních politik je hlavním tématem této bakalářské práce.
+Je implementováno jako rozšíření aplikačního server WildFly a jeho webové uživatelské rozhraní jako rozšíření jeho webové administrační konzole, HAL.
+Jeho návrh je nastíněn v kapitole \ref{navrh}, jeho implementace je popsána v kapitole \ref{implementace} a jeho testování v kapitole \ref{testovani}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Bezpečnost v Javě} \label{teoretickyUvod}
@@ -515,8 +509,15 @@ Problémem je, že tato metoda je označena jako nedoporučovaná ({\tt deprecat
 Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy}, {\tt sun.security.provider.PolicyFile}, a na ní postavených nebo na ni delegujících implementacích.
 
 %-----------------------------------------------------------------------------
-\subsection{JAAS a dynamická oprávnění}\label{nestatickaOpravneni}
+\subsection{Statická a dynamická oprávnění}
 %-----------------------------------------------------------------------------
+
+(TODO)
+
+
+\iffalse
+Dohoda o poskytovatelích autorizačních služeb Javy pro kontejnery (JACC -- Java Authorization Service Provider Contract for Containers)
+je specifikací definující vztah mezi Java EE aplikačním serverem a poskytovateli autorizační politiky. \cite{jaccDef}\cite{jaccImplementating}
 
 Autentizační a autorizační služba Javy (JAAS -- Java Authentication and Authorization Service) je součástí Java SDK od {\it Java 2 SDK, Standard Edition (J2SDK), v 1.3} a je používána ke dvěma účelům: \cite{jaasReference}
 
@@ -531,16 +532,13 @@ Oprávnění kódu podnikového informačního systému tak může záviset na t
 
 Doposud však oprávnění byla třídám přidělována při jejich zavádění zavaděčem tříd. To vylučuje jakékoli změny oprávnění třídy za běhu aplikace, natož použití různých sad oprávnění pro jednu třídu v jeden čas pro různé případy (souběžně přihlášené uživatele).
 
-Toto JAAS řeší zavedením dvou sad oprávnění třídy:
+Toto JACC řeší zavedením dvou sad oprávnění třídy:
 
 \begin{itemize}
   \item {\bf Statická oprávnění} -- jsou získávány z objektu bezpečnostní politiky (voláním metody {\tt Policy.getPermissions()}) při zavádění třídy a ukládány v objektu ochranné domény. Měly by mezi nimi být všechna oprávnění náležející kódu z daného zdroje bez ohledu na uživatele, který spuštění kódu třídy způsobil.
   \item {\bf Dynamická oprávnění} -- jsou získávány z objektu bezpečnostní politiky (voláním {\tt Policy.implies()}) při každém požadavku na ověření povolenosti dané operace (při každém volání metody {\tt ProtectionDomain.implies()}).
 \end{itemize}
-
-
-(TODO)
-
+\fi
 
 
 %=============================================================================
@@ -566,7 +564,7 @@ Na systém řízení přístupu pak rozhodování deleguje také standardní spr
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Distribuované prostředí Red Hat JBoss}
+\chapter{Distribuované prostředí Red Hat JBoss} \label{jboss}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 WildFly, dříve známý jako JBoss AS, je aplikační server standardu Java EE. Poskytuje tedy běhové prostředí Java EE aplikacím, které se na tento aplikační server nainstalují.
@@ -689,7 +687,7 @@ Konfigurační proměnná {\tt java.security.manager} zajistí použití správc
 Samotná proměnná {\tt jboss.modules.policy-permissions} nastavena na {\tt true} pak v prostředí aplikačního serveru WildFly zajistí, že budou oprávnění stanovená objektem bezpečnostní politiky používána.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Návrh systému}
+\chapter{Návrh systému} \label{navrh}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Cílem práce je vytvoření systému pro centralizovanou správu a distribuci bezpečnostních politik. Měl by umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény WildFly a sledovat také, které bezpečnostní politiky jsou právě na kterých serverech domény WildFly nasazeny.
@@ -825,7 +823,7 @@ Nadále tak nestačilo provádět aplikaci bezpečnostní politiky při změně 
 Toto je řešeno analogicky jako právě v případě akce navázané na změnu vlastnosti uzlu serveru -- vytvořením třídy {\tt PolicyWriteAttributeHandler} a jejím navázáním na vlastnost uzlu bezpečnostní politiky.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Testování systému}
+\chapter{Testování systému} \label{testovani}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Protože cílem této bakalářské práce nebylo jen vytvoření systému umožňujícího správu bezpečnostních politik nasazených na jednotlivých serverech distribuovaného systému ale také jeho otestování, tato kapitola se zabývá tvorbou testů, umožňujících otestovat implementované řešení.
