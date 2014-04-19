@@ -751,7 +751,7 @@ Jako výhodnějším řešením se tedy začíná jevit ukládat bezpečnostní 
 \section{Webové uživatelské rozhraní} \label{navrhGUI}
 %=============================================================================
 
-Součástí zadání práce bylo také vytvořit webové rozhraní pro komunikaci s uživatelem. Jelikož je samotné jádro řešení implementováno jako subsystém WildFly, jako optimální řešení se nabízí implementovat uživatelské rozhraní tohoto subsystému jako rozšíření webové konzoly WildFly.
+Součástí zadání práce bylo také vytvořit webové rozhraní pro komunikaci s uživatelem. Jelikož je samotné jádro řešení implementováno jako subsystém WildFly, jako optimální řešení se nabízelo implementovat uživatelské rozhraní tohoto subsystému jako rozšíření webové konzoly WildFly.
 
 Webová konzola WildFly je standardní součástí aplikačního serveru WildFly. Je GWT aplikací běžící na straně klienta, ve webovém prohlížeči, a se serverem komunikuje prostřednictvím HTTP Management API. To je alternativou Native API -- plní stejnou funkci, ale běží nad protokolem HTTP. Tělem odpovědí serveru i tělem POST dotazů klienta je JSON reprezentace uzlu konfiguračního stromu ({\tt ModelNode}). \cite{WildFlyManagementAPIreference}
 
@@ -759,6 +759,12 @@ Webová konzola WildFly je standardní součástí aplikačního serveru WildFly
   \centering
   \includegraphics[width=14cm]{fig/mockup}
   \caption{Grafický návrh uživatelského rozhraní plánovaného rozšíření WildFly.}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=14cm]{fig/jsmpolicy-servers}
+  \caption{Výsledná podoba webového uživatelského rozhraní.}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

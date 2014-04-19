@@ -106,24 +106,41 @@ backgroundcolor=\color{light-gray},
 }
 
 %Abstrakt (cesky, anglicky)
-\abstract[cs]{Do tohoto odstavce bude zapsán výtah (abstrakt) práce v českém jazyce.}
-\abstract[en]{Do tohoto odstavce bude zapsán výtah (abstrakt) práce v anglickém jazyce.}
+\abstract[cs]{
+  Tato práce se zabývá implementací systému pro centralizovanou správu bezpečnostních politik v distribuovaném prostředí RedHat JBoss/WildFly.
+  Práce je tvořena třemi částmi. První část popisuje jak je implementován systém bezpečnostních politik v Javě. Druhá část se zabývá způsobem jak
+  bezpečnostní politiky Javy používat v prostředí JBoss/WildFly a řešením souvisejících problémů. Třetí část se pak zabývá návrhem a implementací
+  rozšíření aplikačního serveru WildFly umožňujícího centrálně spravovat bezpečnostní politiky nasazené na jednotlivých serverech domény
+  aplikačních serverů.
+}
+\abstract[en]{
+  This thesis deals with implementation of system for centralised management of security policies in distributed environment RedHat JBoss/WildFly.
+  ...
+}
 
 %Klicova slova (cesky, anglicky)
-\keywords[cs]{Sem budou zapsána jednotlivá klíčová slova v českém jazyce, oddělená čárkami.}
-\keywords[en]{Sem budou zapsána jednotlivá klíčová slova v anglickém jazyce, oddělená čárkami.}
+\keywords[cs]{
+  JBoss, WildFly, Java, bezpečnostní politika, oprávnění, správce bezpečnosti, ochranná doména.
+}
+\keywords[en]{
+  JBoss, WildFly, Java, security policy, permission, security manager, protection domain.
+}
 
 %Prohlaseni
-\declaration{Prohlašuji, že jsem tuto bakalářskou práci vypracoval samostatně pod vedením pana X...
-Další informace mi poskytli...
-Uvedl jsem všechny literární prameny a publikace, ze kterých jsem čerpal.}
+\declaration{
+  Prohlašuji, že jsem tuto bakalářskou práci vypracoval samostatně pod vedením pana Ing. Zdeňka Letka, Ph.D.
+  Další informace mi poskytl odborný konzultant Ing. Peter Škopek.
+  Uvedl jsem všechny literární prameny a publikace, ze kterých jsem čerpal.
+}
 
 %Podekovani (nepovinne)
-\acknowledgment{V této sekci je možno uvést poděkování vedoucímu práce a těm, kteří poskytli odbornou pomoc
-(externí zadavatel, konzultant, apod.).}
+\acknowledgment{
+  Zde bych rád poděkoval svému vedoucímu práce Ing. Zdeňku Letkovi a svému odbornému konzultantovi
+  Ing. Petru Škopkovi za jejich čas, trpělivost, ochotu a cenné rady.
+}
 
 \begin{document}
-  %\maketitle % titulni strany
+  \maketitle % titulni strany
   \tableofcontents % obsah
   
   %\listoffigures % seznam obrazku
@@ -135,7 +152,7 @@ Uvedl jsem všechny literární prameny a publikace, ze kterých jsem čerpal.}
   % ----------------------------------------------
 \ifczech
   \bibliographystyle{czechiso}
-\else 
+\else
   \bibliographystyle{plain}
 %  \bibliographystyle{alpha}
 \fi
