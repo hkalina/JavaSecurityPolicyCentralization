@@ -220,19 +220,19 @@ Zdroj kódu ({\tt java.security.CodeSource}) je souhrnem informací určujícíc
 
 \begin{itemize}
   \item {\tt location}: URL adresa, ze které byla třída načtena.
-  \item {\tt signers} / {\tt certs}: Množina podepsaných autorů a množina jejich certifikátů. Tyto dvě informace jsou vzájemně odvoditelné. Pro vytvoření objektu Zdroje kódu tak postačuje jedna z nich a druhá z ní pak může být kdykoli odvozena.
+  \item {\tt signers} / {\tt certs}: Množina podepsaných autorů a množina jejich certifikátů. Tyto dvě informace jsou vzájemně odvoditelné. Pro vytvoření objektu Zdroje kódu postačuje jedna z nich a druhá z ní může být kdykoli odvozena.
 \end{itemize}
 
-Ochranná doména ({\tt java.security.ProtectionDomain}) je objektem spojujícím objekt třídy se zdrojem kódu a oprávněními. Konkrétně se skládá z následujících informací: \cite{sourceProtectionDomain}
+Ochranná doména ({\tt java.security.ProtectionDomain}) je objektem spojujícím objekt třídy ({\tt Class}) se zdrojem kódu a oprávněními. Konkrétně se skládá z následujících informací: \cite{sourceProtectionDomain}
 
 \begin{itemize}
   \item {\tt codesource}: Zdroj kódu třídy reprezentovaný výše rozebranou třídou.
   \item {\tt classloader}: Zavaděč tříd, kterým byla ochranná doména přidělena.
-  \item {\tt principals}: Role uživatele přihlášeného k programu.
-  \item {\tt permissions}: Oprávnění kódu třídy.
+  \item {\tt principals}: Role uživatele přihlášeného k programu. (viz kapitola \ref{staticPerm})
+  \item {\tt permissions}: Statická oprávnění kódu třídy. (viz kapitola \ref{staticPerm})
 \end{itemize}
 
-Každá třída spadá vždy do jedné ochranné domény, která může být společná více třídám. Za nastavení ochranné domény i zdroje kódu odpovídá zavaděč třídy. Jen ten totiž může původ třídy s znát, protože jen on s jistotou ví, odkud byl její kód získán a jak a zdali byl podepsán.
+Každá třída spadá vždy do jedné ochranné domény, která může být společná více třídám. Za nastavení ochranné domény i zdroje kódu odpovídá zavaděč třídy. Jen ten totiž může původ třídy znát, protože jen on s jistotou ví, odkud byl její kód získán a jak a zdali byl podepsán.
 
 %-----------------------------------------------------------------------------
 \subsection{Interní zavaděč tříd} \label{interniZavadec}
@@ -271,7 +271,7 @@ Class myClass = classLoader.loadClass("my.package.MyClass");
 
 Zavaděč tříd z URL je jedním z bezpečných zavaděčů ({\tt SecureClassLoader}). To znamená že automaticky nastavuje ochranou doménu třídám, které načítá.
 
-Třídy pocházející ze stejného zdroje (s odpovídajícím {\tt CodeSource}) patří do stejné ochranné domény a mají tak stejná oprávnění. Navrácení vždy stejného objektu ochranné domény přitom zavaděč zajišťuje pomocí asociativního pole {\tt SecureClassLoader.pdcache}, jehož klíčem je objekt zdroje kódu a hodnotou objekt ochranné domény. \cite{sourceSecureClassLoader}
+Třídy pocházející ze stejného zdroje (s odpovídajícím {\tt CodeSource}) patří do stejné ochranné domény a mají tak stejná statická oprávnění. Navrácení vždy stejného objektu ochranné domény přitom zavaděč zajišťuje pomocí asociativního pole {\tt SecureClassLoader.pdcache}, jehož klíčem je objekt zdroje kódu a hodnotou objekt ochranné domény. \cite{sourceSecureClassLoader}
 
 %=============================================================================
 \section{Systém řízení přístupu a soubory bezpečnostní politiky}
@@ -309,7 +309,7 @@ try {
 }
 \end{lstlisting}
 
-Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochranných domén tříd metod, jež vedly k zavolání metody {\tt checkPermission()}. Konkrétně jde o metody nacházející se během volání {\tt checkPermission()} na zásobníku volání (Stack trace). Volala-li tedy metoda {\tt main} třídy {\tt Main} metodu {\tt secured} třídy {\tt Secured}, která následně zavolala metodu {\tt checkPermission()}, musí mít požadované oprávnění přiděleny ochranné domény tříd {\tt Main} i {\tt Secured}, aby toto volání neskončilo výjimkou vyjadřující zamítnutí provedení operace ze strany Systému řízení přístupu. \cite[5.5]{oaks}\cite[6.1]{oaks}
+Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochranných domén tříd metod, jež vedly k zavolání metody {\tt checkPermission()}. Konkrétně jde o metody nacházející se během volání {\tt checkPermission()} na zásobníku volání (Stack trace). Volala-li tedy metoda {\tt main} třídy {\tt Main} metodu {\tt secured} třídy {\tt Secured}, která následně zavolala metodu {\tt checkPermission()}, musí mít požadované oprávnění přiděleny ochranné domény tříd {\tt Main} i {\tt Secured}, aby toto volání neskončilo výjimkou vyjadřující zamítnutí provedení operace ze strany systému řízení přístupu. \cite[5.5]{oaks}\cite[6.1]{oaks}
 
 %-----------------------------------------------------------------------------
 \subsection{Privilegované bloky kódu}\label{privilegovaneBloky}
@@ -454,7 +454,7 @@ Zatímco {\tt /*} odpovídá všem souborům v daném adresáři, {\tt /-} odpov
 \cite{jdkdocPolicyFiles}
 
 %-----------------------------------------------------------------------------
-\subsection{Nastavení třídy a souboru bezpečnostní politiky}\label{souborPolitiky}
+\subsection{Nastavení třídy a souboru bezpečnostní politiky} \label{souborPolitiky}
 %-----------------------------------------------------------------------------
 
 Nastavení třídy a souboru bezpečnostní politiky umožňuje správci nebo uživateli počítače stanovit bezpečnostní politiku aplikovanou na programy v Javě běžící na tomto počítači bez potřeby znalostí programování.
@@ -509,37 +509,37 @@ Problémem je, že tato metoda je označena jako nedoporučovaná ({\tt deprecat
 Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy}, {\tt sun.security.provider.PolicyFile}, a na ní postavených nebo na ni delegujících implementacích.
 
 %-----------------------------------------------------------------------------
-\subsection{Statická a dynamická oprávnění}
+\subsection{Statická a dynamická oprávnění ochranných domén} \label{staticPerm}
 %-----------------------------------------------------------------------------
 
-(TODO)
+Oprávnění ochranných domén ({\tt ProtectionDomain}) popisovaných v minulých kapitolách jsou ukládány přímo v objektech těchto ochranných domén,
+konkrétně v jejich atributu {\tt permissions}. \cite{sourceProtectionDomain}
 
+Protože jsou do ochranné domény ukládány při jejím vytváření, tedy při zavádění třídy, a následně nemohou být změněna, budeme je označovat jako statická.
 
-\iffalse
-Dohoda o poskytovatelích autorizačních služeb Javy pro kontejnery (JACC -- Java Authorization Service Provider Contract for Containers)
-je specifikací definující vztah mezi Java EE aplikačním serverem a poskytovateli autorizační politiky. \cite{jaccDef}\cite{jaccImplementating}
+Ochranné domény však souběžně mohou používat ještě oprávnění dynamická. Není-li ochranná doména označena jako používající výhradně statická oprávnění,
+dotazuje se ochranná doména na oprávnění objektu bezpečnostní politiky při každém volání její metody {\tt implies()}.
+Takto získaná oprávnění pak budeme označovat jako dynamická. \cite{sourceProtectionDomain}
 
-Autentizační a autorizační služba Javy (JAAS -- Java Authentication and Authorization Service) je součástí Java SDK od {\it Java 2 SDK, Standard Edition (J2SDK), v 1.3} a je používána ke dvěma účelům: \cite{jaasReference}
+Jsou-li dynamická oprávnění použita, efektivní oprávnění uplatňovaná metodou {\tt implies()} budou sjednocením dynamických a statických oprávnění třídy.
+\cite{sourceProtectionDomain}
 
-\begin{itemize}
-  \item Autentizace uživatelů -- umožňuje spolehlivou a bezpečnou identifikaci uživatele spouštějícího kód Javy. \cite{jaasReference}
-  \item Autorizace uživatelů -- umožňuje zjistit, zdali má uživatel oprávnění provést požadovanou operaci. \cite{jaasReference}
-\end{itemize}
+V současnosti jsou obvykle preferována oprávnění dynamická, jež poskytují vyšší variabilitu tím, že je možné bezpečnostní politiku vyměňovat za běhu
+programu -- změny v ní se projeví jakmile začne být uplatňována metodou {\tt implies()} objektu bezpečnostní politiky, tedy zpravidla po volání metody
+{\tt refresh()} používaného objektu bezpečnostní politiky.
 
-JAAS staví na systému oprávnění a bezpečnostních politik popsaném v minulých kapitolách. Zatímco bez použití JAAS závisí oprávnění kódu v Javě výhradně na jeho zdroji, v případě použití JAAS závisí oprávnění kódu také na oprávněních uživatele, jež tento kód spouští.
+Dynamická oprávnění jsou používána na všechny třídy zaváděné zavaděčem tříd z URL (viz \ref{URLClassLoader}) a jsou tedy využívána ve většině programů v Javě.
+\cite{sourceURLClassLoader}
 
-Oprávnění kódu podnikového informačního systému tak může záviset na tom, zda-li s ním právě pracuje mzdová účetní, ředitel nebo vedoucí IT.
+Umožňují navíc přidělovat oprávnění nejen na základě zdroje kódu, ale také na základě rolí uživatele spouštějícího daný kód. Tato dvě kritéria se však
+obvykle používají pouze samostatně -- buď systém řízení přístupu ověřuje oprávnění kódu provést požadovanou operaci, nebo uživatelský kód ověřuje oprávnění
+uživatele, který jej spouští, k provedení požadované operace. V obou případech se však stále jedná o dynamická oprávnění.
 
-Doposud však oprávnění byla třídám přidělována při jejich zavádění zavaděčem tříd. To vylučuje jakékoli změny oprávnění třídy za běhu aplikace, natož použití různých sad oprávnění pro jednu třídu v jeden čas pro různé případy (souběžně přihlášené uživatele).
+Statická oprávnění byla v Javě donedávna implementována jen v zájmu zachování kompatibility s verzemi Javy staršími než Java 2 SE 1.4. \cite{sourceProtectionDomain}
+V současnosti se však statická oprávnění opět začaly používat a to za účelem optimalizace -- získáváním oprávnění třídy z objektu bezpečnostní politiky
+pouze při zavádění třídy a ne při každém požadavku o ověření oprávněnosti k provedení operace je možné proces ověřování oprávněnosti urychlit.
 
-Toto JACC řeší zavedením dvou sad oprávnění třídy:
-
-\begin{itemize}
-  \item {\bf Statická oprávnění} -- jsou získávány z objektu bezpečnostní politiky (voláním metody {\tt Policy.getPermissions()}) při zavádění třídy a ukládány v objektu ochranné domény. Měly by mezi nimi být všechna oprávnění náležející kódu z daného zdroje bez ohledu na uživatele, který spuštění kódu třídy způsobil.
-  \item {\bf Dynamická oprávnění} -- jsou získávány z objektu bezpečnostní politiky (voláním {\tt Policy.implies()}) při každém požadavku na ověření povolenosti dané operace (při každém volání metody {\tt ProtectionDomain.implies()}).
-\end{itemize}
-\fi
-
+Zmíněná optimalizace se používá v rámci současných verzí aplikačního serveru WildFly pro ochranné domény tříd modulů aplikačního serveru, včetně uživatelských aplikací. Související problémy jsou rozebrány v kapitole \ref{moduleClassLoader}.
 
 %=============================================================================
 \section{Celkový pohled na bezpečnost v Javě}
@@ -548,7 +548,7 @@ Toto JACC řeší zavedením dvou sad oprávnění třídy:
 \begin{figure}[ht]
   \centering
   \includegraphics[width=14cm]{fig/domain-schema}
-  \caption{Diagram datových toků oprávnění tříd v Javě}
+  \caption{Diagram datových toků tříd (hnědé šipky) a oprávnění tříd (černé šipky) v Javě}
   \label{diagramDatovychToku}
 \end{figure}
 
@@ -655,7 +655,7 @@ Jak je vidět, spočívá v prostém zakomentování tohoto omezení v metodě s
 Posílení bezpečnosti navíc není až tak výrazné, považujeme-li kód modulů WildFly za důvěryhodný -- uživatelskému kódu ve výměně správce bezpečnosti nadále brání samotná bezpečnostní politika, není-li její součástí výslovné povolení změny správce bezpečnosti.
 
 %=============================================================================
-\section{Zavaděč tříd modulů WildFly}
+\section{Zavaděč tříd modulů WildFly} \label{moduleClassLoader}
 %=============================================================================
 
 Překonání v předchozí kapitole popsaných problémů se správcem bezpečnosti WildFly však problém neúčinosti souborů bezpečnostní politiky nevyřešilo.
