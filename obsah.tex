@@ -37,7 +37,7 @@ Jeho návrh je nastíněn v kapitole \ref{navrh}, jeho implementace je popsána 
 \section{Bezpečnost}
 %=============================================================================
 
-Protože se tato práce zabývá bezpečností, což je pojem, který lze v různých souvislostech chápat zcela odlišně, je nanejvýš vhodné nejprve specifikovat co termínem bezpečnosti míníme a z kterého pohledu se jí budeme zabývat.
+Protože se tato práce zabývá bezpečností, což je pojem, který lze v různých souvislostech chápat zcela odlišně. Je nanejvýš vhodné nejprve specifikovat co termínem bezpečnosti míníme a z jakého pohledu se jí budeme zabývat.
 
 Scott Oaks definuje ve své knize Java Security bezpečnost jako souhrn následujících kritérií: \cite[1.1]{oaks}
 
@@ -52,40 +52,35 @@ Scott Oaks definuje ve své knize Java Security bezpečnost jako souhrn následu
   \item Dbaní na dobré vychování -- programům by mělo být bráněno v užívání příliš mnoha systémových prostředků.
 \end{itemize}
 
-V souvislosti s víceuživatelskými prostředími se pak pojem bezpečnosti vyskytuje ještě v další rovině, kdy nejde o bezpečí systému před běžící aplikací, ale o způsob jakým může naopak program ověřit, kdo je jeho uživatelem a zdali má právo po něm žádat vykonání operace, o jejíž vykonání žádá.
+V souvislosti s víceuživatelskými prostředími se pak pojem bezpečnosti vyskytuje ještě v další rovině, kdy nejde o bezpečí systému před běžící aplikací, ale o způsob jakým může naopak program ověřit, kdo je jeho uživatelem a zdali má právo po něm žádat vykonání operace, o jejíž vykonání žádá. Touto stránkou bezpečnosti se však tato práce zabývat nebude.
 
-Tato práce se zabývá bezpečností ve smyslu prvních tří bodů uvedeného výčtu (zvýrazněny tučně). Bude se tedy zabývat způsobem ochrany prostředí hostitelského počítače před jeho poškozením nebo neoprávněným sledováním ze strany běžících programů. Právě oprávnění programu pak souvisí s autentizací. Autentizací se myslí ověřování autorství programu. Právě od toho, kdo je autorem programu, se totiž mohou oprávnění programu odvozovat.
+Tato práce se zabývá bezpečností ve smyslu prvních tří bodů uvedeného výčtu (zvýrazněny tučně). Bude se tedy zabývat způsobem ochrany prostředí hostitelského počítače před jeho poškozením nebo neoprávněným sledováním ze strany běžících programů. Právě oprávnění programu pak souvisí s autentizací. Autentizací se myslí ověřování autorství programu. Právě od toho, kdo je autorem programu, se totiž mohou oprávnění programu často odvozovat.
 
 %=============================================================================
 \section{Java}
 %=============================================================================
 
-Programy v jazyce Java bývají překládány do platformě nezávislého a efektivněji než kód v jazyce Java interpretovatelného mezikódu, takzvaného bajtkódu.
+Programy v jazyce Java bývají překládány do platformě nezávislého a efektivněji než textový zdrojový kód v jazyce Java interpretovatelného mezikódu, takzvaného bajtkódu.
 Bajtkód ({\tt Bytecode}) bývá zpravidla interpretován virtuálním strojem Javy (JVM - Java Virtual Machine).
 
 JVM je abstraktní výpočetní stroj. Podobně jako reálné výpočetní stroje má svoji instrukční sadu a paměť, se kterou může manipulovat, ale na rozdíl od nich pro něj neexistuje jeho fyzická implementace, pouze emulovaná implementace softwarová.
 
-To znamená že její kód není prováděn nativně hardwarem, ale je interpretován speciálním programem, interpretem, který je sám zkompilován do nativního kódu dané platformy a prováděn jejím hardwarem.
+To znamená, že její kód není prováděn nativně hardwarem. Je interpretován speciálním programem, interpretem, který je sám zkompilovaný do nativního kódu dané platformy a prováděn jejím hardwarem.
 To mimo nezávislosti na platformě přináší také vyšší stupeň abstrakce.
 
-Díky tomu, že programy nepřistupují ani nemohou přistupovat ke zdrojům fyzického stroje přímo, ale pouze zprostředkovaně skrze zdroje virtuální stroje Javy, si není těžké představit, že by použití takovéhoto virtuálního stroje mohlo mít i významný bezpečnostní efekt.
+Díky tomu, že programy nepřistupují ani nemohou přistupovat ke zdrojům fyzického stroje přímo, ale pouze zprostředkovaně skrze zdroje virtuálního stroje Javy, si není těžké představit, že by použití takovéhoto virtuálního stroje mohlo mít i významný bezpečnostní efekt.
 Protože programy v JVM mohou k fyzickým zdrojům počítače (např. k souborům nebo k síti) přistupovat jen skrze JVM, zablokování takového přístupu ze strany JVM není nikterak složité - JVM stačí odmítnout takový požadavek a interpretovaný program nemá možnost JVM obejít.
 
 %=============================================================================
 \section{Správce bezpečnosti v Javě} \label{securityManager}
 %=============================================================================
 
-Pro maximální nastavitelnost omezení kladených na programy běžících na virtuálních strojích Javy nerozhoduje o povolení nebo zablokování operace nad zdrojem JVM samotná JVM, ale dotazuje se speciálního objektu -- tzv. správce bezpečnosti.
+Pro maximální nastavitelnost omezení kladených na programy běžících ve virtuálních strojích Javy nerozhoduje o povolení nebo zablokování operace nad zdrojem JVM samotná JVM. Dotazuje se namísto toho speciálního objektu, tzv. správce bezpečnosti.
 
-Správce bezpečnosti je instancí třídy {\tt java.lang.SecurityManager}, nebo její podtřídy. Podtřída je třída dědící atributy a metody (operace, přijímané zprávy) třídy, které je podtřídou.
+Správce bezpečnosti je objektem třídy {\tt java.lang.SecurityManager}, nebo její podtřídy.
+Třídu, jejíž objekt JVM použije při svém startu jako objekt správce bezpečnosti, lze nastavit skrze konfigurační proměnnou JVM {\tt java.security.manager}.
 
-Jakákoli podtřída třídy {\tt SecurityManager} tedy bude vždy přijímat všechny zprávy, které přijímá třída {\tt SecurityManager}, přičemž ty, které nebude sama implementovat, budou přejaty z její nadtřídy {\tt SecurityManager}.
-
-Reference na instanci podtřídy může být vložena do proměnné určené pro referenci na instanci její nadtřídy.
-
-Třídu jejíž instanci JVM použije při svém startu jako objekt správce bezpečnosti lze ovlivnit skrze konfigurační proměnnou JVM {\tt java.security.manager}.
-
-Aplikace může referenci na aktuálně používaný správce bezpečnosti získat voláním {\tt System.getSecurityManager() } a vypnout nebo vyměnit voláním {\tt System.setSecurityManager()}. Volání těchto metod je samo chráněno správcem bezpečnosti. Nehrozí tedy, že by se program neoprávněně zbavil omezení, která na něj správce bezpečnosti uvalil, jeho vypnutím nebo výměnou.
+Aplikace může referenci na aktuálně používaný objekt správce bezpečnosti získat voláním {\tt System.getSecurityManager() } a vypnout nebo jej vyměnit voláním {\tt System.setSecurityManager()}. Volání těchto metod je samo chráněno správcem bezpečnosti. Nehrozí tedy, že by se program neoprávněně zbavil omezení, která na něj správce bezpečnosti uvalil, jeho vypnutím nebo výměnou.
 
 Hodnotu konfigurační proměnné {\tt java.security.manager} je při startu JVM možné nastavit za pomoci k tomu určeného parametru {\tt -D}. Pro spuštění programu s výchozím správcem bezpečnosti můžeme tedy použít příkaz:
 
@@ -131,15 +126,16 @@ java.lang.InternalError: Could not create SecurityManager: neexistujici.SM
 
 Tím, že je zabráněno startu JVM v případě chybné konfigurace správce bezpečnosti, je tedy uplatněn bezpečnostní princip, kdy systém zůstane bezpečný i v případě poruchového stavu.
 
-Z výpisu obsahu zásobníku volání můžeme vidět, že k vytvoření a použití objektu správce bezpečnosti dochází v rámci kontruktoru třídy {\tt sun.misc.Launcher}. Její instance je vytvářena v rámci inicializace systémového zavaděče tříd (System Class Loader), jež je prováděna při prvním pokusu o jeho získání. (Význam zavaděče tříd bude později rozebrán v kapitole \ref{classloader}.)
+Z výpisu obsahu zásobníku volání můžeme vidět, že k vytvoření a použití objektu správce bezpečnosti dochází v rámci kontruktoru třídy {\tt sun.misc.Launcher}.
+Objekt správce bezpečnosti je vytvářen v rámci inicializace systémového zavaděče tříd ({\it System Class Loader}), která je prováděna při prvním pokusu o jeho získání. (Význam zavaděče tříd bude později rozebrán v kapitole \ref{classloader}.)
 
 %=============================================================================
 \section{Implementace vlastního správce bezpečnosti} \label{vlastniSM}
 %=============================================================================
 
 V této podkapitole bude vysvětlen způsob stanovení bezpečnostní politiky vytvořením vlastního správce bezpečnosti.
-Správce bezpečnosti je objekt, na který JVM při požadavku na Java API deleguje rozhodnutí o povolení nebo nepovolení operace nad zdrojem.
-Tento objekt musí být instancí třídy {\tt java.lang.SecurityManager} nebo její podtřídy. \cite{tutorialsTSM}
+Správce bezpečnosti je objekt (pod)třídy {\tt java.lang.SecurityManager}, na který JVM, při požadavku na Java API,
+deleguje rozhodnutí o povolení nebo nepovolení operace nad zdrojem. \cite{tutorialsTSM}
 
 Algoritmus používaný Java API pro rozhodnutí o vykonání nebo nevykonání potenciálně nebezpečné operace je následující: \cite[4.1.1]{oaks}
 
@@ -151,6 +147,7 @@ Algoritmus používaný Java API pro rozhodnutí o vykonání nebo nevykonání 
 \end{enumerate}
 
 Vlastního správce bezpečnosti tedy vytvoříme rozšířením třídy {\tt SecurityManager}, přičemž přepíšeme metody rozhodující o povolení akce, kterou chceme povolit, nebo pro kterou chceme stanovit vlastní algoritmus rozhodující zda akci povolit nebo ne.
+
 Protože standardní správce bezpečnosti implicitně všechny operace zakazuje, stačí nám implementovat metody autorizující provedení operací, které chceme povolit a operacemi které nikdy povolit chtít nebudeme se nebudeme muset zabývat.
 
 Příklad níže ukazuje jednoduchý správce bezpečnosti, který o povolení každé akce rozhodne na základě interakce s uživatelem. Při pokusu programu o provedení potenciálně nebezpečné operace je uživateli zobrazen dotaz, zda chce tuto operaci povolit nebo ne. V případě negativní odpovědi je jejímu provedení vrácením výjimky {\tt SecurityException} zabráněno.
