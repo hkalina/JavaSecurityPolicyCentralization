@@ -482,29 +482,31 @@ Implicitně jsou používány právě první dvě uvedená umístění -- {\tt \
 
 Bezpečnostní politiku je dále možné rozšířit při startu JVM o vlastní soubor bezpečnostní politiky. Stačí nastavit konfigurační proměnnou {\tt java.security.policy} při startu JVM: \cite[5.3.1]{oaks}
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Spuštění JVM s vlastním souborem bezpečnostní politiky, label=nastaveniBP]
 java -Djava.security.policy=dalsi_soubor_politiky.policy ProgramABC
-\end{verbatim}
+\end{lstlisting}
 
 V tomto případě bude uvedený soubor bezpečnostní politiky použit zároveň s výše uvedeným standardním souborem bezpečnostní politiky. Chceme-li standardní soubor bezpečnostní politiky zcela nahradit, stačí namísto jednoho rovnítka v definici konfigurační proměnné použít rovnítka dvě: \cite[5.3.1]{oaks}
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Spuštění JVM jen s vlastním souborem bezpečnostní politiky, label=nastaveniBP2]
 java -Djava.security.policy==jediny_soubor_politiky.policy ProgramABC
-\end{verbatim}
+\end{lstlisting}
 
 Samotný obsah konfigurační proměnné tak bude začínat znakem rovnítka. Obsah této proměnné je také možné změnit i za běhu programu, má-li daná část programu oprávnění k zápisu do této proměnné.
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Nastavení souboru bezpečnostní politiky zevnitř JVM, label=nastaveniBP2]
 System.setProperty("java.security.policy", "jiny_soubor_politky.policy");
-\end{verbatim}
+\end{lstlisting}
 
 Tato konfigurační proměnná je čtena při inicializaci Systému řízení přístupu. Na jejím základě je následně soubor bezpečnostní politiky načten a aplikován. Chceme-li soubor bezpečnostní politiky vyměnit za běhu, pouhá změna obsahu této konfigurační proměnné proto nestačí -- je třeba zapříčinit nové načtení souboru bezpečnostní politiky. K tomuto účelu je možné použít metodu třídy {\tt Policy}, která právě toto provádí:
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Znovunačtení souboru bezpečnostní politiky, label=refreshBP]
 Policy.getPolicy().refresh();
-\end{verbatim}
+\end{lstlisting}
 
-Problémem je, že tato metoda je označena jako nedoporučovaná ({\tt deprecated}), protože je implementačně závislá -- zatímco u implementace používající soubory bezpečnostní politiky správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. Navíc i v případě různých implementací politiky založené na souborech se může chovat odlišně, například v závislosti na strategii vyrovnávací paměti kolekce oprávnění ({\tt PermissionCollection}) -- může znovu načíst bezpečnostní politiku pro celou JVM, ale také třeba jen pro danou ochranou doménu. \cite{refPolicy}
+Problémem je, že tato metoda je označena jako nedoporučovaná ({\tt deprecated}), protože je implementačně závislá -- zatímco u implementace používající soubory bezpečnostní politiky správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. \cite{refPolicy}
+
+Navíc i v případě různých implementací politiky založené na souborech se může chovat odlišně, například v závislosti na strategii vyrovnávací paměti kolekce oprávnění ({\tt PermissionCollection}) -- může znovu načíst bezpečnostní politiku pro celou JVM, ale také třeba jen pro danou ochranou doménu. \cite{refPolicy}
 
 Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy}, {\tt sun.security.provider.PolicyFile}, a na ní postavených nebo na ni delegujících implementacích.
 
@@ -585,21 +587,18 @@ Skupiny serverů tedy seskupují servery napříč hostiteli s některými spole
 
 Nakonfigurovat použití Správce bezpečnosti na aplikačním serveru WildFly je možné stejně jako na jekékoli jiné aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné tak dosáhneme nastavení použití security manageru a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Doplnění spouštěcího skriptu o použití správce bezpečnosti, label=wildflySeSM]
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
-\end{verbatim}
+\end{lstlisting}
 
 Jestliže budeme dále předpokládat, že cílem nasazení bezpečnostních politik na server je omezení možností uživatelských aplikací, můžeme od jemného přidělování jen nejnezbytnějších oprávnění součástem WildFly které je nezbytně potřebují, ustoupit k přidělení všech oprávnění všem součástem aplikačního serveru. Uživatelské aplikace nyní ponecháme bez jakýchkoli oprávnění a vyzkoušíme účinky této bezpečnostní politiky:
 
-\begin{verbatim}
+\begin{lstlisting}[caption=První testovací soubor bezpečnostní politiky pro WildFly, label=wildflySeSM]
 grant codeBase "file:${jboss.home.dir}/jboss-modules.jar" {
     permission java.security.AllPermission;
 };
-grant codeBase "file:${jboss.home.dir}/modules/-" {
-    permission java.security.AllPermission;
-};
-\end{verbatim}
+\end{lstlisting}
 
 S použitím této bezpečnostní politiky se server WildFly skutečně bez potíží spustí. Když však na tento server nasadíme aplikaci provádějící kupříkladu čtení souboru uloženého v adresáři této aplikace, zjistíme že aplikace nemá problém tento soubor číst. Do souboru ležícího mimo jeho adresář se ale naopak nedostane dokonce ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM bez ohledu na jejich kořen balíčků ({\tt codeBase}).
 
@@ -658,33 +657,45 @@ Posílení bezpečnosti navíc není až tak výrazné, považujeme-li kód modu
 \section{Zavaděč tříd modulů WildFly} \label{moduleClassLoader}
 %=============================================================================
 
-Překonání v předchozí kapitole popsaných problémů se správcem bezpečnosti WildFly však problém neúčinosti souborů bezpečnostní politiky nevyřešilo.
+Protože se překonáním problému se správcem bezpečnosti WildFly popsaném v předchozí kapitole problém neúčinosti souborů bezpečnostní politiky nevyřešil,
+pokračoval jsem ve snahách o nalezení zdroje tohoto problému.
 
-Krokováním programu se mi podařilo zjistit, že oprávnění přidělená v souboru bezpečnostní politiky úspěšně opouští objekt bezpečnostní politiky {\tt sun.security.provider.PolicyFile}, na něj delegující objekt {\tt org.jboss.modules.ModulesPolicy} i na tento objekt delegující objekt {\tt org.jboss.security.jacc.DelegatingPolicy}.
+Krokováním programu se podařilo ověřit, že používaný objekt bezpečnostní politiky úspěšně opouští správná sada oprávnění. Problém tedy není v žádném
+z objektů bezpečnostní politiky které jsou ve WildFly používány. Volání metod {\tt implies()} i {\tt getPermissions()} ochranné domény však vracelo výsledek,
+který byl od této sady zcela odlišný.
 
-Krokováním programu z opačné strany problému se mi zároveň podařilo zjistit, že v objektu ochranné domény třídy se naopak toto oprávnění nenachází. K zahození oprávnění ze souboru bezpečnostní politiky tedy muselo dojít mezi získáním oprávnění z objektu bezpečnostní politiky a jejich uložením do objektu ochranné domény.
+První problém tak spočíval v oprávněních ukládaných do objektu ochranné domény. Průzkum kódu zavaděče tříd používaného ve WildFly odhalil příčinu:
+Zavaděč tříd modulů WildFly ({\tt org.jboss.modules.ModuleClassLoader}) implicitně zcela ignoruje oprávnění poskytovaná objektem bezpečnostní politiky.
 
-Na základě informací uvedených v kapitole \ref{classloader} jsem tedy zdroj problému dále hledal v zavaděči tříd. Právě on totiž oprávnění z objektu bezpečnostní politiky získává a objekty ochranných domén přitom vytváří a třídám přiděluje.
+Tento problém bylo možné vyřešit celkem snadno -- zavaděč umožňoval nastavit používání bezpečnostní politiky ze souboru nastavením k tomu určené
+konfigurační vlastnosti. Aby tedy začaly být bezpečnostní politiky uplatňovány, stačí přidat její definici do spouštěcího skriptu WildFly: \cite{sourceModuleClassLoader}
 
-Zavádění tříd systémových i uživatelských modulů WildFly obstarává Zavaděč tříd modulů ({\tt org.jboss.modules.ModuleClassLoader}). Díky zdrojovému kódu metody {\tt getProtectionDomain()} této třídy se nakonec skutečně podařilo odhalit příčinu ignorování souboru bezpečnostní politiky.
-
-Tato metoda zajišťuje vytvoření objektu ochranné domény a oprávnění, která této doméně přidějí, získává ze dvou zdrojů. Prvním zdrojem ({\tt permissions}) jsou oprávnění modulu aplikačního serveru, definovaná konfiguračním souborem {\tt permission.xml} v archivu modulu. Účel i forma tohoto konfiguračního souboru jsou určeny specifikací Java EE. \cite{javaEEspec} Druhým zdrojem ({\tt policyPermissions}) pak jsou oprávnění získaná z objektu bezpečnostní politiky.
-
-Metoda standardně přiděluje ochranným doménám oprávnění pouze z jejich modulů a oprávnění z objektu bezpečnostní politiky ignoruje. Jak se však ze zdrojového kódu tohoto zavaděče podařilo zjistit, používaná množina oprávnění může být také sjednocením oprávnění z objektu bezpečnostní politiky a oprávnění modulu.
-
-Toho je možné dosáhnout nastavením konfigurační vlastnosti {\tt jboss.modules.policy-permissions} na {\tt true}. Hlavním problémem tak byla absence dokumentace ke způsobu vynucení použití souborů bezpečnostní politiky v prostředí WildFly.
-
-\begin{lstlisting}[caption=Způsob nastavení spuštění aplikačního serveru se souborem bezpečnostní politiky, label=jbossOpts]
+\begin{lstlisting}[caption=Úprava spouštěcího skriptu pro spuštění se souborem bezpečnostní politiky, label=jbossOpts]
 JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-permissions=true"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{lstlisting}
 
-Výsledný výčet příkazů, jejichž přidáním do startovacího skriptu (např. {\it standalone.sh}) zajistíme spuštění aplikačního serveru se souborem bezpečnostní politiky, ukazuje Kód \ref{jbossOpts}.
+Po spuštění aplikačního serveru v této konfiguraci již jsou uplatňovány bezpečnostní politiky. Pokud se však pokusíme změnit je za běhu aplikace,
+například za pomoci řešení implementovaného v kapitole \ref{implementace}, výměna politiky se na třídách, které už byly načteny do paměti, neprojeví.
 
-Konfigurační proměnná {\tt java.security.manager} zajistí použití správce bezpečnosti a {\tt java.security.policy} stanoví soubor bezpečnostní politiky používaný implicitní implementací třídy bezpečnostní politiky, jak již bylo popsáno v kapitole \ref{souborPolitiky}.
+Důvodem je, že i přesto, že nyní již jsou třídám zavaděčem přidělovány oprávnění z objektu bezpečnostní politiky, tyto oprávnění jsou přidělovány
+jako statická, tedy jen při načítání třídy.
 
-Samotná proměnná {\tt jboss.modules.policy-permissions} nastavena na {\tt true} pak v prostředí aplikačního serveru WildFly zajistí, že budou oprávnění stanovená objektem bezpečnostní politiky používána.
+V rámci této práce byla tedy vytvořena záplata zavaděče tříd modulů WildFly, která umožní používání oprávnění z objektu bezpečnostní politiky
+ve formě dynamických oprávnění ochranné domény.
+
+\begin{lstlisting}[caption=Hlavní část záplaty umožňující nastavit používání dynamických oprávnění, label=refreshable]
++  if (POLICY_REFRESHABLE) {
++      protectionDomain = new ProtectionDomain(codeSource, permissions,
+                                  this, null); // staticPermission=false
++  }else if (POLICY_PERMISSIONS && POLICY_READY.get()) {
+-  if (POLICY_PERMISSIONS && POLICY_READY.get()) {
+\end{lstlisting}
+
+V předchozí variantě byla do ochranné domény ukládána množina oprávnění odpovídající sjednocení oprávnění z objektu bezpečnostní politiky a oprávnění modulu, udělená specifikací Java EE nebo konfiguračním souborem {\tt permission.xml}.
+
+V nové variantě stačí do ochranné domény uložit oprávnění modulu a nastavit ochrannou doménu jako používající dynamická oprávnění - uvést třetí a čtvrtý parametr konstruktoru. Použití záplatou vytvořené varianty je podmíněno nastavením nové konfigurační vlastnosti {\tt jboss.modules.policy-refreshable} na hodnotu {\tt true}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Návrh systému} \label{navrh}
@@ -766,10 +777,10 @@ Na změnu této konfigurační vlastnosti zároveň server domény daný jménem
 
 Toho bylo dosaženo vytvořením třídy {\tt ServerWriteAttributeHandler} a jejím uvedením v rámci volání provádějícího registraci samotné konfigurační vlastnosti:
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Registrace konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, label=registraceAtributu]
 resourceRegistration.registerReadWriteAttribute(POLICY,
                 null, ServerWriteAttributeHandler.INSTANCE);
-\end{verbatim}
+\end{lstlisting}
 
 Není stanovena třída zprostředkovávající čtení tohoto konfigurační vlastnosti. (Na jejím místě je uveden {\tt null}) Na čtení této vlastnosti není totiž vázána žádná akce, ani není nutné obsah vracený jako odpověď na pokus o čtení vlastnosti nikterak upravovat a je možné uživatele nechat číst samotnou vlastnost přímo.
 
@@ -777,7 +788,7 @@ Aby byla bezpečnostní politika aplikována nejen na základě akce administrá
 
 Obě akce je jsou implementovány jako třídy {\tt ServerAdd} a {\tt ServerRemove}, jež jsou na uzly typu {\tt server=*} navázány skrze parametry konstruktoru třídy definující tento uzel konfiguračního stromu:
 
-\begin{verbatim}
+\begin{lstlisting}[caption=Definice konfiguračního uzlu {\tt server=*}, label=registraceUzluServer]
 public class ServerDefinition extends SimpleResourceDefinition {
     private ServerDefinition() {
         super(JsmPolicyExtension.SERVER_PATH,
@@ -786,7 +797,7 @@ public class ServerDefinition extends SimpleResourceDefinition {
                 ServerRemove.INSTANCE);
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 Konfigurační uzly {\tt server=*} jsou ukládány do konfiguračního XML souboru domény WildFly, jak je u konfigurační uzlů WildFly běžné. Ukládání veškeré konfigurace subsystému je implementováno ve třídě {\tt SubsystemParser}.
 
@@ -888,5 +899,27 @@ Další operací objektu domény tak bude navrácení subsystému do počátečn
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Cílem práce bylo navrhnout, vytvořit a otestovat systém pro centralizovanou správu a distribuci bezpečnostních politik Javy v distribuovaném prostředí aplikačního serveru WildFly.
+
+Ačkoli jen samotné používání bezpečnostní politiky ve WildFly bylo v době tvorby této práce bez úpravy zdrojového kódu nemožné (viz kapitola \ref{jboss}),
+bylo v rámci této bakalářské práce umožněno nejen používání bezpečnostní politiky, ale také její výměna za běhu aplikačního serveru bez potřeby
+jeho restartu nebo znovunačtení.
+
+Dosaženo toho bylo za pomoci záplat ({\it patch}) několika součástí WildFly (viz kapitola \ref{jboss}), přičemž obecnější z nich byly nabídnuty
+k začlenění do hlavní vývojové větve daných součástí. \cite{smPullRequest}\cite{jbossModulesPullRequest}
+
+O začlenění nebylo zažádáno pouze v případě záplaty správce bezpečnosti WildFly umožňující povolení nastavování správce bezpečnosti,
+zejména pro potřeby jeho vypínání, protože tato záplata porušovala původní návrh této součásti WildFly.
+
+Po vyřešení samotného používání a výměny bezpečnostních politik v prostředí aplikačního serveru WildFly bylo vytvořeno rozšíření aplikačního serveru,
+umožňující provádět výměnu používané politiky a zapínání/vypínání správce bezpečnosti v návaznosti na změnu konfigurace pro příslušný server
+v konfiguračním stromu WildFly. Konfigurační strom WildFly se zároveň používá také pro ukládání jednotlivých souborů bezpečnostní politiky,
+které jsou tímto způsobem distribuovány napříč aplikačními servery domény.
+
+Nad tímto rozšířením aplikačního serveru pak bylo vytvořeno webové uživatelské rozhraní ve formě rozšíření webové administrační konzoly WildFly,
+jež umožňuje nastavovat použití správce bezpečnosti a nastavovat bezpečnostní politiky na jednotlivých serverech nebo celých skupinách serverů
+domény.
+
+Na implementované řešení pak byla vytvořena automatizovaná sada testů umožňující otestovat schopnosti implementovaného systému měnit oprávnění
+aplikací nasazených na aplikačním serveru nebo doméně aplikačních serverů.
 
 
