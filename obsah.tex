@@ -137,58 +137,60 @@ V této podkapitole bude vysvětlen způsob stanovení bezpečnostní politiky v
 Správce bezpečnosti je objekt (pod)třídy {\tt java.lang.SecurityManager}, na který JVM, při požadavku na Java API,
 deleguje rozhodnutí o povolení nebo nepovolení operace nad zdrojem. \cite{tutorialsTSM}
 
-Algoritmus používaný Java API pro rozhodnutí o vykonání nebo nevykonání potenciálně nebezpečné operace je následující: \cite[4.1.1]{oaks}
+Jakmile se tedy uživatelská aplikace pokusí provést potenciálně nebezpečnou operaci (například pokusí-li se ukončit JVM voláním {\tt System.exit(0)}),
+Java API se dotáže správce bezpečnosti na oprávněnost této operace tím, že zavolá jeho metodu (v tomto případě {\tt checkExit(0)}). \cite[4.1.1]{oaks}
 
-\begin{enumerate}
-  \item Uživatelská aplikace žádá prostřednictvím Java API o provedení dané operace
-  \item Java API se dotáže správce bezpečnosti zda operaci povolit zavoláním patřičné metody správce bezpečnosti.
-  \item Nemá-li být operace povolena, vrátí správce bezpečnosti výjimku {\tt SecurityException}, která je předána uživatelské aplikaci, čímž je vykonání operace zabráněno.
-  \item Není-li vyhozena žádná výjimka, operace se považuje za povolenou a je provedena.
-\end{enumerate}
+Správce bezpečnosti pak na základě parametrů tohoto volání rozhodne o tom zda operaci zakáže a vyhodí k tomu určenou výjimku {\tt SecurityException}.
+Není-li žádná výjimka vyhozena, považuje se operace za povolenou a je provedena. \cite[4.1.1]{oaks}
 
-Vlastního správce bezpečnosti tedy vytvoříme rozšířením třídy {\tt SecurityManager}, přičemž přepíšeme metody rozhodující o povolení akce, kterou chceme povolit, nebo pro kterou chceme stanovit vlastní algoritmus rozhodující zda akci povolit nebo ne.
+Bezpečnostní politiku tak můžeme definovat vytvořením vlastní podtřídy třídy {\tt SecurityManager}, kde přepíšeme metody rozhodující o povolení
+operací, jejichž oprávněnost chceme stanovit.
 
-Protože standardní správce bezpečnosti implicitně všechny operace zakazuje, stačí nám implementovat metody autorizující provedení operací, které chceme povolit a operacemi které nikdy povolit chtít nebudeme se nebudeme muset zabývat.
+Univerzálnějším řešením je přepsat metodu {checkPermission()}, na kterou své rozhodování delegují všechny rozhodovací metody standardního správce bezpečnosti.
 
-Příklad níže ukazuje jednoduchý správce bezpečnosti, který o povolení každé akce rozhodne na základě interakce s uživatelem. Při pokusu programu o provedení potenciálně nebezpečné operace je uživateli zobrazen dotaz, zda chce tuto operaci povolit nebo ne. V případě negativní odpovědi je jejímu provedení vrácením výjimky {\tt SecurityException} zabráněno.
+Příklad jednoduchého správce bezpečnosti ukazuje kód \ref{TestovaciSM}:
 
 \begin{lstlisting}[caption=Jednoduchý správce bezpečnosti, label=TestovaciSM]
 public class TestovaciSM extends SecurityManager {
 	@Override
 	public void checkPermission(Permission permission) {
-		
-		System.out.println("Povolit " + permission.toString() + " ?");
-		if(!askUser()){ // jestlize uzivatel nezvoli "povolit"
-			throw new SecurityException("Operace byla zakazana uzivatelem");
+		if(permission instanceof FilePermission){
+			throw new SecurityException("Prace se soubory je zakazana!");
 		}
-		
 	}
 }
 \end{lstlisting}
 
-V rámci vlastní aplikace je pak možné takto vytvořený správce bezpečnosti začít používat za pomoci dříve zmíněného příkazu:
+Tento jednoduchý správce bezpečnosti tedy implementuje metodu {\tt checkPermission()}, která je volána při každém pokusu o provedení potenciálně nebezpečné
+operace. Je-li oprávnění, které uživatelský kód vyžaduje, třídy {\tt FilePermission} nebo její podtřídy, je vyhozena výjimka která provedení operace
+zabrání.
+
+V rámci vlastní aplikace je možné vlastní správce bezpečnosti začít používat za pomoci dříve zmíněného příkazu {\tt System.setSecurityManager()}:
 
 \begin{lstlisting}[caption=Nastavení správce bezpečnosti zevnitř JVM, label=setSM]
 System.setSecurityManager(new TestovaciSM());
 \end{lstlisting}
 
-Z vně aplikace je možné použití tohoto správce bezpečnosti nastavit při startu JVM vhodným nastavením konfigurační proměnné, jak je popsáno v kapitole \ref{securityManager}:
+Z vně aplikace pak je možné použití tohoto správce bezpečnosti nastavit při startu JVM vhodným nastavením konfigurační proměnné, jak je popsáno v kapitole \ref{securityManager}:
 
 \begin{lstlisting}[caption=Spuštění aplikace se správcem bezpečnosti, label=runWithSM]
 java -Djava.security.manager=TestovaciSM HelloWorld
 \end{lstlisting}
 
-Nutno dodat, že tato konfigurační proměnná je uplatněna pouze při startu JVM. Její změnou za běhu JVM nebude použití security manageru ovlivněno.
+Nutno dodat, že tato konfigurační proměnná je uplatněna pouze při startu JVM. Její změnou za běhu JVM nebude použití správce bezpečnosti ovlivněno.
 
-Zde uvedený správce bezpečnosti je opravdu pouze demonstrativní, v čemž se můžeme utvrdit, spustíme-li jej nad jednoduchou aplikací Hello world. Na správce bezpečnosti bude i v tomto jednoduchém případě kladeno celkem 29 dotazů.
+Vedlejším efektem existence metod volaných při každém pokusu o provedení potenciálně nebezpečné operace je také možnost vedení statistik, jaká oprávnění
+aplikace nejčastěji využívá. Ty by pak teoreticky mohly být základem pro inteligentního správce bezpečnosti, přidělujícího programu oprávnění
+na základě heuristické analýzy.
 
-Jelikož samotný výpis textu na standardní výstup není operací kontrolovanou správcem bezpečnosti, je příčinou všech dotazů na správce bezpečnosti inicializace samotného virtuálního stroje Javy.
+Z těchto statistik můžeme zjistit například to, že i v rámci vykonávání prázdného programu v Javě (třídy, jejíž metoda {\tt main()} neobsahuje žádný příkaz) je prováděno celkem 29 potenciálně nebezpečných operací.
 
-V 18 případech je příčinou dotazu čtení obsahu konfiguračních proměnných (Property), v 8 případech jde o manipulaci s vlákny (Thread) a ve zbývajících 3 případech jde o čtení souboru spouštěné třídy ({\tt Program.class}).
+V 18 případech je příčinou dotazu čtení obsahu konfiguračních proměnných ({\it Property}), v 8 případech jde o manipulaci s vlákny ({\it Thread}) a ve zbývajících 3 případech jde o čtení souboru spouštěné třídy ({\tt Program.class}). Ve všech případech jde tedy o operace související se samotnou inicializací JVM.
 
-Množství dotazů kladených na správce bezpečnosti je tedy i u takto primitivní aplikace příliš velký, než aby bylo možné nechat je zodpovídat uživatelem a vytvořit tak správce bezpečnosti pracujícího na principu interaktivní protipožární přepážky (firewall), nebyl by-li zároveň vytvořen předdefinový seznam vždy povolených operací.
+Pro stanovení bezpečnostní politiky se však tento způsob (vytvoření vlastního správce bezpečnosti) v současnosti (od Javy verze 2) již nepoužívá, ačkoli stále možný je.
 
-Stanovení bezpečnostní politiky vytvořením vlastního správce bezpečnosti ale nepochybně možné je. Vyžaduje ale znalosti programování v Javě od správce počítače, na němž JVM běží. Od Javy verze 2 se tedy vytvoření vlastního správce bezpečnosti pro stanovení bezpečnostní politiky nepoužívá.
+Vyžaduje od správce serveru, na němž aplikace běží, znalosti programování a neumožňuje jednoduchým způsobem přidělovat oprávnění v závislosti na třídě,
+která se potenciálně nebezpečnou operaci snaží provést.
 
 %=============================================================================
 \section{Zavaděče tříd} \label{classloader}
