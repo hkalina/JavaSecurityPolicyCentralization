@@ -568,17 +568,23 @@ Na systém řízení přístupu pak rozhodování deleguje také standardní spr
 \chapter{Distribuované prostředí Red Hat JBoss} \label{jboss}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-WildFly, dříve známý jako JBoss AS, je aplikační server standardu Java EE. Poskytuje tedy běhové prostředí Java EE aplikacím, které se na tento aplikační server nainstalují.
+%=============================================================================
+\section{Úvod do WildFly (JBoss AS)}
+%=============================================================================
 
-Instalace WildFly je možné spojit do domény a vytvořit tak distribuované prostředí. Každou instalaci WildFly pak nazýváme hostitelem. Doména je tedy skupinou hostitelů ({\tt host}), přičemž na jediném počítači může teoreticky běžet více hostitelů. Typicky však jeden hostitel odpovídá jednomu počítači.
+WildFly, dříve známý jako JBoss Application Server, je aplikační server standardu Java EE. Poskytuje běhové prostředí (nejen) Java EE aplikacím, které jsou na tomto aplikačním serveru nainstalovány. \cite{wildflyRename}
 
-Jeden z hostitelů plní funkci doménového řadiče ({\tt domain controller}). Tento hostitel je nositelem jediného používaného konfiguračního souboru domény, {\tt domain.xml}. Každý z hostitelů je konfigurován svým konfiguračním souborem {\tt host.xml}, jež určuje, zda-li je hostitel doménovým řadičem nebo, v případě že doménovým řadičem není, adresu doménového řadiče, na který by se tento hostitel měl registrovat. \cite{jbossDomainSetup}
+Jednotlivé instalace WildFly nazýváme hostiteli ({\it host}). Hostitel typicky odpovídá jednomu fyzickému serveru. V rámci každého hostitele může běžet více aplikačních serverů ({\it server}).
+Hostitelé mohou být spojováni do domén ({\it domain}), přičemž jeden z nich v takovém případě zastává roli tzv. doménového řadiče ({\it domain controller}),
+ke kterému se ostatní hostitelé domény registrují a nechají se jím spravovat. \cite{jbossDomainSetup}
 
-Na každém hostiteli může běžet více serverů -- instancí aplikačního serveru běžících ve vlastních JVM. Každý server má vlastní jméno, jímž se registruje v doméně, sadu portů na kterých poskytuje své služby a JVM ve které běží. Vše z uvedeného je přitom součástí definice serveru v konfiguračním souboru hostitele, {\tt host.xml}. \cite{jbossDomainSetup}
+Na doménovém řadiči leží jediný používaný konfigurační soubor domény, {\tt domain.xml}. Tento soubor obsahuje konfiguraci skupin serverů a profilů serverů a tím také konfiguraci subsystémů používaných na aplikačních serverech domény. \cite{jbossDomainSetup}
 
-Server je také zařazen do jedné ze skupin serverů, jež jsou definovány v konfiguračním souboru domény. Přiřazení serveru do skupiny je součástí definice serveru v konfiguračním souboru hostitele. \cite{jbossDomainSetup}
+Každý hostitel má vlastní konfigurační soubor {\tt host.xml}. Tento soubor určuje název hostitele, zda-li je tento hostitel doménovým řadičem a pokud není také adresu doménového řadiče, proti kterému se registruje do domény. Zde jsou definovány aplikační servery, které na daném hostiteli poběží, porty na kterých budou poskytovat své služby a skupiny do kterých budou servery patřit. \cite{jbossDomainSetup}
 
-Skupiny serverů tedy seskupují servery napříč hostiteli s některými společnými vlastnostmi -- aplikace ({\it deployment}) je typicky nasazována na celou skupinu serverů najednou a konfigurace skupiny umožňuje provést nastavení (např. nastavit parametr JVM) na všech serverech skupiny najednou. \cite{jbossDomainSetup}
+Distribuovaného prostředí je docíleno nasazováním aplikací ({\it deployment}) na celé skupiny serverů najednou. Požadavky směřované na aplikaci by potom
+měly být rozprostírány mezi všechny servery domény pomocí zařízení zvaného {\tt load balancer}. Toto zařízení umožňuje skrýt celou doménu za jedinou IP adresu
+a umožnit klientům přistupujícím k aplikaci přístup k nejméně vytíženému serveru disponujícímu danou aplikací. \cite{jbossLoadBalancing}
 
 %=============================================================================
 \section{Běh WildFly pod správcem bezpečnosti Javy}
