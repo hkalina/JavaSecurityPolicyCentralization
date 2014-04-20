@@ -129,9 +129,9 @@ Tím, že je zabráněno startu JVM v případě chybné konfigurace správce be
 Z výpisu obsahu zásobníku volání můžeme vidět, že k vytvoření a použití objektu správce bezpečnosti dochází v rámci kontruktoru třídy {\tt sun.misc.Launcher}.
 Objekt správce bezpečnosti je vytvářen v rámci inicializace systémového zavaděče tříd ({\it System Class Loader}), která je prováděna při prvním pokusu o jeho získání. (Význam zavaděče tříd bude později rozebrán v kapitole \ref{classloader}.)
 
-%=============================================================================
-\section{Implementace vlastního správce bezpečnosti} \label{vlastniSM}
-%=============================================================================
+%-----------------------------------------------------------------------------
+\subsection{Implementace vlastního správce bezpečnosti} \label{vlastniSM}
+%-----------------------------------------------------------------------------
 
 V této podkapitole bude vysvětlen způsob stanovení bezpečnostní politiky vytvořením vlastního správce bezpečnosti.
 Správce bezpečnosti je objekt (pod)třídy {\tt java.lang.SecurityManager}, na který JVM, při požadavku na Java API,
@@ -184,7 +184,7 @@ Zde uvedený správce bezpečnosti je opravdu pouze demonstrativní, v čemž se
 
 Jelikož samotný výpis textu na standardní výstup není operací kontrolovanou správcem bezpečnosti, je příčinou všech dotazů na správce bezpečnosti inicializace samotného virtuálního stroje Javy.
 
-V 18 případech je příčinou dotazu čtení obsahu konfiguračních proměnných (Property), v 8 případech jde o manipulaci s vlákny (Thread) a ve zbývajících 3 případech jde o čtení samotného souboru spouštěné třídy ({\tt Program.class})
+V 18 případech je příčinou dotazu čtení obsahu konfiguračních proměnných (Property), v 8 případech jde o manipulaci s vlákny (Thread) a ve zbývajících 3 případech jde o čtení souboru spouštěné třídy ({\tt Program.class}).
 
 Množství dotazů kladených na správce bezpečnosti je tedy i u takto primitivní aplikace příliš velký, než aby bylo možné nechat je zodpovídat uživatelem a vytvořit tak správce bezpečnosti pracujícího na principu interaktivní protipožární přepážky (firewall), nebyl by-li zároveň vytvořen předdefinový seznam vždy povolených operací.
 
@@ -196,9 +196,9 @@ Stanovení bezpečnostní politiky vytvořením vlastního správce bezpečnosti
 
 Než se dostaneme k v současnosti využívanému způsobu stanovování bezpečnostní politiky, pozastavíme se nad tématem zavádění tříd.
 Ačkoli se na první pohled může zdát, že toto téma s bezpečností příliš nesouvisí, opak je pravdou.
-Jen a pouze zavaděč tříd (Classloader), který třídu do paměti zavádí, totiž může určit původ třídy, od kterého se oprávnění kódu této třídy odvozuje.
+Jen a pouze zavaděč tříd ({\it Classloader}), který třídu do paměti zavádí, totiž může určit původ třídy, od kterého se oprávnění kódu této třídy zpravidla odvozuje.
 
-Zavaděč je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně názvu třídy používaného v bajtkódu (např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$} {\tt Builder\$FileBuilder\$1}) se tuto třídu pokusí vyhledat a načíst do paměti. \cite{refClassLoader}
+Zavaděč je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy ({\it binary name of class}) \cite{binaryNameOfClass}, tedy označení třídy používaného v bajtkódu (např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}), se tuto třídu pokusí vyhledat a načíst do paměti. \cite{refClassLoader}
 
 Třída každého zavaděče tříd musí být podtřídou třídy {\tt java.lang.ClassLoader} a musí implementovat metodu {\tt findClass()}. Ta je jádrem celého zavaděče -- provádí samotné vyhledání třídy podle názvu. Jejím výstupem je pak objekt třídy {\tt java.lang.Class} představující samotnou třídu. Při programování běžných aplikací můžeme na objekty této třídy narazit například při snaze získat název třídy neznámého objektu jako řetězec za běhu aplikace: \cite{refClassLoader}
 
@@ -576,38 +576,39 @@ Na každém hostiteli může běžet více serverů -- instancí aplikačního s
 
 Server je také zařazen do jedné ze skupin serverů, jež jsou definovány v konfiguračním souboru domény. Přiřazení serveru do skupiny je součástí definice serveru v konfiguračním souboru hostitele. \cite{jbossDomainSetup}
 
-Skupiny serverů tedy seskupují servery napříč hostiteli s některými společnými vlastnostmi -- aplikace (deployment) je typicky nasazována na celou skupinu serverů najednou a konfigurace skupiny umožňuje provést nastavení (např. nastavit parametr JVM) na všech serverech skupiny najednou. \cite{jbossDomainSetup}
+Skupiny serverů tedy seskupují servery napříč hostiteli s některými společnými vlastnostmi -- aplikace ({\it deployment}) je typicky nasazována na celou skupinu serverů najednou a konfigurace skupiny umožňuje provést nastavení (např. nastavit parametr JVM) na všech serverech skupiny najednou. \cite{jbossDomainSetup}
 
 %=============================================================================
-\section{Běh WildFly pod Java Security Managerem}
+\section{Běh WildFly pod správcem bezpečnosti Javy}
 %=============================================================================
 
-Nakonfigurovat použití Správce bezpečnosti na aplikačním serveru WildFly je možné stejně jako na jekékoli jiné aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné tak dosáhneme nastavení použití security manageru a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
+Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné bychom měli dosáhnout použití správce bezpečnosti a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
 
 \begin{lstlisting}[caption=Doplnění spouštěcího skriptu o použití správce bezpečnosti, label=wildflySeSM]
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{lstlisting}
 
-Jestliže budeme dále předpokládat, že cílem nasazení bezpečnostních politik na server je omezení možností uživatelských aplikací, můžeme od jemného přidělování jen nejnezbytnějších oprávnění součástem WildFly které je nezbytně potřebují, ustoupit k přidělení všech oprávnění všem součástem aplikačního serveru. Uživatelské aplikace nyní ponecháme bez jakýchkoli oprávnění a vyzkoušíme účinky této bezpečnostní politiky:
+Dále vytvoříme soubor jednoduché bezpečnostní politiky.
+Jestliže budeme dále předpokládat, že cílem nasazení bezpečnostní politiky na server je omezení možností uživatelských aplikací, můžeme od jemného přidělování jen nejnezbytnějších oprávnění každé součásti WildFly ustoupit k přidělení všech oprávnění všem součástem aplikačního serveru. Uživatelské aplikace nyní ponecháme bez jakýchkoli oprávnění a vyzkoušíme účinky této bezpečnostní politiky (viz kód \ref{wildflyPolicy}).
 
-\begin{lstlisting}[caption=První testovací soubor bezpečnostní politiky pro WildFly, label=wildflySeSM]
+\begin{lstlisting}[caption=První testovací soubor bezpečnostní politiky pro WildFly, label=wildflyPolicy]
 grant codeBase "file:${jboss.home.dir}/jboss-modules.jar" {
     permission java.security.AllPermission;
 };
 \end{lstlisting}
 
-S použitím této bezpečnostní politiky se server WildFly skutečně bez potíží spustí. Když však na tento server nasadíme aplikaci provádějící kupříkladu čtení souboru uloženého v adresáři této aplikace, zjistíme že aplikace nemá problém tento soubor číst. Do souboru ležícího mimo jeho adresář se ale naopak nedostane dokonce ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM bez ohledu na jejich kořen balíčků ({\tt codeBase}).
+S použitím této bezpečnostní politiky se server WildFly skutečně bez potíží spustí. Když však na tento server nasadíme aplikaci provádějící kupříkladu čtení souboru uloženého v adresáři této aplikace, zjistíme že aplikace nemá problém tento soubor číst. Do souboru ležícího mimo jeho adresář se ale naopak nedostane, dokonce ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM bez ohledu na jejich kořen balíčků ({\tt codeBase}).
 
-Protože, použijeme-li naopak prázdný soubor bezpečnostní politiky, start serveru se nezdaří, je očividné že bezpečnostní politika byla nastavena správným způsobem, ale po startu aplikačního serveru byla aplikačním serverem ignorována.
+Protože, použijeme-li naopak prázdný soubor bezpečnostní politiky, start serveru se nezdaří, je očividné že bezpečnostní politika byla nastavena správným způsobem, ale po startu aplikačního serveru byla aplikačním serverem dále ignorována.
 
-Krokováním programu jsem našel dvě překážky, jež způsobovaly neúčinost bezpečnostní politiky ze souboru bezpečnostní politiky. Obě popisují následující kapitoly.
+Krokováním programu byly nalezeny dvě překážky, jež způsobovaly neúčinost bezpečnostní politiky ze souboru bezpečnostní politiky. Obě jsou popsány v následujících kapitolách.
 
 %=============================================================================
-\section{Security manager WildFly}
+\section{Správce bezpečnosti WildFly}
 %=============================================================================
 
-První překážka byla nalezena ve správci bezpečnosti WildFly -- správci bezpečnosti používaném ve WildFly za účelem maximální optimalizace rychlosti aplikačního serveru.
+První překážkou je správce bezpečnosti WildFly ({\tt WildFlySecurityManager}) -- správce bezpečnosti používaný ve WildFly za účelem maximální optimalizace rychlosti aplikačního serveru.
 
 Správce bezpečnosti WildFly používá vláknově lokální proměnnou {\tt CHECKING} pro omezení působnosti správce bezpečnosti. Je-li hodnota této proměnné referencí na objekt {\tt Boolean.TRUE}, jsou bezpečnostní kontroly akcí kontrolovaných správcem bezpečnosti prováděny. Jinak prováděny nejsou a kód pak běží stejně jako by správce bezpečnosti nebyl použit. \cite{sourceWildFlySecurityManager} (Dále v této kapitole bude používáno vyjádření, že správce bezpečnosti běží se zapnutými nebo s vypnutými kontrolami.)
 
@@ -685,7 +686,7 @@ ve formě dynamických oprávnění ochranné domény.
 \begin{lstlisting}[caption=Hlavní část záplaty umožňující nastavit používání dynamických oprávnění, label=refreshable]
 +  if (POLICY_REFRESHABLE) {
 +      protectionDomain = new ProtectionDomain(codeSource, permissions,
-                                  this, null); // staticPermission=false
++                                 this, null); // staticPermission=false
 +  }else if (POLICY_PERMISSIONS && POLICY_READY.get()) {
 -  if (POLICY_PERMISSIONS && POLICY_READY.get()) {
 \end{lstlisting}
