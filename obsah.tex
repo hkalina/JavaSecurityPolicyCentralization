@@ -7,13 +7,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Okolo bezpečnosti serverů poskytujících své služby počítačům v síti bylo již zpracováno mnoho různých prací.
-Tato práce se však nezabývá problémem, jak útočníkům v síti zabránit v útoku na server zvenčí -- zabývá se problémem,
-jak omezit možnosti aplikací běžících v daném systému a zabránit jim v přístupu ke zdrojům tohoto systému,
-na které nemají nárok.
+Tato práce se však nezabývá problémem, jak zabránit útoku zvenčí útočníkům v síti, ale jak předejít nebezpečí ze strany aplikací nainstalovaných na tomto serveru.
+Zabývá se tedy tím, jak omezit možnosti aplikací běžících v daném systému a zabránit jim v přístupu ke zdrojům systému, na které nemají nárok.
 
 Tato omezení mohou plnit různé účely -- od zabránění vzájemnému přístupu k datům jedné aplikace druhou aplikací jiného provozovatele,
 v rámci serveru sdíleného mezi více provozovateli aplikací, po zabránění škodám na jiných aplikacích a službách v případě úspěšného prolomení
-zabezpečení jedné z aplikací běžích na serveru sdíleného více aplikacemi.
+zabezpečení jedné z aplikací běžících na serveru sdíleného více aplikacemi.
 
 Pro podobné účely se obvykle využívají oprávnění na úrovni operačního systému. Ty však, ať už jsou unixová nebo podrobnější SElinuxová,
 nejsou schopny rozlišit jednotlivé aplikace běžící v rámci jediného procesu aplikačního serveru, jakým je například WildFly.
@@ -26,7 +25,7 @@ V prostředí datových center pak jsou aplikační servery spojovány do centr�
 V tomto prostředí se může jako velmi užitečná projevit možnost centrální správy těchto bezpečnostních politik napříč servery této domény.
 
 Řešení umožňující centrální správu bezpečnostních politik je hlavním tématem této bakalářské práce.
-Je implementováno jako rozšíření aplikačního server WildFly a jeho webové uživatelské rozhraní jako rozšíření jeho webové administrační konzole, HAL.
+Je implementováno jako rozšíření aplikačního serveru WildFly a jeho webové uživatelské rozhraní jako rozšíření jeho webové administrační konzole, HAL.
 Jeho návrh je nastíněn v kapitole \ref{navrh}, jeho implementace je popsána v kapitole \ref{implementace} a jeho testování v kapitole \ref{testovani}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,93 +59,70 @@ Tato práce se zabývá bezpečností ve smyslu prvních tří bodů uvedeného 
 \section{Java}
 %=============================================================================
 
-Programy v jazyce Java bývají překládány do platformě nezávislého a efektivněji než textový zdrojový kód v jazyce Java interpretovatelného mezikódu, takzvaného bajtkódu.
-Bajtkód ({\tt Bytecode}) bývá zpravidla interpretován virtuálním strojem Javy (JVM - Java Virtual Machine).
+Programy v jazyce Java bývají překládány do platformě nezávislého a efektivně interpretovatelného mezikódu, takzvaného bajtkódu.
+Bajtkód ({\it bytecode}) bývá zpravidla interpretován virtuálním strojem Javy (JVM - Java Virtual Machine).
 
 JVM je abstraktní výpočetní stroj. Podobně jako reálné výpočetní stroje má svoji instrukční sadu a paměť, se kterou může manipulovat, ale na rozdíl od nich pro něj neexistuje jeho fyzická implementace, pouze emulovaná implementace softwarová.
 
 To znamená, že její kód není prováděn nativně hardwarem. Je interpretován speciálním programem, interpretem, který je sám zkompilovaný do nativního kódu dané platformy a prováděn jejím hardwarem.
 To mimo nezávislosti na platformě přináší také vyšší stupeň abstrakce.
 
-Díky tomu, že programy nepřistupují ani nemohou přistupovat ke zdrojům fyzického stroje přímo, ale pouze zprostředkovaně skrze zdroje virtuálního stroje Javy, si není těžké představit, že by použití takovéhoto virtuálního stroje mohlo mít i významný bezpečnostní efekt.
+Díky tomu, že programy nepřistupují ani nemohou přistupovat ke zdrojům fyzického stroje přímo, ale pouze zprostředkovaně skrze zdroje virtuálního stroje Javy, si není těžké představit, že by použití takového virtuálního stroje mohlo mít i významný bezpečnostní efekt.
 Protože programy v JVM mohou k fyzickým zdrojům počítače (např. k souborům nebo k síti) přistupovat jen skrze JVM, zablokování takového přístupu ze strany JVM není nikterak složité - JVM stačí odmítnout takový požadavek a interpretovaný program nemá možnost JVM obejít.
 
 %=============================================================================
 \section{Správce bezpečnosti v Javě} \label{securityManager}
 %=============================================================================
 
-Pro maximální nastavitelnost omezení kladených na programy běžících ve virtuálních strojích Javy nerozhoduje o povolení nebo zablokování operace nad zdrojem JVM samotná JVM. Dotazuje se namísto toho speciálního objektu, tzv. správce bezpečnosti.
+Pro maximální nastavitelnost omezení kladených na programy běžící ve virtuálních strojích Javy nerozhoduje o povolení nebo zablokování operace nad zdrojem JVM samotná JVM. Dotazuje se namísto toho speciálního objektu, tzv. správce bezpečnosti. \cite{tutorialsTSM}
 
-Správce bezpečnosti je objektem třídy {\tt java.lang.SecurityManager}, nebo její podtřídy.
-Třídu, jejíž objekt JVM použije při svém startu jako objekt správce bezpečnosti, lze nastavit skrze konfigurační proměnnou JVM {\tt java.security.manager}.
+Správce bezpečnosti je objektem třídy {\tt java.lang.SecurityManager} nebo její podtřídy.
+Třídu, jejíž objekt JVM použije při svém startu jako objekt správce bezpečnosti, lze nastavit skrze konfigurační proměnnou JVM {\tt java.security.manager}. \cite{javaSecurityArch}
 
-Aplikace může referenci na aktuálně používaný objekt správce bezpečnosti získat voláním {\tt System.getSecurityManager() } a vypnout nebo jej vyměnit voláním {\tt System.setSecurityManager()}. Volání těchto metod je samo chráněno správcem bezpečnosti. Nehrozí tedy, že by se program neoprávněně zbavil omezení, která na něj správce bezpečnosti uvalil, jeho vypnutím nebo výměnou.
+Aplikace může referenci na aktuálně používaný objekt správce bezpečnosti získat voláním {\tt System.getSecurityManager() } a vypnout nebo jej vyměnit voláním {\tt System.setSecurityManager()}. Volání těchto metod je samo chráněno správcem bezpečnosti. Nehrozí tedy, že by se program neoprávněně zbavil omezení, která na něj správce bezpečnosti uvalil, jeho vypnutím nebo výměnou. \cite{tutorialsTSM}
 
-Hodnotu konfigurační proměnné {\tt java.security.manager} je při startu JVM možné nastavit za pomoci k tomu určeného parametru {\tt -D}. Pro spuštění programu s výchozím správcem bezpečnosti můžeme tedy použít příkaz:
-
-\begin{lstlisting}[caption=Příkaz spouštějící program s výchozím správcem bezpečnosti, label=smEx]
-java -Djava.security.manager=default ProgramABC
+\begin{lstlisting}[caption=Příkazy spouštějící program s výchozím správcem bezpečnosti, label=smEx]
+java -Djava.security.manager HelloWorld
+java -Djava.security.manager="" HelloWorld
+java -Djava.security.manager=default HelloWorld
+java -Djava.security.manager=java.lang.SecurityManager HelloWorld
 \end{lstlisting}
 
-Příklady možných hodnot proměnné {\tt java.security.manager} a jim odpovídající třídy objektů správce bezpečnosti popisuje tabulka \ref{tabulkaParametruJavy}.
+Hodnotu konfigurační proměnné {\tt java.security.manager} při startu JVM je možné nastavit za pomoci k tomu určeného parametru {\tt -D} příkazu {\tt java}.
+Je-li hodnota této konfigurační proměnné stanovena na {\tt default} nebo je-li definována bez uvedení hodnoty (jak je ukázáno v ukázce kódu \ref{smEx}),
+je JVM spuštěna s výchozím správcem bezpečnosti. \cite{javaSecurityArch}
 
-\begin{table}[tb]
-\label{tabulkaParametruJavy}
-\begin{center}
-    \begin{tabular}{| l | l |}
-    \hline
-    Parametr příkazu {\tt java}                              & {\tt System.getSecurityManager()} \\ \hline
-    (parametr nepoužit)                                      & {\tt null                       } \\
-    {\tt -Djava.security.manager                           } & {\tt java.lang.SecurityManager  } \\
-    {\tt -Djava.security.manager=default                   } & {\tt java.lang.SecurityManager  } \\
-    {\tt -Djava.security.manager=java.lang.SecurityManager } & {\tt java.lang.SecurityManager  } \\
-    {\tt -Djava.security.manager=TestovaciSM               } & {\tt TestovaciSM                } \\
-    \hline
-    \end{tabular}
-\end{center}
-\caption{Příklady možných hodnot proměnné {\tt java.security.manager}}
-\end{table}
+Jinou možnou hodnotou této konfigurační proměnné je celý název třídy, tedy například {\tt cz.test.TestovaciSpravceBezpecnosti}.
+Je tak možné nechat o oprávněních kódu běžícího v JVM rozhodovat vlastní podtřídu výchozího správce bezpečnosti.
 
-Správce bezpečnosti není použit jen v případě, že konfigurační proměnná {\tt java.security.manager} není vůbec definována, k čemuž běžně stačí nepoužít uvedeného parametru. Pokusí-li se aplikace získat referenci na používaného správce bezpečnosti, bude jí vrácena hodnota {\tt null}, jak ukazuje 1. řádek tabulky.
+V rámci inicializace JVM pak bude vytvořen objekt třídy určené zmíněnou konfigurační proměnnou za pomoci jeho neparametrického konstruktoru.
+(Za pomoci volání {\tt Class.newInstance()}.) Jestliže se vytvoření objektu správce bezpečnosti nezdaří, skončí celá inicializace
+JVM vyjímkou {\tt java.lang.InternalError} a ke spuštění uživatelského programu tak vůbec nedojde.
+\cite{sourceLauncher}
 
-Bude-li tato konfigurační proměnná definována jako prázdná nebo obsahující řetězec {\tt default}, bude jako objekt správce bezpečnosti použita nová instance výchozí třídy správce bezpečnosti -- {\tt java.lang.SecurityManager}. To je naznačeno 2. a 3. řádkem tabulky.
-
-V případě jiného obsahu této konfigurační proměnné bude jako objekt správce bezpečnosti použita nová instance třídy určené názvem z hodnoty této konfigurační proměnné, jak je nazvačeno posledním řádkem tabulky.
-
-Poslední řádek tabulky zároveň demonstruje způsob použití objektu vlastní třídy správce bezpečnosti. Způsob vytvoření vlastní třídy správce bezpečnosti bude podrobněji rozebrán v kapitole \ref{vlastniSM}. Jestliže je zde uvedena neexistující třída, skončí inicializace JVM výjimkou a vykonávání programu nebude vůbec zahájeno:
-
-\begin{lstlisting}[caption=Výjimka při spuštění JVM s neexistujícím správcem bezpečnosti, label=smEx]
-Error occurred during initialization of VM
-java.lang.InternalError: Could not create SecurityManager: neexistujici.SM
-    at sun.misc.Launcher.<init>(Launcher.java:106)
-    at sun.misc.Launcher.<clinit>(Launcher.java:57)
-    at java.lang.ClassLoader.initSystemClassLoader(ClassLoader.java:1486)
-    at java.lang.ClassLoader.getSystemClassLoader(ClassLoader.java:1468)
-\end{lstlisting}
-
-Tím, že je zabráněno startu JVM v případě chybné konfigurace správce bezpečnosti, je tedy uplatněn bezpečnostní princip, kdy systém zůstane bezpečný i v případě poruchového stavu.
-
-Z výpisu obsahu zásobníku volání můžeme vidět, že k vytvoření a použití objektu správce bezpečnosti dochází v rámci kontruktoru třídy {\tt sun.misc.Launcher}.
-Objekt správce bezpečnosti je vytvářen v rámci inicializace systémového zavaděče tříd ({\it System Class Loader}), která je prováděna při prvním pokusu o jeho získání. (Význam zavaděče tříd bude později rozebrán v kapitole \ref{classloader}.)
+Je tedy uplatněn bezpečnostní princip, kdy systém zůstane bezpečný i v případě poruchového stavu, třebaže na úkor funkčnosti.
 
 %-----------------------------------------------------------------------------
 \subsection{Implementace vlastního správce bezpečnosti} \label{vlastniSM}
 %-----------------------------------------------------------------------------
 
-V této podkapitole bude vysvětlen způsob stanovení bezpečnostní politiky vytvořením vlastního správce bezpečnosti.
-Správce bezpečnosti je objekt (pod)třídy {\tt java.lang.SecurityManager}, na který JVM, při požadavku na Java API,
-deleguje rozhodnutí o povolení nebo nepovolení operace nad zdrojem. \cite{tutorialsTSM}
+V této podkapitole je ukázán způsob stanovení bezpečnostní politiky vytvořením vlastního správce bezpečnosti.
 
-Jakmile se tedy uživatelská aplikace pokusí provést potenciálně nebezpečnou operaci (například pokusí-li se ukončit JVM voláním {\tt System.exit(0)}),
-Java API se dotáže správce bezpečnosti na oprávněnost této operace tím, že zavolá jeho metodu (v tomto případě {\tt checkExit(0)}). \cite[4.1.1]{oaks}
+Jak již bylo uvedeno v kapitole \ref{securityManager}, správce bezpečnosti je objekt (pod)třídy {\tt java.lang.SecurityManager},
+na který JVM, při požadavku na Java API, deleguje rozhodnutí o povolení nebo nepovolení operace nad zdrojem.
 
-Správce bezpečnosti pak na základě parametrů tohoto volání rozhodne o tom zda operaci zakáže a vyvolá k tomu určenou výjimku {\tt SecurityException}.
+Jakmile se tedy uživatelská aplikace pokusí provést potenciálně nebezpečnou operaci (například se pokusí ukončit JVM voláním {\tt System.exit(0)}),
+Java API se dotáže správce bezpečnosti na oprávněnost této operace tím, že zavolá jeho, k tomu určenou, metodu (v tomto případě {\tt checkExit(0)}). \cite[4.1.1]{oaks}
+
+Správce bezpečnosti pak na základě parametrů tohoto volání rozhodne o tom, zda operaci zakáže a vyvolá k tomu určenou výjimku {\tt SecurityException}.
 Není-li žádná výjimka vyvolána, považuje se operace za povolenou a je provedena. \cite[4.1.1]{oaks}
 
 Bezpečnostní politiku tak můžeme definovat vytvořením vlastní podtřídy třídy {\tt SecurityManager}, kde přepíšeme metody rozhodující o povolení
 operací, jejichž oprávněnost chceme stanovit.
 
-Univerzálnějším řešením je přepsat metodu {checkPermission()}, na kterou své rozhodování delegují všechny rozhodovací metody standardního správce bezpečnosti.
+Od Javy verze {\it Java 2 SDK v1.2} je možné používat univerzálnější řešení než přepisovat jednotlivé kontrolní metody.
+Od této verze totiž všechny kontrolní metody (jakou je {\tt checkExit()}) delegují své rozhodnutí na metodu {\tt checkPermission()} správce bezpečnosti.
+Pro stanovení bezpečnostní politiky tak stačí přepsat tuto jedinou metodu. \cite{refSecurityManager}
 
 Příklad jednoduchého správce bezpečnosti ukazuje kód \ref{TestovaciSM}:
 
@@ -161,23 +137,21 @@ public class TestovaciSM extends SecurityManager {
 }
 \end{lstlisting}
 
-Tento jednoduchý správce bezpečnosti tedy implementuje metodu {\tt checkPermission()}, která je volána při každém pokusu o provedení potenciálně nebezpečné
-operace. Je-li oprávnění, které uživatelský kód vyžaduje, třídy {\tt FilePermission} nebo její podtřídy, je vyvolána výjimka která provedení operace
-zabrání.
+Tento jednoduchý správce bezpečnosti implementuje výše zmíněnou metodu {\tt checkPermission()}.
+Ta je volána při každém pokusu o provedení potenciálně nebezpečné operace.
+Je-li oprávnění, které uživatelský kód vyžaduje, třídy {\tt FilePermission} nebo její podtřídy, je vyvolána výjimka která provedení operace zabrání.
 
-V rámci vlastní aplikace je možné vlastní správce bezpečnosti začít používat za pomoci dříve zmíněného příkazu {\tt System.setSecurityManager()}:
+V rámci vlastní aplikace je možné používání vlastního správce bezpečnosti vyvolat za pomoci dříve zmíněného příkazu {\tt System.setSecurityManager()}:
 
 \begin{lstlisting}[caption=Nastavení správce bezpečnosti zevnitř JVM, label=setSM]
 System.setSecurityManager(new TestovaciSM());
 \end{lstlisting}
 
-Z vně aplikace pak je možné použití tohoto správce bezpečnosti nastavit při startu JVM vhodným nastavením konfigurační proměnné, jak je popsáno v kapitole \ref{securityManager}:
+Z vně aplikace pak je možné použití tohoto správce bezpečnosti nastavit při startu JVM obdobně, jak je to popsáno v kapitole \ref{securityManager}:
 
 \begin{lstlisting}[caption=Spuštění aplikace se správcem bezpečnosti, label=runWithSM]
 java -Djava.security.manager=TestovaciSM HelloWorld
 \end{lstlisting}
-
-Nutno dodat, že tato konfigurační proměnná je uplatněna pouze při startu JVM. Její změnou za běhu JVM nebude použití správce bezpečnosti ovlivněno.
 
 Vedlejším efektem existence metod volaných při každém pokusu o provedení potenciálně nebezpečné operace je také možnost vedení statistik, jaká oprávnění
 aplikace nejčastěji využívá. Ty by pak teoreticky mohly být základem pro inteligentního správce bezpečnosti, přidělujícího programu oprávnění
@@ -187,9 +161,8 @@ Z těchto statistik můžeme zjistit například to, že i v rámci vykonáván�
 
 V 18 případech je příčinou dotazu čtení obsahu konfiguračních proměnných ({\it Property}), v 8 případech jde o manipulaci s vlákny ({\it Thread}) a ve zbývajících 3 případech jde o čtení souboru spouštěné třídy ({\tt Program.class}). Ve všech případech jde tedy o operace související se samotnou inicializací JVM.
 
-Pro stanovení bezpečnostní politiky se však tento způsob (vytvoření vlastního správce bezpečnosti) v současnosti (od Javy verze 2) již nepoužívá, ačkoli stále možný je.
-
-Vyžaduje od správce serveru, na němž aplikace běží, znalosti programování a neumožňuje jednoduchým způsobem přidělovat oprávnění v závislosti na třídě,
+Pro stanovení bezpečnostní politiky se však tento způsob (vytvoření vlastního správce bezpečnosti) v současnosti již nepoužívá, ačkoli stále možný je.
+Vyžaduje od správce serveru, na němž aplikace běží, znalosti programování. Neumožňuje navíc jednoduchým způsobem přidělovat oprávnění v závislosti na třídě,
 která se potenciálně nebezpečnou operaci snaží provést.
 
 %=============================================================================
@@ -209,7 +182,7 @@ Class classOfUnknown = unknown.getClass();
 String nameOfClass = classOfUnknown.getName(); // "java.lang.String"
 \end{lstlisting}
 
-Každý objekt v Javě si totiž uchovává referenci na svoji třídu, představovanou již zmíněným objektem třídy {\tt Class}. Metody této třídy umožňují získávat různé informace o třídě, jako seznam atributů ({\tt java.lang.reflect.Field}), metod ({\tt java.lang.reflect.Method}), anotací ({\tt java.lang.annotation.Annotation}) nebo vnořených tříd, reprezentovaných opět objektem třídy {\tt Class}.
+Každý objekt v Javě si totiž uchovává referenci na svoji třídu, představovanou již zmíněným objektem třídy {\tt Class}. Metody této třídy umožňují získávat různé informace o třídě, jako seznam atributů ({\tt java.lang.reflect.Field}), metod ({\tt java.lang.reflect.Method}), anotací ({\tt java.lang.annotation.Annotation}) nebo vnořených tříd (reprezentovaných opět objekty třídy {\tt Class}).
 
 %-----------------------------------------------------------------------------
 \subsection{Zdroje kódu a ochranné domény}
