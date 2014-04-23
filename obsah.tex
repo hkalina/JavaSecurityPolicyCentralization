@@ -171,31 +171,31 @@ která se potenciálně nebezpečnou operaci snaží provést.
 
 Než se dostaneme k v současnosti využívanému způsobu stanovování bezpečnostní politiky, pozastavíme se nad tématem zavádění tříd.
 Ačkoli se na první pohled může zdát, že toto téma s bezpečností příliš nesouvisí, opak je pravdou.
-Jen a pouze zavaděč tříd ({\it Classloader}), který třídu do paměti zavádí, totiž může určit původ třídy, od kterého se oprávnění kódu této třídy zpravidla odvozuje.
+Jen a pouze zavaděč tříd ({\it classloader}), který třídu do paměti zavádí, totiž může určit původ třídy, od kterého se oprávnění kódu této třídy zpravidla odvozuje.
 
 Zavaděč je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy ({\it binary name of class}) \cite{binaryNameOfClass}, tedy označení třídy používaného v bajtkódu (např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}), se tuto třídu pokusí vyhledat a načíst do paměti. \cite{refClassLoader}
 
-Třída každého zavaděče tříd musí být podtřídou třídy {\tt java.lang.ClassLoader} a musí implementovat metodu {\tt findClass()}. Ta je jádrem celého zavaděče -- provádí samotné vyhledání třídy podle názvu. Jejím výstupem je pak objekt třídy {\tt java.lang.Class} představující samotnou třídu. Při programování běžných aplikací můžeme na objekty této třídy narazit například při snaze získat název třídy neznámého objektu jako řetězec za běhu aplikace: \cite{refClassLoader}
+Třída každého zavaděče tříd musí být podtřídou třídy {\tt java.lang.ClassLoader} a musí implementovat metodu {\tt findClass()}. Ta je jádrem celého zavaděče -- provádí samotné vyhledání třídy podle názvu. Jejím výstupem je objekt třídy {\tt java.lang.Class}, představující samotnou třídu. Při programování běžných aplikací můžeme tyto objekty využít například při snaze získat název třídy neznámého objektu jako řetězec za běhu aplikace, jak ukazuje ukázka kódu \ref{getClassName}. \cite{refClassLoader}
 
 \begin{lstlisting}[caption=Získávání názvu třídy neznámého objektu, label=getClassName]
 Class classOfUnknown = unknown.getClass();
 String nameOfClass = classOfUnknown.getName(); // "java.lang.String"
 \end{lstlisting}
 
-Každý objekt v Javě si totiž uchovává referenci na svoji třídu, představovanou již zmíněným objektem třídy {\tt Class}. Metody této třídy umožňují získávat různé informace o třídě, jako seznam atributů ({\tt java.lang.reflect.Field}), metod ({\tt java.lang.reflect.Method}), anotací ({\tt java.lang.annotation.Annotation}) nebo vnořených tříd (reprezentovaných opět objekty třídy {\tt Class}).
+Každý objekt v Javě si totiž uchovává referenci na svoji třídu, představovanou již zmíněným objektem třídy {\tt Class}. Metody této třídy pak umožňují získávat různé informace o třídě, jako seznam atributů ({\tt java.lang.reflect.Field}), metod ({\tt java.lang.reflect.Method}), anotací ({\tt java.lang.annotation.Annotation}), vnořených tříd (reprezentovaných opět objekty třídy {\tt Class}) nebo právě název této třídy.
 
 %-----------------------------------------------------------------------------
-\subsection{Zdroje kódu a ochranné domény}
+\subsection{Zdroje kódu a ochranné domény} \label{codeSourceAprotectionDomains}
 %-----------------------------------------------------------------------------
 
 Zdroj kódu ({\tt java.security.CodeSource}) je souhrnem informací určujících původ třídy: \cite{sourceCodeSource}
 
 \begin{itemize}
   \item {\tt location}: URL adresa, ze které byla třída načtena.
-  \item {\tt signers} / {\tt certs}: Množina podepsaných autorů a množina jejich certifikátů. Tyto dvě informace jsou vzájemně odvoditelné. Pro vytvoření objektu Zdroje kódu postačuje jedna z nich, druhá z ní může být kdykoli odvozena.
+  \item {\tt signers[]} / {\tt certs[]}: Pole podepsaných autorů kódu nebo pole jejich certifikátů. Tyto dvě informace jsou vzájemně odvoditelné. Pro vytvoření objektu zdroje kódu postačuje jedna z nich a druhá z ní může být v případě potřeby kdykoli odvozena.
 \end{itemize}
 
-Ochranná doména ({\tt java.security.ProtectionDomain}) je objektem spojujícím objekt třídy ({\tt Class}) se zdrojem kódu a oprávněními. Konkrétně se skládá z následujících informací: \cite{sourceProtectionDomain}
+Ochranná doména ({\tt java.security.ProtectionDomain}) je objektem spojujícím objekt třídy ({\tt Class}) se zdrojem kódu ({\tt CodeSource}) a oprávněními ({\tt Permission}). Konkrétně se skládá z následujících informací: \cite{sourceProtectionDomain}
 
 \begin{itemize}
   \item {\tt codesource}: Zdroj kódu třídy reprezentovaný výše rozebranou třídou.
@@ -208,30 +208,33 @@ Každá třída spadá vždy do jedné ochranné domény, která může být spo
 Jen ten totiž může původ třídy znát, protože právě on získání jejího kódu a ověření jejího podpisu zajišťuje.
 
 %-----------------------------------------------------------------------------
-\subsection{Interní zavaděč tříd} \label{interniZavadec}
+\subsection{Systémový zavaděč tříd} \label{interniZavadec}
 %-----------------------------------------------------------------------------
 
-Interní zavaděč tříd je zavaděč používaný pro načítání tříd samotného Java API a zavaděčů uživatelských tříd.
+Systémový zavaděč tříd je zavaděč používaný pro načítání tříd samotného Java API a zavaděčů uživatelských tříd.
 Je napsán převážně v nativním kódu a je součástí JVM. K načítání tříd tedy využívá nativní metody pro přístup k souborovému systému operačního systému.
 Třídy načítá ze souborů, jejíž adresu odvozuje z názvu třídy, balíčku a proměnné prostředí {\tt CLASSPATH}. \cite[3.2.1]{oaks}
 
-Je-li tedy JVM spuštěna následujícím příkazem:
+Je-li tedy JVM spuštěna příkazem uvedeným v ukázce kódu \ref{javaClasspath}, bude spuštěna třídní metoda {\tt main()} třídy {\tt Test}
+ze souboru {\tt /srv/classes/my/program/Test.class}.
 
-\begin{lstlisting}[caption=Spuštění JVM s předefinovanou proměnnou {\tt CLASSPATH}, label=javaClasspath]
-java -classpath /srv/classes muj.program.Test
+\begin{lstlisting}[caption=Spuštění JVM s vlastní hodnotou proměnné {\tt CLASSPATH}, label=javaClasspath]
+java -classpath /srv/classes my.program.Test
 \end{lstlisting}
 
-Bude spuštěna třídní metoda {\tt main()} třídy {\tt Test}, jež bude hledána v souboru {\tt /srv/classes/muj/program/Test.class}.
+Systémový zavaděč je používán k načítání jen nejzákladnějších tříd, zejména tříd Java API a dalších tříd potřebných k provozu jiných zavaděčů tříd.
+Ostatní třídy z {\tt CLASSPATH} jsou pak načítány jinými zavaděči, typicky zavaděčem tříd z URL, jež bude popsán dále, v kapitole \ref{URLClassLoader}.
 
-Interní zavaděč je v současnosti používán k načítání jen nejzákladnějších tříd, zejména tříd Java API, tedy tříd používajících součásti napsané v nativním kódu. Ostatní třídy z {\tt CLASSPATH} jsou obvykle načítány Zavaděčem tříd z URL (viz. \ref{URLClassLoader}).
-
-O třídách načtených interním zavaděčem se často mluví jako o třídách bez zavaděče, protože jejich objekt {\tt Class} má referenci na zavaděč nastavenu na {\tt null}. \cite[3.2.1]{oaks} Zároveň je {\tt null}ová také ochranná doména takto načtených tříd. Třídy načtené interním zavaděčem tak nemají svá oprávnění omezena. \cite[5.4]{oaks}
+O třídách načtených systémovým zavaděčem se často mluví jako o třídách bez zavaděče, protože jejich objekt {\tt Class} má referenci na zavaděč nastavenu na {\tt null}. \cite[3.2.1]{oaks} Zároveň je rovna {\tt null} také ochranná doména takto načtených tříd. Třídy načtené systémovým zavaděčem tak nemají svá oprávnění omezena. \cite[5.4]{oaks}
 
 %-----------------------------------------------------------------------------
 \subsection{Zavaděč tříd z URL} \label{URLClassLoader}
 %-----------------------------------------------------------------------------
 
-Zavaděč tříd z URL ({\tt URLClassLoader}) hledá třídy také na URL adresách předaných jeho konstruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě -- používá se k vyhledávání méně základních tříd v umístěních určených proměnnou {\tt CLASSPATH}. Dokáže třídy načítat nejen z adresářů, ale i z JAR archivů je-li jako adresa uvedena adresa JAR archivu. \cite[3.2.5]{oaks}
+Zavaděč tříd z URL ({\tt URLClassLoader}) hledá třídy na URL adresách předaných jeho konstruktoru. Je jedním z nejpoužívanějších zavaděčů tříd v Javě,
+protože je implicitním zavaděčem používaným k načítání tříd z adres určených proměnnou {\tt CLASSPATH}.
+
+Dokáže třídy načítat nejen z adresářů, ale i z JAR archivů je-li jako adresa uvedena adresa JAR archivu. \cite[3.2.5]{oaks}
 
 \begin{lstlisting}[caption=Vytvoření vlastní instance zavaděče tříd z URL, label=urlclassloader]
 URLClassLoader classLoader = new URLClassLoader(new URL[]{
@@ -242,59 +245,65 @@ URLClassLoader classLoader = new URLClassLoader(new URL[]{
 Class myClass = classLoader.loadClass("my.package.MyClass");
 \end{lstlisting}
 
-Zavaděč tříd z URL je, tak jako většina zavaděčů, jedním z bezpečných zavaděčů ({\tt SecureClassLoader}). To znamená že automaticky nastavuje ochranou doménu třídám, které načítá.
+Zavaděč tříd z URL je, tak jako většina zavaděčů, jedním z bezpečných zavaděčů ({\tt SecureClassLoader}). To znamená, že nastavuje ochrannou doménu třídám, které načítá.
 
-Třídy pocházející ze stejného zdroje (s odpovídajícím {\tt CodeSource}) patří do stejné ochranné domény a mají tak stejná statická oprávnění. Navrácení vždy stejného objektu ochranné domény přitom zavaděč zajišťuje pomocí asociativního pole {\tt SecureClassLoader.pdcache}, jehož klíčem je objekt zdroje kódu a hodnotou objekt ochranné domény. \cite{sourceSecureClassLoader}
+Třídy pocházející ze stejného zdroje (s odpovídajícím {\tt CodeSource}) patří do stejné ochranné domény a mají tak stejná statická oprávnění. (viz kapitola \ref{staticPerm}) Navrácení vždy stejného objektu ochranné domény přitom zavaděč zajišťuje pomocí asociativního pole {\tt SecureClassLoader.pdcache}, jehož klíčem je objekt zdroje kódu a hodnotou objekt ochranné domény. \cite{sourceSecureClassLoader}
 
 %=============================================================================
 \section{Systém řízení přístupu a soubory bezpečnostní politiky}
 %=============================================================================
 
-Systém řízení přístupu ({\tt java.security.AccessController}) je mechanismus využívající ochranné domény tříd na zásobníku volání k rozhodnutí, zda operaci požadovanou programem povolit či nikoliv. 
+Systém řízení přístupu ({\it Access controller}) je mechanismus využívající ochranné domény tříd na zásobníku volání k rozhodnutí, zda operaci požadovanou programem povolit či nikoliv.
 
 Na oprávněnost volajícího kódu provést vybranou akci se jej může dotazovat uživatelský kód a veškeré rozhodování na něj zároveň deleguje standardní správce bezpečnosti v Javě verze 2 a novějších. \cite[5]{oaks}
 
-Systém řízení přístupu tedy stejně jako správce bezpečnosti umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zde však již nejsou jen zdroje samotné JVM díky tomu, že uživatelské procesy mohou systém řízení přístupu také využívat k omezení přístupu ke zdrojům, jež samy poskytují. \cite[5]{oaks}
+Systém řízení přístupu tedy, stejně jako správce bezpečnosti, umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zde však již nejsou jen zdroje samotné JVM. Uživatelské programy mohou systém řízení přístupu využívat také k omezení přístupu k vlastním zdrojům, které dále poskytují. \cite[5]{oaks}
 
-Máme-li tedy například knihovní třídu zprostředkovávající přístup k databázi v souboru po záznamech, při použití oprávnění jen na úrovni Java API by bylo možné programu přidělovat oprávnění jen k celému souboru najednou. Jednotlivé záznamy databáze v souboru je možné považovat za samostatné zdroje a využít systém řízení přístupu k jejich ochraně.
+Máme-li tedy například knihovnu zprostředkovávající přístup k databázi v souboru po záznamech, při použití oprávnění jen na úrovni Java API by bylo možné programu přidělovat oprávnění jen k celému souboru najednou. Jednotlivé záznamy databáze v souboru je však možné považovat za samostatné zdroje knihovny. Knihovna pak může využít systém řízení přístupu k jejich ochraně.
 
-Systém řízení přístupu je schopný pravidla bezpečnostní politiky načítat z textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky. Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky, kterou budou programy v JVM omezeny -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení bezpečnostní politiky poupravit textový soubor bezpečnostní politiky. \cite[5]{oaks}
+Systém řízení přístupu je schopný pravidla bezpečnostní politiky načítat z textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky. Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení bezpečnostní politiky poupravit textový soubor bezpečnostní politiky. \cite[5]{oaks}
 
-Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na základně průniku množin oprávnění ochranných domén tříd metod, jež vedly k zavolání metody provádějící citlivou operaci. Na legálnost operace se systému řízení přístupu může dotazovat samotná volaná metoda (voláním metody {\tt checkPermission()}), nebo správce bezpečnosti na základě dotazu na legálnost operace od Java API.
+Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na základně průniku množin oprávnění tříd metod, jež vedly k zavolání metody provádějící potenciálně nežádoucí operaci -- na základě průniku oprávnění tříd na zásobníku volání.
+
+Na legálnost operace se systému řízení přístupu může dotazovat samotná volaná metoda (voláním metody {\tt checkPermission()}), nebo správce bezpečnosti na základě dotazu na legálnost operace od Java API. V obou případech bude operace povolena jen pokud budou potřebným oprávněním disponovat všechny třídy na zásobníku volání.
 
 %-----------------------------------------------------------------------------
-\subsection{Implementace Systému řízení přístupu}\label{implementaceAC}
+\subsection{Implementace a použití systému řízení přístupu}\label{implementaceAC}
 %-----------------------------------------------------------------------------
 
-Systém řízení přístupu (Access Controller) je implementován třídou {\tt AccessController} a voláním jeho statických metod na něj standardní správce bezpečnosti deleguje rozhodnutí o legálnosti provedení potenciálně nežádoucí operace uživatelského programu. Konkrétně kontrolu obstarává metoda {\tt checkPermission(Permission)}, která v případě neoprávněnosti požadavku na provedení operace vyvolá výjimku {\tt AccessControlException}. Jejím vstupem je objekt třídy {\tt Permission}, která reprezentuje oprávnění, jehož vlastnictví je testováno. \cite[5.5]{oaks}\cite[6]{oaks}
+Systém řízení přístupu je implementován třídou {\tt AccessController}. Voláním jeho statických metod na něj standardní správce bezpečnosti deleguje rozhodnutí o dovolenosti provedení potenciálně nežádoucí operace uživatelským programem. Samotnou kontrolu provádí jeho metoda {\tt checkPermission(Permission)}, která v případě neoprávněnosti požadavku na provedení operace vyvolá výjimku {\tt AccessControlException}. Jejím vstupem je objekt třídy {\tt Permission}, který reprezentuje oprávnění, jehož vlastnictví je testováno. \cite[5.5]{oaks}\cite[6]{oaks}
 
-Následující příklad ukazuje způsob, jakým se může kód dotázat Systému řízení přístupu, zdali má zadané oprávnění: \cite[5.5]{oaks}
+Ukázka kódu \ref{pouzitiAccessControlleru} ukazuje způsob, jakým se může kód dotázat systému řízení přístupu, zdali má zadané oprávnění. \cite[5.5]{oaks}
 
-\begin{lstlisting}[caption=Příklad použití Systému řízení přístupu, label=pouzitiAC]
+\begin{lstlisting}[caption=Příklad použití systému řízení přístupu, label=pouzitiAccessControlleru]
 try {
     // ma tento program opravneni pripojit se na lokalni port 80?
     AccessController.checkPermission(
         new SocketPermission("localhost:80", "connect")
     );
     System.out.println("Pripojeni bylo povoleno");
-} catch (AccessControlException ace) {
+} catch (AccessControlException e) {
     System.out.println("Pripojeni bylo zamitnuto");
 }
 \end{lstlisting}
 
-Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochranných domén tříd metod, jež vedly k zavolání metody {\tt checkPermission()}. Konkrétně jde o metody nacházející se během volání {\tt checkPermission()} na zásobníku volání (Stack trace). Volala-li tedy metoda {\tt main} třídy {\tt Main} metodu {\tt secured} třídy {\tt Secured}, která následně zavolala metodu {\tt checkPermission()}, musí mít požadované oprávnění přiděleny ochranné domény tříd {\tt Main} i {\tt Secured}, aby toto volání neskončilo vyvoláním výjimky vyjadřující zamítnutí provedení operace ze strany systému řízení přístupu. \cite[5.5]{oaks}\cite[6.1]{oaks}
+Systém řízení přístupu rozhoduje o povolení nebo nepovolení operace na základně průniku oprávnění ochranných domén tříd metod, jež vedly k zavolání metody {\tt checkPermission()}. \cite[5.5]{oaks}\cite[6.1]{oaks}
+
+Konkrétně jde o metody nacházející se během volání {\tt checkPermission()} na zásobníku volání. Volala-li tedy metoda {\tt main} třídy {\tt Main} metodu {\tt secured} třídy {\tt Secured}, která následně zavolala metodu {\tt checkPermission()}, musí mít požadované oprávnění přiděleny ochranné domény tříd {\tt Main} i {\tt Secured}.
+
+V opačném případě toto volání skončí vyvoláním výjimky vyjadřující zamítnutí provedení operace ze strany systému řízení přístupu. \cite[5.5]{oaks}\cite[6.1]{oaks}
 
 %-----------------------------------------------------------------------------
 \subsection{Privilegované bloky kódu}\label{privilegovaneBloky}
 %-----------------------------------------------------------------------------
 
-Vraťme se nyní k našemu příkladu, kdy chceme různým programům přidělovat oprávnění k jednotlivým databázovým záznamům jako k samostatným zdrojům systému, ale nechceme jim povolit přístup k samotnému databázovému souboru.
+Vraťme se nyní k našemu příkladu s knihovnou pro přístup k databázi v souboru, kde chceme různým programům přidělovat oprávnění k jednotlivým databázovým záznamům jako k samostatným zdrojům systému, ale zároveň jim nechceme povolit přístup ke zbytku databázového souboru.
 
-Ze způsobu fungování Systému řízení přístupu, tak jak jsme si jej zatím popsali, totiž vyplývá, že aby mohla knihovna zprostředkovávající přístup k databázi přistupovat k databázovému souboru, musí mít oprávnění pracovat s databázovým souborem jak samotná databázová knihovna, tak i každá třída podílející se na jejím volání.
+Ze způsobu fungování systému řízení přístupu, jak jsme si jej zatím popsali, totiž vyplývá, že aby mohla knihovna zprostředkovávající přístup k databázi přistupovat k databázovému souboru, musí mít oprávnění pracovat s tímto souborem jak samotná databázová knihovna, tak i každá třída podílející se na jejím volání.
 
-Tento stav je samozřejmě nepřípustný, protože oprávnění na úrovni uživatelského kódu by tímto ztratila význam -- buď by k databázi nemohla přistupovat knihovna volaná kódem, jež má oprávnění jen k některým záznamům, nebo by naopak měl jakýkoli kód, který by potřeboval přistupovat k záznamům v databázi, oprávnění k celému databázovému souboru, čímž by mohl jakákoli omezení na úrovni knihovny zprostředkující přístup k databázi obejít.
+Tento stav je samozřejmě nepřípustný, protože oprávnění na úrovni uživatelského kódu by tímto ztratila význam. Pokud by uživatelský kód neměl oprávnění přímo přistupovat k databázovému souboru, nemohla by mu přístup k němu zprostředkovat ani tato knihovna. Pokud by naopak uživatelský kód oprávnění k databázovému souboru dostal, mohl by naopak obejít kód knihovny zajišťující kontrolu oprávnění k jednotlivým záznamům a přistupovat tak k datům v celé databázi libovolně bez ohledu na oprávnění k jednotlivým záznamům.
 
-Právě tento problém řeší privilegované bloky kódu. Kód v privilegovaném bloku je spuštěn se samostatným zásobníkem volání. Při ověřování oprávnění při přístupu k jakémukoli zdroji tak ověřování skončí u třídy s tímto blokem.
+Právě tento problém řeší privilegované bloky kódu. Kód v privilegovaném bloku je spuštěn se samostatným zásobníkem volání. Při ověřování oprávnění při přístupu k jakémukoli zdroji tak ověřování skončí u třídy s tímto blokem. \cite{refAccessController}
 
 {\bf Část kódu knihovny, jež vložíme do privilegovaného bloku, bude tedy spuštěna s oprávněními této knihovny bez ohledu na oprávnění kódu, jež metodu knihovny zavolal.}
 
@@ -302,7 +311,7 @@ Právě tento problém řeší privilegované bloky kódu. Kód v privilegované
 \subsubsection{Příklad použití privilegovaného bloku}
 %'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-Tento příklad ukazuje jednoduchý příklad použití privilegovaného bloku: \cite{refAccessController}
+Ukázka kódu \ref{prikladBloku} ukazuje jednoduchý příklad použití privilegovaného bloku: \cite{refAccessController}
 
 \begin{lstlisting}[caption=Příklad použití privilegovaného bloku, label=prikladBloku]
 class DatabazeVSouboru {
@@ -317,18 +326,17 @@ class DatabazeVSouboru {
 }
 \end{lstlisting}
 
-Vykonávání privilegovaného bloku je implementováno jako nativní metoda Systému řízení přístupu {\tt doPrivileged()}, které je předán objekt (pod)třídy {\tt PrivilegedAction}. Jeho metoda {\tt run()} je spuštěna privilegovaně, tedy bez ohledu na oprávnění tříd na zásobníku volání.
+Vykonávání privilegovaného bloku je implementováno nativní metodou systému řízení přístupu {\tt doPrivileged()}, které je předán objekt (pod)třídy {\tt PrivilegedAction}. Jeho metoda {\tt run()} je pak spuštěna privilegovaně, tedy bez ohledu na oprávnění tříd na původním zásobníku volání.
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 \subsubsection{Příklad s knihovnou pro přístup k databázi}\label{databazeVsouboru}
 %'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-Tento příklad ukazuje možnou implementaci knihovny pro přístup k databázi, jak byla navržena v kapitole \ref{privilegovaneBloky}.
+Ukázka kódu \ref{pouzitiBloku} ukazuje možnou implementaci knihovny pro přístup k databázi navržené v kapitole \ref{privilegovaneBloky}.
 
-\begin{lstlisting}[caption=Demonstrační knihovna pro přístup k databázi, label=pouzitiAC]
+\begin{lstlisting}[caption=Demonstrační knihovna pro přístup k databázi, label=pouzitiBloku]
 class DatabazeVSouboru {
   public Zaznam nactiZaznam(String klic){
-    
     // volajici kod musi mit opravneni k nacteni zaznamu
     AccessController.checkPermission(new ZaznamPermission(klic,"nacteni"));
     
@@ -341,28 +349,27 @@ class DatabazeVSouboru {
 }
 \end{lstlisting}
 
-Každá metoda knihovny zpřístupňující záznam v databázi nejprve ověří oprávněnost požadavku na přístup k danému záznamu. Tato kontrola se provede triviálně, stejně jako v příkladu \ref{pouzitiAC}.
+Každá metoda knihovny zpřístupňující záznam v databázi nejprve ověří oprávněnost požadavku na přístup k danému záznamu. Tato kontrola se provede triviálně, stejně jako v ukázce kódu \ref{pouzitiAccessControlleru}.
 
-Zde je důležité poznamenat že tato kontrola se musí provést mimo privilegovaný blok, čímž bude vlastnictví kontrolovaného oprávnění vyžadováno (mimo kódu samotné knihovny) také po kódu, jež tuto operaci nad záznamem volá. Pokud některá z tříd na zásobníku volání nebude mít požadované oprávnění, provádění operace nad databází bude přerušeno výjimkou Systému řízení přístupu ({\tt java.security.AccessControlException}).
+Zde je důležité poznamenat že tato kontrola se musí provést mimo privilegovaný blok, čímž bude vlastnictví kontrolovaného oprávnění vyžadováno nejen od kódu samotné knihovny, ale také od kódu, jež tuto operaci nad záznamem vyvolal. Pokud některá z tříd na zásobníku volání nebude mít požadované oprávnění, provádění operace nad databází bude přerušeno výjimkou systému řízení přístupu ({\tt java.security.AccessControlException}).
 
-Jinak se pokračuje provedením samotné operace nad databází v rámci privilegovaného bloku. Tím bude tato operace provedena s oprávněními třídy knihovny, nezávisle na oprávněních kódu, jež metodu knihovny volal.
+V opačném případě se pokračuje provedením samotné operace nad databází v rámci privilegovaného bloku. Tím bude tato operace provedena s oprávněními třídy knihovny, nezávisle na oprávněních kódu, jež metodu knihovny volal. Aby se tak samotná operace nad databázovým souborem provedla, bude postačovat přidělení oprávnění třídě knihovny.
 
 %-----------------------------------------------------------------------------
 \subsection{Třídy oprávnění}
 %-----------------------------------------------------------------------------
 
-Třída oprávnění představuje typ zdroje, ke kterému lze přidělovat oprávnění.
+Třídy oprávnění představují typ zdroje, ke kterému lze přidělovat oprávnění. Musí být podtřídami třídy {\tt Permission}, ale pro jednodušší implementaci jsou často odvozovány od její podtřídy {\tt BasicPermission}.
 
-Třída oprávnění musí být podtřídou třídy {\tt Permission}. Pro snazší implementaci je místo ní možné použít její podtřídu {\tt BasicPermission}.
-Aby ji bylo možné použít, musí být definován její konstruktor odpovídající parametrům oprávnění předávaným souborem bezpečnostní politiky a musí být veřejně přístupná -- opatřená specifikátorem přístupu {\tt public}.
+Aby bylo možné třídu oprávnění použít, musí být definován její konstruktor. Jeho parametry musejí odpovídat parametrům v souboru bezpečnostní politiky. Musí být také veřejně přístupný -- opatřený specifikátorem přístupu {\tt public}.
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 \subsubsection{Příklad třídy oprávnění}
 %'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-Tento příklad ukazuje nejjednodušší způsob vytvoření vlastní třídy oprávnění na oprávnění použitém v příkladu s knihovnou pro přístup k databázi po záznamech v kapitole \ref{databazeVsouboru}.
+Ukázka kódu \ref{prikladTridyOpravneni} ukazuje nejjednodušší způsob vytvoření vlastní třídy oprávnění. Jako příklad je zde použita třída oprávnění z příkladu s knihovnou pro přístup k záznamům v databázovém souboru (viz kapitola \ref{databazeVsouboru}).
 
-\begin{lstlisting}[caption=Demonstrační třída oprávnění, label=prikladOpravneni]
+\begin{lstlisting}[caption=Demonstrační třída oprávnění, label=prikladTridyOpravneni]
 public class ZaznamPermission extends java.security.BasicPermission {
     public ZaznamPermission(String name, String actions) {
         super(name, actions);
@@ -371,7 +378,7 @@ public class ZaznamPermission extends java.security.BasicPermission {
 \end{lstlisting}
 
 %-----------------------------------------------------------------------------
-\subsection{Soubory bezpečnostní politiky}
+\subsection{Soubory bezpečnostní politiky} \label{souboryBP}
 %-----------------------------------------------------------------------------
 
 Tato kapitola popisuje implementaci bezpečnostních politik za pomoci souborů bezpečnostní politiky.
@@ -379,25 +386,40 @@ Tato kapitola popisuje implementaci bezpečnostních politik za pomoci souborů 
 Soubor bezpečnostní politiky se skládá z deklarací původů tříd a jim přidělovaných oprávnění.
 Původ třídy je zde stanoven na základě podpisu JAR archivu z kterého byla třída získána (direktiva {\tt signedBy}), URL kořene systému balíčků tříd (packages), ze kterého byla třída získána (direktiva {\tt codeBase}) nebo obou těchto kritérií najednou. \cite[5.3.1]{oaks}
 
-Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je definována následovně: \cite[5.3.1]{oaks}
+Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je ukázána v ukázce kódu \ref{syntaxeSouboruBP}. \cite[5.3.1]{oaks}\cite{refPolicyFiles}
 
 \begin{lstlisting}[caption=Syntaxe souboru bezpečnostní politiky, label=syntaxeSouboruBP]
-grant [signedBy <autor>] [, codeBase <koren balicku>] {
-    permission <trida opravneni> [<nazev zdroje> [, <povolovane operace>]];
+grant signedBy "autor", codeBase "/koren", principal Trida "jmeno@realm" {
+    permission TridaOpravneni "parametry","konstruktoru";
     ...
 };
 \end{lstlisting}
 
-Deklarace oprávnění se tedy skládá z názvu třídy oprávnění a parametrů jejího konstruktoru oddělených čárkou.
+Jak je vidět, oprávnění jsou přidělována kombinacím podepsaného autora ({\tt signedBy}), kořene systému balíčků ({\tt codeBase}) a identifikátoru přihlášeného uživatele ({\tt principal}).
+Samotná oprávnění pak jsou definována názvem třídy oprávnění a parametry jeho konstruktoru oddělenými čárkami.
+
+Jestliže třída v době načítání souboru bezpečnostní politiky není dostupná, je oprávnění uloženo do dočasného objektu speciální třídy {\tt java.security.UnresolvedPermission}.
+Stane-li se tato třída později dostupnou, je dočasný objekt nahrazen instancí této třídy při kontrole tohoto oprávnění systémem řízení přístupu. \cite{refUnresolvedPermission}
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=14cm]{fig/policy-schema}
-  \caption{Schéma tříd podílejících se na politice postavené na souboru politiky.}
+  \includegraphics[width=12cm]{fig/policy-schema}
+  \caption{Třídy podílející se na politice postavené na souboru politiky.}
+  \label{tridyPolicyFile}
 \end{figure}
 
-Standardní implementace bezpečnostní politiky {\tt PolicyFile} využívá {\tt PolicyParser} pro převod jednotlivých textových bloků {\tt grant} do objektové podoby.
-Takto získaný výčet objektů {\tt GrantEntry} pak převádí na seznam objektů {\tt PolicyEntry}, které ukládá do atributu {\tt policyEntries} objektu vnitřní třídy {\tt PolicyFile.PolicyInfo}.
+Bezpečnostní politika používající soubory bezpečnostní politiky je realizována objektem třídy {\tt PolicyFile}.
+Další třídy podílející se na zpracování souborů a uložení načtené bezpečnostní politiky v paměti ukazuje obrázek \ref{tridyPolicyFile}.
+
+Objekt politiky {\tt PolicyFile} provádí rozhodnutí o oprávněnosti operací na základě aktuálního objektu {\tt PolicyInfo}.
+Tento objekt obsahuje množinu položek bezpečnostní politiky, {\tt PolicyEntry}.
+
+Protože tato množina je v průběhu načítání souborů bezpečnostní politiky tvořena postupně, je umístěna v tomto samostatném objektu.
+Díky tomu je bezpečnostní politika vyměňována atomicky -- jeden objekt {\tt PolicyInfo} je v rámci atomické reference jen nahrazen novým.
+V průběhu výměny bezpečnostní politiky tak nemůže dojít k okamžiku, kdy by byla uplatňována jen z části načtená politika.
+
+K inicializaci a tedy i k načítání politiky ze souborů dochází při vytváření objektu {\tt PolicyFile} a při volání jeho metody {\tt refresh()}.
+V obou případech jsou soubory politiky určeny konfiguračními proměnnými ({\it property}) popsanými v kapitole \ref{nastaveniPolitiky}.
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 \subsubsection{Příklad souboru bezpečnostní politiky}
@@ -415,7 +437,7 @@ grant codeBase "file:/srv/knihovna/" {
 };
 \end{lstlisting}
 
-Programu zde má přiděleno oprávnění k načtení záznamu \uv{Lucka}, nemůže ale přistupovat k s samotným databázovým souborů. K těm má oprávnění přistupovat jen knihovna zpřístupňující tuto databázi. Kvůli způsobu implementace kontroly oprávnění systémem řízení přístupu (popsaným v kapitole \ref{implementaceAC}) je nezbytné přidělit knihovně oprávnění ke všem záznamům v databázi, jinak by žádná kontrola oprávněnosti požadavku nemohla skončit pozitivně.
+Program zde má přiděleno oprávnění k načtení záznamu \uv{Lucka}, nemůže ale přistupovat k s samotným databázovým souborů. K těm má oprávnění přistupovat jen knihovna zpřístupňující tuto databázi. Kvůli způsobu implementace kontroly oprávnění systémem řízení přístupu (popsaným v kapitole \ref{implementaceAC}) je nezbytné přidělit knihovně oprávnění ke všem záznamům v databázi, jinak by žádná kontrola oprávněnosti požadavku nemohla skončit pozitivně.
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 \subsubsection{Zástupné znaky}
@@ -423,22 +445,28 @@ Programu zde má přiděleno oprávnění k načtení záznamu \uv{Lucka}, nemů
 
 URL kořene systému balíčků může být ukončeno zástupnými znaky pomlčka ({\tt -}) a hvězdička ({\tt *}).
 
-Zatímco {\tt /*} odpovídá všem souborům v daném adresáři, {\tt /-} odpovídá všem souborům v daném adresáři i jeho podadresářích, rekurzivně. V obou případech jsou zahrnuty jak soubory tříd ({\tt .class}), tak i celé archivy tříd ({\tt .jar}/{\tt .war}/{\tt .ear}).
+Zatímco {\tt /*} odpovídá všem souborům v daném adresáři, {\tt /-} odpovídá všem souborům v daném adresáři i jeho podadresářích, rekurzivně.
+V obou případech jsou zahrnuty jak soubory tříd ({\tt .class}), tak i celé archivy tříd ({\tt .jar}/{\tt .war}/{\tt .ear}).
+Archivy vnořené v těchto archivech však již prohledávány nejsou.
 \cite{jdkdocPolicyFiles}
 
 %-----------------------------------------------------------------------------
-\subsection{Nastavení třídy a souboru bezpečnostní politiky} \label{souborPolitiky}
+\subsection{Nastavení třídy a souboru bezpečnostní politiky} \label{nastaveniPolitiky}
 %-----------------------------------------------------------------------------
 
-Nastavení třídy a souboru bezpečnostní politiky umožňuje správci nebo uživateli počítače stanovit bezpečnostní politiku aplikovanou na programy v Javě běžící na tomto počítači bez potřeby znalostí programování.
+Tato kapitola popisuje nastavení implicitní třídy a souborů bezpečnostní politiky. Změna těchto nastavení dovoluje správci počítače
+stanovit bezpečnostní politiku aplikovanou implicitně na všechny programy v Javě běžící na daném počítači.
 
-Obojí zmíněné je možné globálně, pro celé JRE, nastavit úpravou konfiguračního souboru {\tt java.security}, umístěného v podadresáři {\tt lib/security} adresáře JRE. \cite{refPolicyFiles}
+Používaná třída a soubory bezpečnostní politiky jsou určeny globálně, pro celé běhové prostředí Javy (JRE -- Java Runtime Environment),
+v konfiguračním souboru {\tt java.security} umístěném v podadresáři {\tt lib/security} adresáře JRE. \cite{refPolicyFiles}
 
-Třída bezpečnostní politiky je určena svým celým jménem (např. {\tt sun.security.provider.PolicyFile}) a deklarována v konfigurační proměnné {\tt policy.provider}. \cite{refPolicyFiles}
+Třída bezpečnostní politiky je určena svým celým jménem (např. {\tt sun.security.provider{\linebreak}.PolicyFile}) v konfigurační proměnné {\tt policy.provider}. \cite{refPolicyFiles}
 
-Soubory bezpečnostní politiky jsou určeny svou absolutní adresou uvedenou včetně protokolu (pro lokální soubory {\tt file:}) a deklarovány v konfiguračních proměnných ve tvaru {\tt policy.url.n}, kde {\tt n} je pořadové číslo. Načítání souborů bezpečnostní politiky začíná od {\tt policy.url.1} a postupně {\tt n} inkrementuje a načítá jednotlivé soubory bezpečnostní politiky, dokud {\tt policy.url.n} existuje. \cite{refPolicyFiles}
+Soubory bezpečnostní politiky jsou určeny svou absolutní adresou, uvedenou včetně protokolu (pro lokální soubory {\tt file:}),
+v konfiguračních proměnných {\tt policy.url.n}, kde {\tt n} je pořadové číslo souboru. \cite{refPolicyFiles}
 
-Byly by-li tedy definovány soubory bezpečnostní politiky {\tt policy.url.1} a {\tt policy.url.3}, ale {\tt policy.url.2} by definován nebyl, byl by načten pouze soubor {\tt policy.url.1} a soubor {\tt policy.url.3} by byl ignorován. \cite{refPolicyFiles}
+Načítání souborů bezpečnostní politiky začíná od {\tt policy.url.1} a postupně se {\tt n} inkrementuje a načítají se jednotlivé soubory bezpečnostní politiky,
+dokud {\tt policy.url.n} existuje. \cite{refPolicyFiles}
 
 \begin{lstlisting}[caption=Význačnější proměnné konfiguračního souboru {\tt java.security}, label=javasecurityexample]
 policy.provider=sun.security.provider.PolicyFile
@@ -447,39 +475,39 @@ policy.url.2=file:${user.home}/.java.policy
 policy.url.3=file:/my-policies/my.policy
 \end{lstlisting}
 
-Příklady deklarací příslušných konfiguračních proměnných v tomto souboru, stanovujících třídu a soubor bezpečnostní politiky, jsou uvedeny v ukázce kódu \ref{javasecurityexample}, která je rozšířením příkladu knihy pana Oakse. \cite[5.3.1]{oaks}
+Příklady nastavení konfiguračních proměnných v tomto souboru jsou uvedeny v ukázce kódu \ref{javasecurityexample}, která je rozšířením příkladu z knihy pana Oakse. \cite[5.3.1]{oaks}
 
-Nastavenou třídou bezpečnostní politiky je v příkladu implicitní třída bezpečnostní politiky používaná v OpenJDK. Jako soubory bezpečnostní politiky jsou potom použity soubory {\tt \${java.home}/lib/security/java.policy}, {\tt \${user.home}/.java.policy} a {\tt /my-policies/my.policy} v uvedeném pořadí.
+Nastavenou třídou bezpečnostní politiky je zde třída {\tt PolicyFile} a jako soubory bezpečnostní politiky jsou použity
+soubory {\tt \$\{java.home\}/lib/security/java.policy}, {\tt \$\{user{\linebreak}.home\}/.java.policy} a {\tt /my-policies/my.policy} v uvedeném pořadí.
 
-Implicitně jsou používány právě první dvě uvedená umístění -- {\tt \${java.home}/lib/security/java.policy} pro celý systém a {\tt \${user.home}/.java.policy} jako jeho rozšíření pro jednotlivé uživatele. \cite{refSecurity}
+Implicitně jsou používány právě první dvě uvedená umístění -- {\tt \$\{java.home\}/lib/secu{\linebreak}rity/java.policy} pro celý systém a {\tt \$\{user.home\}/.java.policy} jako jeho rozšíření pro jednotlivé uživatele. Poslední umístění je přidáno pro demonstraci, jak je možné přidat další umístění. \cite{refSecurity}
 
-Bezpečnostní politiku je dále možné rozšířit při startu JVM o vlastní soubor bezpečnostní politiky. Stačí nastavit konfigurační proměnnou {\tt java.security.policy} při startu JVM: \cite[5.3.1]{oaks}
+Bezpečnostní politiku je dále možné rozšířit při startu JVM o další soubor bezpečnostní politiky. Stačí nastavit konfigurační proměnnou {\tt java.security.policy} při startu JVM: \cite[5.3.1]{oaks}
 
 \begin{lstlisting}[caption=Spuštění JVM s vlastním souborem bezpečnostní politiky, label=nastaveniBP]
 java -Djava.security.policy=dalsi_soubor_politiky.policy ProgramABC
 \end{lstlisting}
 
-V tomto případě bude uvedený soubor bezpečnostní politiky použit zároveň s výše uvedeným standardním souborem bezpečnostní politiky. Chceme-li standardní soubor bezpečnostní politiky zcela nahradit, stačí namísto jednoho rovnítka v definici konfigurační proměnné použít rovnítka dvě: \cite[5.3.1]{oaks}
+V tomto případě bude uvedený soubor bezpečnostní politiky použit zároveň s výše uvedeným standardním souborem bezpečnostní politiky. Chceme-li standardní soubory bezpečnostní politiky určené souborem {\tt java.security} zcela nahradit, stačí namísto jednoho rovnítka v definici konfigurační proměnné použít rovnítka dvě: \cite[5.3.1]{oaks}
 
 \begin{lstlisting}[caption=Spuštění JVM jen s vlastním souborem bezpečnostní politiky, label=nastaveniBP2]
 java -Djava.security.policy==jediny_soubor_politiky.policy ProgramABC
 \end{lstlisting}
 
-Samotný obsah konfigurační proměnné tak bude začínat znakem rovnítka. Obsah této proměnné je také možné změnit i za běhu programu, má-li daná část programu oprávnění k zápisu do této proměnné.
+Obsah této proměnné je možné změnit i za běhu programu, má-li daná část programu oprávnění k zápisu do této proměnné.
 
-\begin{lstlisting}[caption=Nastavení souboru bezpečnostní politiky zevnitř JVM, label=nastaveniBP2]
+\begin{lstlisting}[caption=Nastavení souboru bezpečnostní politiky zevnitř JVM, label=nastaveniBP3]
 System.setProperty("java.security.policy", "jiny_soubor_politky.policy");
 \end{lstlisting}
 
-Tato konfigurační proměnná je čtena při inicializaci Systému řízení přístupu. Na jejím základě je následně soubor bezpečnostní politiky načten a aplikován. Chceme-li soubor bezpečnostní politiky vyměnit za běhu, pouhá změna obsahu této konfigurační proměnné proto nestačí -- je třeba zapříčinit nové načtení souboru bezpečnostní politiky. K tomuto účelu je možné použít metodu třídy {\tt Policy}, která právě toto provádí:
+Protože, jak již bylo zmíněno v kapitole \ref{souboryBP}, nové načtení bezpečnostní politiky ze souborů bezpečnostní politiky je možné provést
+skrze metodu {\tt refresh()} objektu bezpečnostní politiky, je možné provedenou změnu bezpečnostní politiky nechat projevit jejím zavoláním:
 
 \begin{lstlisting}[caption=Znovunačtení souboru bezpečnostní politiky, label=refreshBP]
 Policy.getPolicy().refresh();
 \end{lstlisting}
 
-Problémem je, že tato metoda je označena jako nedoporučovaná ({\tt deprecated}), protože je implementačně závislá -- zatímco u implementace používající soubory bezpečnostní politiky správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. \cite{refPolicy}
-
-Navíc i v případě různých implementací politiky založené na souborech se může chovat odlišně, například v závislosti na strategii vyrovnávací paměti kolekce oprávnění ({\tt PermissionCollection}) -- může znovu načíst bezpečnostní politiku pro celou JVM, ale také třeba jen pro danou ochranou doménu. \cite{refPolicy}
+Problémem je, že tato metoda je označena jako nedoporučovaná ({\it deprecated}), protože je implementačně závislá -- zatímco u třídy bezpečnostní politiky {\tt PolicyFile} správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. \cite{refPolicy}
 
 Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy}, {\tt sun.security.provider.PolicyFile}, a na ní postavených nebo na ni delegujících implementacích.
 
@@ -487,14 +515,14 @@ Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovaným
 \subsection{Statická a dynamická oprávnění ochranných domén} \label{staticPerm}
 %-----------------------------------------------------------------------------
 
-Oprávnění ochranných domén ({\tt ProtectionDomain}) popisovaných v minulých kapitolách jsou ukládány přímo v objektech těchto ochranných domén,
+Oprávnění ochranných domén ({\tt ProtectionDomain}) popsaných v kapitole \ref{codeSourceAprotectionDomains} jsou ukládány přímo v objektech těchto ochranných domén,
 konkrétně v jejich atributu {\tt permissions}. \cite{sourceProtectionDomain}
 
-Protože jsou do ochranné domény ukládány při jejím vytváření, tedy při zavádění třídy, a následně nemohou být změněna, budeme je označovat jako statická.
+Protože jsou tato oprávnění do ochranné domény ukládány při jejím vytváření, tedy při zavádění třídy a následně nemohou být změněna, označujeme je jako statická.
 
 Ochranné domény však souběžně mohou používat ještě oprávnění dynamická. Není-li ochranná doména označena jako používající výhradně statická oprávnění,
 dotazuje se ochranná doména na oprávnění objektu bezpečnostní politiky při každém volání její metody {\tt implies()}.
-Takto získaná oprávnění pak budeme označovat jako dynamická. \cite{sourceProtectionDomain}
+Takto získaná oprávnění pak označujeme jako dynamická. \cite{sourceProtectionDomain}
 
 Jsou-li dynamická oprávnění použita, efektivní oprávnění uplatňovaná metodou {\tt implies()} budou sjednocením dynamických a statických oprávnění třídy.
 \cite{sourceProtectionDomain}
@@ -511,10 +539,11 @@ obvykle používají pouze samostatně -- buď systém řízení přístupu ově
 uživatele, který jej spouští, k provedení požadované operace. V obou případech se však stále jedná o dynamická oprávnění.
 
 Statická oprávnění byla v Javě donedávna implementována jen v zájmu zachování kompatibility s verzemi Javy staršími než Java 2 SE 1.4. \cite{sourceProtectionDomain}
-V současnosti se však statická oprávnění opět začaly používat a to za účelem optimalizace -- získáváním oprávnění třídy z objektu bezpečnostní politiky
-pouze při zavádění třídy a ne při každém požadavku o ověření oprávněnosti k provedení operace je možné proces ověřování oprávněnosti urychlit.
+V současnosti se však statická oprávnění opět začaly používat a to za účelem optimalizace.
 
-Zmíněná optimalizace se používá v rámci současných verzí aplikačního serveru WildFly pro ochranné domény tříd modulů aplikačního serveru, včetně uživatelských aplikací. Související problémy jsou rozebrány v kapitole \ref{moduleClassLoader}.
+Získáváním oprávnění třídy z objektu bezpečnostní politiky pouze při zavádění třídy a ne při každém požadavku o ověření oprávněnosti k provedení operace je totiž možné proces ověřování oprávněnosti urychlit.
+
+Zmíněná optimalizace se používá v rámci současných verzí aplikačního serveru WildFly pro ochranné domény tříd modulů aplikačního serveru, včetně uživatelských aplikací. Související problémy a jejich řešení jsou rozebrány v kapitole \ref{moduleClassLoader}.
 
 %=============================================================================
 \section{Celkový pohled na bezpečnost v Javě}
@@ -527,7 +556,7 @@ Zmíněná optimalizace se používá v rámci současných verzí aplikačního
   \label{diagramDatovychToku}
 \end{figure}
 
-Diagram datových toků na obrázku \ref{diagramDatovychToku} ukazuje putování informace o oprávněních třídy ze souboru bezpečnostní politiky až k systému řízení přístupu a správci bezpečnosti. Souvislé černé šipky představují přenos informace o oprávněních, zatímco hnědé o třídách. Přerušované šipky představují reference. Směr šipky pak vede z třídy objektu s referenční proměnnou do třídy referencovaného objektu.
+Diagram datových toků na obrázku \ref{diagramDatovychToku} ukazuje putování informace o oprávněních třídy ze souboru bezpečnostní politiky až do systému řízení přístupu a správci bezpečnosti. Souvislé černé šipky představují přenos informace o oprávněních, zatímco hnědé přenos informace o třídách. Přerušované šipky představují reference. Směr šipky pak vede z třídy objektu s referenční proměnnou do třídy referencovaného objektu.
 
 Ochranné domény a tím i statická oprávnění třídy jsou třídám přidělovány při jejich zavádění. Objekty ochranných domén ({\tt ProtectionDomain}) vytváří zavaděč tříd a to na základě jejich zdroje kódu ({\tt CodeSource}). Na statická oprávnění, která má zdroji kódu (a tedy i vytvořené ochranné doméně) zavaděč přidělit, se dotazuje aktuálně používaného objektu bezpečnostní politiky ({\tt Policy}).
 
