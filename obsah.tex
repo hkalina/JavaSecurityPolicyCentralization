@@ -556,7 +556,7 @@ Zmíněná optimalizace se používá v rámci současných verzí aplikačního
   \label{diagramDatovychToku}
 \end{figure}
 
-Diagram datových toků na obrázku \ref{diagramDatovychToku} ukazuje putování informace o oprávněních třídy ze souboru bezpečnostní politiky až do systému řízení přístupu a správci bezpečnosti. Souvislé černé šipky představují přenos informace o oprávněních, zatímco hnědé přenos informace o třídách. Přerušované šipky představují reference. Směr šipky pak vede z třídy objektu s referenční proměnnou do třídy referencovaného objektu.
+Diagram datových toků na obrázku \ref{diagramDatovychToku} ukazuje putování informace o oprávněních třídy ze souboru bezpečnostní politiky až do systému řízení přístupu a správce bezpečnosti. Souvislé černé šipky představují přenos informace o oprávněních, zatímco hnědé přenos informace o třídách. Přerušované šipky představují reference. Směr šipky pak vede z třídy objektu s referenční proměnnou do třídy referencovaného objektu.
 
 Ochranné domény a tím i statická oprávnění třídy jsou třídám přidělovány při jejich zavádění. Objekty ochranných domén ({\tt ProtectionDomain}) vytváří zavaděč tříd a to na základě jejich zdroje kódu ({\tt CodeSource}). Na statická oprávnění, která má zdroji kódu (a tedy i vytvořené ochranné doméně) zavaděč přidělit, se dotazuje aktuálně používaného objektu bezpečnostní politiky ({\tt Policy}).
 
@@ -577,23 +577,24 @@ Na systém řízení přístupu pak rozhodování deleguje také standardní spr
 
 WildFly, dříve známý jako JBoss Application Server, je aplikační server standardu Java EE. Poskytuje běhové prostředí (nejen) Java EE aplikacím, které jsou na tomto aplikačním serveru nainstalovány. \cite{wildflyRename}
 
-Jednotlivé instalace WildFly nazýváme hostiteli ({\it host}). Hostitel typicky odpovídá jednomu fyzickému serveru. V rámci každého hostitele může běžet více aplikačních serverů ({\it server}).
-Hostitelé mohou být spojováni do domén ({\it domain}), přičemž jeden z nich v takovém případě zastává roli tzv. doménového řadiče ({\it domain controller}),
-ke kterému se ostatní hostitelé domény registrují a nechají se jím spravovat. \cite{jbossDomainSetup}
+Jednotlivé instalace WildFly nazýváme hostiteli ({\it host}). Hostitel typicky odpovídá jednomu fyzickému serveru. V rámci každého hostitele může běžet více serverů ({\it server}).
+Hostitelé mohou být spojováni do domén ({\it domain}), přičemž jeden z nich v takovém případě zastává roli tzv. doménového řadiče ({\it domain controller}).
+Ostatní hostitelé domény se k němu pak registrují a nechávají se jím tak spravovat -- na doménovém řadiči je totiž uložena konfigurace společná všem hostitelům. \cite{jbossDomainSetup}
 
-Na doménovém řadiči leží jediný používaný konfigurační soubor domény, {\tt domain.xml}. Tento soubor obsahuje konfiguraci skupin serverů a profilů serverů a tím také konfiguraci subsystémů používaných na aplikačních serverech domény. \cite{jbossDomainSetup}
+Tato společná konfigurace je uložena v konfigurační souboru domény, {\tt domain.xml}. Tento soubor obsahuje konfiguraci skupin serverů a profilů serverů.
+Konfigurace profilů pak zahrnuje také konfiguraci subsystémů používaných na serverech domény používajících daný profil. \cite{jbossDomainSetup}
 
-Každý hostitel má vlastní konfigurační soubor {\tt host.xml}. Tento soubor určuje název hostitele, zda-li je tento hostitel doménovým řadičem a pokud není také adresu doménového řadiče, proti kterému se registruje do domény. Zde jsou definovány aplikační servery, které na daném hostiteli poběží, porty na kterých budou poskytovat své služby a skupiny do kterých budou servery patřit. \cite{jbossDomainSetup}
+Každý hostitel má zároveň vlastní konfigurační soubor {\tt host.xml}. Tento soubor určuje název hostitele, zda-li je tento hostitel doménovým řadičem a pokud není, také adresu doménového řadiče. Zde jsou definovány servery, které na daném hostiteli poběží, porty na kterých budou poskytovat své služby a skupiny do kterých budou servery patřit. \cite{jbossDomainSetup}
 
-Distribuovaného prostředí je docíleno nasazováním aplikací ({\it deployment}) na celé skupiny serverů najednou. Požadavky směřované na aplikaci by potom
-měly být rozprostírány mezi všechny servery domény pomocí zařízení zvaného {\tt load balancer}. Toto zařízení umožňuje skrýt celou doménu za jedinou IP adresu
-a umožnit klientům přistupujícím k aplikaci přístup k nejméně vytíženému serveru disponujícímu danou aplikací. \cite{jbossLoadBalancing}
+Distribuovanosti prostředí je docíleno nasazováním aplikací ({\it deployment}) na celé skupiny serverů najednou. Požadavky směřované na aplikaci by potom
+měly být rozprostírány mezi všechny servery domény pomocí zařízení zvaného {\it load balancer}. Toto zařízení umožňuje skrýt celou doménu za jedinou IP adresu
+a umožnit klientům přistupujícím k aplikaci přístup k nejméně vytíženému serveru domény disponujícímu danou aplikací. \cite{jbossLoadBalancing}
 
 %=============================================================================
 \section{Běh WildFly pod správcem bezpečnosti Javy}
 %=============================================================================
 
-Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souborPolitiky} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné bychom měli dosáhnout použití správce bezpečnosti a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
+Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souboryBP} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné bychom měli dosáhnout použití správce bezpečnosti a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
 
 \begin{lstlisting}[caption=Doplnění spouštěcího skriptu o použití správce bezpečnosti, label=wildflySeSM]
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
