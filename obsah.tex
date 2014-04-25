@@ -575,34 +575,51 @@ Na systém řízení přístupu pak rozhodování deleguje také standardní spr
 \section{Úvod do WildFly (JBoss AS)}
 %=============================================================================
 
-WildFly, dříve známý jako JBoss Application Server, je aplikační server standardu Java EE. Poskytuje běhové prostředí (nejen) Java EE aplikacím, které jsou na tomto aplikačním serveru nainstalovány. \cite{wildflyRename}
+WildFly, dříve známý jako JBoss Application Server, je aplikační server standardu Java EE.
+Poskytuje běhové prostředí (nejen) Java EE aplikacím, které jsou na tomto aplikačním serveru nainstalovány.
+\cite{wildflyRename}
 
-Jednotlivé instalace WildFly nazýváme hostiteli ({\it host}). Hostitel typicky odpovídá jednomu fyzickému serveru. V rámci každého hostitele může běžet více serverů ({\it server}).
+Jednotlivé instalace WildFly nazýváme hostiteli ({\it host}). Hostitel typicky odpovídá jednomu fyzickému serveru.
+V rámci každého hostitele může běžet více serverů ({\it server}).
 Hostitelé mohou být spojováni do domén ({\it domain}), přičemž jeden z nich v takovém případě zastává roli tzv. doménového řadiče ({\it domain controller}).
-Ostatní hostitelé domény se k němu pak registrují a nechávají se jím tak spravovat -- na doménovém řadiči je totiž uložena konfigurace společná všem hostitelům. \cite{jbossDomainSetup}
+Ostatní hostitelé domény se k němu pak registrují a je na ně aplikována doménová konfigurace.
+\cite{jbossDomainSetup}
 
-Tato společná konfigurace je uložena v konfigurační souboru domény, {\tt domain.xml}. Tento soubor obsahuje konfiguraci skupin serverů a profilů serverů.
-Konfigurace profilů pak zahrnuje také konfiguraci subsystémů používaných na serverech domény používajících daný profil. \cite{jbossDomainSetup}
+Doménová konfigurace je uložena v konfigurační souboru domény, {\tt domain.xml}, uložené právě na doménovém řadiči.
+Tento soubor obsahuje konfiguraci skupin serverů a profilů serverů.
+Konfigurace profilů pak zahrnuje také konfiguraci subsystémů používaných na serverech domény používajících daný profil.
+\cite{jbossDomainSetup}
 
-Každý hostitel má zároveň vlastní konfigurační soubor {\tt host.xml}. Tento soubor určuje název hostitele, zda-li je tento hostitel doménovým řadičem a pokud není, také adresu doménového řadiče. Zde jsou definovány servery, které na daném hostiteli poběží, porty na kterých budou poskytovat své služby a skupiny do kterých budou servery patřit. \cite{jbossDomainSetup}
+Každý hostitel má zároveň vlastní konfigurační soubor {\tt host.xml}.
+Tento soubor určuje název hostitele, zda-li je tento hostitel doménovým řadičem a, pokud není, také adresu doménového řadiče.
+Zde jsou definovány servery, které na daném hostiteli poběží, porty na kterých budou poskytovat své služby a skupiny do kterých budou patřit.
+\cite{jbossDomainSetup}
 
-Distribuovanosti prostředí je docíleno nasazováním aplikací ({\it deployment}) na celé skupiny serverů najednou. Požadavky směřované na aplikaci by potom
-měly být rozprostírány mezi všechny servery domény pomocí zařízení zvaného {\it load balancer}. Toto zařízení umožňuje skrýt celou doménu za jedinou IP adresu
-a umožnit klientům přistupujícím k aplikaci přístup k nejméně vytíženému serveru domény disponujícímu danou aplikací. \cite{jbossLoadBalancing}
+Distribuovanosti prostředí je docíleno nasazováním aplikací ({\it deployment}) na celé skupiny serverů najednou.
+Požadavky směřované na aplikace pak jsou rozprostírány mezi všechny servery domény osazené danou aplikací pomocí tzv. vyvažovačů zátěže ({\it load balancer}).
+\cite{jbossLoadBalancing}
+
+Vyvažovač zátěže umožňuje skrýt celou doménu serverů za jedinou IP adresu.
+Na této adrese pak naslouchá požadavkům a předává je jednotlivým serverům této domény -- zpravidla tomu, který je v daný okamžik nejméně vytížený.
+\cite{jbossLoadBalancing}
 
 %=============================================================================
 \section{Běh WildFly pod správcem bezpečnosti Javy}
 %=============================================================================
 
-Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{souboryBP} a \ref{securityManager} při startu JVM. To je nejjednodušeji možné zajistit parametrem {\tt -D} příkazu {\tt java}. Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro tyto potřeby používána proměnná {\tt JAVA\_OPTS}. Připojením parametrů na konec této proměnné bychom měli dosáhnout použití správce bezpečnosti a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
+Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností popsaných v kapitolách \ref{securityManager} a \ref{nastaveniPolitiky} při startu JVM parametrem {\tt -D} příkazu {\tt java}.
+
+Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro potřeby přidávání parametrů příkazu {\tt java} používána proměnná {\tt JAVA\_OPTS}. Připojením potřebných parametrů na konec hodnoty této proměnné bychom měli dosáhnout použití správce bezpečnosti a bezpečnostní politiky ve všech JVM aplikačního serveru: \cite{jbossSecurityManager}
 
 \begin{lstlisting}[caption=Doplnění spouštěcího skriptu o použití správce bezpečnosti, label=wildflySeSM]
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{lstlisting}
 
-Dále vytvoříme soubor jednoduché bezpečnostní politiky.
-Jestliže budeme dále předpokládat, že cílem nasazení bezpečnostní politiky na server je omezení možností uživatelských aplikací, můžeme od jemného přidělování jen nejnezbytnějších oprávnění každé součásti WildFly ustoupit k přidělení všech oprávnění všem součástem aplikačního serveru. Uživatelské aplikace nyní ponecháme bez jakýchkoli oprávnění a vyzkoušíme účinky této bezpečnostní politiky (viz kód \ref{wildflyPolicy}).
+Tuto bezpečnostní politiku musíme samozřejmě ještě definovat. Vytvoříme tedy odpovídající soubor bezpečnostní politiky.
+Protože naším cílem bude omezit možnosti uživatelských aplikací, součástem samotného aplikačního serveru, pro maximální jednoduchost této politiky, přidělíme všechna oprávnění. Uživatelské aplikace prozatím ponecháme bez jakýchkoli oprávnění.
+
+Obsah výsledného souboru bezpečnostní politiky ukazuje ukázka kódu \ref{wildflyPolicy}.
 
 \begin{lstlisting}[caption=První testovací soubor bezpečnostní politiky pro WildFly, label=wildflyPolicy]
 grant codeBase "file:${jboss.home.dir}/jboss-modules.jar" {
@@ -610,11 +627,15 @@ grant codeBase "file:${jboss.home.dir}/jboss-modules.jar" {
 };
 \end{lstlisting}
 
-S použitím této bezpečnostní politiky se server WildFly skutečně bez potíží spustí. Když však na tento server nasadíme aplikaci provádějící kupříkladu čtení souboru uloženého v adresáři této aplikace, zjistíme že aplikace nemá problém tento soubor číst. Do souboru ležícího mimo jeho adresář se ale naopak nedostane, dokonce ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM bez ohledu na jejich kořen balíčků ({\tt codeBase}).
+Vyzkoušíme-li nyní účinky tímto způsobem nastavené politiky, zjistíme že se s ní aplikační server skutečně bez potíží spustí.
+Když však na tento server nasadíme aplikaci provádějící kupříkladu čtení souboru uloženého v adresáři této aplikace, zjistíme že aplikace nemá problém tento soubor číst.
+Do souboru ležícího mimo jeho adresář se naopak nedostane ani pokud toto oprávnění benevolentně přidělíme všem programům v JVM.
 
-Protože, použijeme-li naopak prázdný soubor bezpečnostní politiky, start serveru se nezdaří, je očividné že bezpečnostní politika byla nastavena správným způsobem, ale po startu aplikačního serveru byla aplikačním serverem dále ignorována.
+Použijeme-li naopak prázdný soubor bezpečnostní politiky, start serveru se nezdaří.
+Je tedy očividné, že bezpečnostní politika byla nastavena správným způsobem.
+Po startu aplikačního serveru však byla potlačena a nadále byly aplikovány pouze omezení daná standardem Java EE.
 
-Krokováním programu byly nalezeny dvě překážky, jež způsobovaly neúčinost bezpečnostní politiky ze souboru bezpečnostní politiky. Obě jsou popsány v následujících kapitolách.
+Následující kapitoly popisují překážky v účinnosti souborů bezpečnostní politiky.
 
 %=============================================================================
 \section{Správce bezpečnosti WildFly}
@@ -648,20 +669,6 @@ Hodnota proměnné je inicializována při prvním pokusu o získání její hod
 Tato záplata ale zapíná bezpečnostní kontroly pro celou JVM -- popírá tak původní smysl správce bezpečnosti Wildfly, kterým měla být maximální rychlostní optimalizace aplikačního serveru, na což jsem byl také upozorněn při žádosti o začlenění mé záplaty do vývojové verze WildFly Security Manageru jeho vývojáři. \cite{smPullRequest}
 
 Pravděpodobně protože hledání trvalého a koncepčního řešení trvalo již skoro půl roku, byla nakonec, i přes její nekoncepčnost, mnou navržená změna začleněna. \cite{smPullRequest}\cite{smPullRequestImpl}
-
-Další změnou provedenou ve správci bezpečnosti WildFly pro potřeby řešení této práce bylo povolení změny správce bezpečnosti. Tato změna byla nezbytná pro vypínání správce bezpečnosti ze subsystému navrhovaného a popsaného v následujících kapitolách.
-
-\begin{lstlisting}[caption=Záplata správce bezpečnosti WildFly umožňující vypnutí správce bezpečnosti (zkráceno), label=patchSM]
-     public void checkPermission(Permission perm, AccessControlContext context) {
-         if (perm.implies(SECURITY_MANAGER_PERMISSION)) {
--            throw access.secMgrChange();
-+            //throw access.secMgrChange();
-         }
-\end{lstlisting}
-
-Jak je vidět, spočívá v prostém zakomentování tohoto omezení v metodě správce bezpečnosti ověřujícího povolení prováděné operace -- {\tt checkPermission()}. Toto omezení sice posiluje bezpečnost systému, avšak oslabuje schopnosti bezpečnostních politik, které tak ztrácí možnost povolit uživatelskému kódu (nebo i kódu modulů WildFly) změnu správce bezpečnosti.
-
-Posílení bezpečnosti navíc není až tak výrazné, považujeme-li kód modulů WildFly za důvěryhodný -- uživatelskému kódu ve výměně správce bezpečnosti nadále brání samotná bezpečnostní politika, není-li její součástí výslovné povolení změny správce bezpečnosti.
 
 %=============================================================================
 \section{Zavaděč tříd modulů WildFly} \label{moduleClassLoader}
