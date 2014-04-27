@@ -948,7 +948,7 @@ Toto je řešeno analogicky jako právě v případě akce navázané na změnu 
 \chapter{Testování systému} \label{testovani}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Protože cílem této bakalářské práce nebylo jen vytvoření systému umožňujícího správu bezpečnostních politik nasazených na jednotlivých serverech distribuovaného systému ale také jeho otestování, tato kapitola se zabývá tvorbou testů, umožňujících otestovat implementované řešení.
+Protože cílem této bakalářské práce nebylo jen vytvoření systému umožňujícího správu bezpečnostních politik nasazených na jednotlivých serverech distribuovaného systému, ale také jeho otestování, tato kapitola se zabývá tvorbou testů, umožňujících otestovat implementované řešení.
 
 Testování je nedílnou součástí vývoje software a je užíváno k odhalení vad software a prokázání, že software dosáhl požadované úrovně kvality v zadaných kritériích. Obvykle se provádí za pomoci automatizovaných programů, takzvaných testů. \cite{ivsTest}
 
@@ -970,29 +970,29 @@ Protože lze systémové testy někdy chápat také jako zvláštní případ in
 \section{Jednotkové testy}
 %=============================================================================
 
-Jednotkové testy tedy umožňují testovat jednotlivé jednotky systému a těmito jednotkami, po kterých se systém testuje, jsou typicky třídy programovacího jazyka. Každé třídě programu by v ideálním případě měla být přidělena jedna třída testu, jež by měla ověřit správnost fungování této třídy.
+Jednotkové testy tedy umožňují testovat jednotlivé jednotky systému a těmito jednotkami, po kterých se systém testuje, jsou typicky třídy programovacího jazyka. Každé třídě programu by v ideálním případě měla být přidělena jedna třída testu, jež by měla ověřit správnost fungování této třídy. \cite{ivsTest}
 
-Testované jednotky by měly být testovány ve vzájemné izolaci. Toho se dosahuje buď jejich vhodným návrhem, nebo použitím napodobenin objektů ({\it mock object}) z jiných jednotek, na kterých tato jednotka závisí.
+Testované jednotky by měly být testovány ve vzájemné izolaci. Toho se dosahuje buď jejich vhodným návrhem, nebo použitím napodobenin objektů ({\it mock object}) z jiných jednotek, na kterých tato jednotka závisí. \cite{ivsTest}
 
 Komplikace jež by mohly ohrozit samotnou výměnu bezpečnostní politiky nebo správce bezpečnosti vyplývají převážně z integrace s aplikačním serverem WildFly. Vytvoření jednotkových testů pro výměnu bezpečnostní politiky a správce bezpečnosti by tedy nebylo příliš užitečné.
 
-Byly však vytvořeny jednotkové testy pro testování podpůrných součástí implementovaného subsystému -- testy syntaktické kontroly souborů bezpečnostní politiky a práce s konfiguračním podstromem DMR subsystému.
+Byly však vytvořeny jednotkové testy pro testování podpůrných součástí implementovaného subsystému -- testy syntaktické kontroly souborů bezpečnostní politiky, práce s částí konfiguračního strom DMR náležející implementovaného subsystému a načítání části konfiguračního souboru WildFly náležející subsystému.
 
 %=============================================================================
 \section{Integrační testy}
 %=============================================================================
 
-Integrační testy testují systém jako celek. Implementovaný systém byl tímto způsobem testován na schopnost plnění základních požadavků daných zadáním této práce -- schopnosti zapnout a vypnout správce bezpečnosti a vyměnit používanou bezpečnostní politiku skrze administrační protokol WildFly.
+Integrační testy testují systém jako celek. Implementovaný systém byl tímto způsobem testován na schopnost plnění základních požadavků daných zadáním této práce -- schopnosti zapnout a vypnout správce bezpečnosti a vyměnit používanou bezpečnostní politiku skrze JBoss Management API.
 
 Byl tedy vytvořen integrační test umožňující otestovat zmíněné schopnosti na běžícím aplikačním serveru WildFly s nainstalovaným subsystémem pro nastavení bezpečnostní politiky, jehož vytvoření je popsáno v kapitole \ref{implementace}.
 
 Tento test se skládá ze dvou částí -- agenta, aplikace nasazované na testovaný server, a manažeru -- testu vytvořeného za pomoci knihovny JUnit, řídícího proces samotného testování.
 
-Agent je Java EE aplikací nabízející své služby skrze rozhraní REST. Službami, jež poskytuje, je zejména otestování schopnosti provést vybranou akci z pozice aplikace nasazené na testovaném serveru. Klient rozhraní REST se tedy k této službě může připojit a požádat o otestování schopnosti provést vybranou operaci. Jako odpověď pak dostane informaci, zda-li se provedení této operace zdařilo, nebo zda bylo zmařeno Access controllerem.
+{\it Agent} je Java EE aplikací nabízející své služby skrze rozhraní REST. Službami, jež poskytuje, je zejména otestování schopnosti provést vybranou akci z pozice aplikace nasazené na testovaném serveru. Klient rozhraní REST se tedy k této službě může připojit a požádat o otestování schopnosti provést vybranou operaci. Jako odpověď pak dostane informaci, zda-li se provedení této operace zdařilo, nebo zda bylo zmařeno Access controllerem.
 
 Mimo toho tato služba umožňuje manageru zjistit také některé další informace o aplikačním serveru, zjistitelné ze strany aplikace nasazené na tomto aplikačním serveru, jako je aktuálně používaná třída security manageru, používaná třída bezpečnostní politiky, nebo samotná přítomnost agenta na testovaném aplikačním serveru.
 
-Manager je část systémového testu běžící mimo aplikační server. Sestává z testů založených na knihovně JUnit a pomocných tříd {\tt Domain} a {\tt Server}.
+{\it Manager} je část systémového testu běžící mimo aplikační server. Sestává z testů založených na knihovně JUnit a pomocných tříd {\tt Domain} a {\tt Server}.
 
 Třída {\tt Server} zajišťuje komunikaci manageru s agentem nasazeným na testovaném serveru WildFly prostřednictvím protokolu REST. Některé testy, například testy vzájemného ovlivňování serverů mezi sebou, mohou vyžadovat monitoring více serverů WildFly najednou. Na každém z nich pak musí být nasazena aplikace agenta a s každým z nich pak bude moci test komunikovat prostřednictvím samostatné instance třídy {\tt Server}.
 
@@ -1015,22 +1015,22 @@ Ačkoli jen samotné používání bezpečnostní politiky ve WildFly bylo v dob
 bylo v rámci této bakalářské práce umožněno nejen používání bezpečnostní politiky, ale také její výměna za běhu aplikačního serveru bez potřeby
 jeho restartu nebo znovunačtení.
 
-Dosaženo toho bylo za pomoci záplat ({\it patch}) několika součástí WildFly (viz kapitola \ref{jboss}), přičemž obecnější z nich byly nabídnuty
-k začlenění do hlavní vývojové větve daných součástí. \cite{smPullRequest}\cite{jbossModulesPullRequest}
+Dosaženo toho bylo za pomoci několika záplat ({\it patch}) součástí WildFly (viz kapitola \ref{jboss}), přičemž obecnější z nich byly předány
+k začlenění do hlavní vývojové větve. \cite{smPullRequest}\cite{jbossModulesPullRequest}
 
 O začlenění nebylo zažádáno pouze v případě záplaty správce bezpečnosti WildFly umožňující povolení nastavování správce bezpečnosti,
-zejména pro potřeby jeho vypínání, protože tato záplata porušovala původní návrh této součásti WildFly.
+zejména pro potřeby jeho vypínání, protože porušovala původní návrh této součásti WildFly.
 
-Po vyřešení samotného používání a výměny bezpečnostních politik v prostředí aplikačního serveru WildFly bylo vytvořeno rozšíření aplikačního serveru,
-umožňující provádět výměnu používané politiky a zapínání/vypínání správce bezpečnosti v návaznosti na změnu konfigurace pro příslušný server
-v konfiguračním stromu WildFly. Konfigurační strom WildFly se zároveň používá také pro ukládání jednotlivých souborů bezpečnostní politiky,
-které jsou tímto způsobem distribuovány napříč aplikačními servery domény.
+Po vyřešení samotného používání a výměny bezpečnostních politik v prostředí aplikačního serveru WildFly bylo vytvořeno rozšíření aplikačního serveru.
 
-Nad tímto rozšířením aplikačního serveru pak bylo vytvořeno webové uživatelské rozhraní ve formě rozšíření webové administrační konzoly WildFly,
-jež umožňuje nastavovat použití správce bezpečnosti a nastavovat bezpečnostní politiky na jednotlivých serverech nebo celých skupinách serverů
-domény.
+To umožňuje provádět výměnu používané politiky a zapínat/vypínat správce bezpečnosti v návaznosti na změnu konfigurace pro příslušný server
+v konfiguračním stromu WildFly.
 
-Na implementované řešení pak byla vytvořena automatizovaná sada testů umožňující otestovat schopnosti implementovaného systému měnit oprávnění
-aplikací nasazených na aplikačním serveru nebo doméně aplikačních serverů.
+Konfigurační strom WildFly se zároveň používá také pro ukládání jednotlivých souborů bezpečnostní politiky, které jsou tímto způsobem distribuovány napříč aplikačními servery domény.
 
+Nad tímto rozšířením aplikačního serveru pak bylo vytvořeno webové uživatelské rozhraní ve formě rozšíření webové administrační konzoly WildFly.
+To umožňuje nastavovat použití správce bezpečnosti a nastavovat bezpečnostní politiky na jednotlivých serverech nebo celých skupinách serverů WildFly domény.
+
+Na implementované řešení byla nakonec vytvořena automatizovaná sada testů umožňující otestovat schopnost implementovaného systému měnit oprávnění
+aplikací nasazených na aplikačním serveru nebo v doméně aplikačních serverů.
 
