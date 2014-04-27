@@ -742,7 +742,7 @@ Dále proto budeme předpokládat, že všechny skupiny serverů, v rámci kter�
 V opačném případě bude nutné konfiguraci bezpečnostních politik provádět pro každý profil zvlášť.
 
 %=============================================================================
-\section{Způsob nastavení bezpečnostní politiky}
+\section{Způsob nastavení bezpečnostní politiky} \label{zpusobNastaveniJBoss}
 %=============================================================================
 
 Pro komunikaci se subsystémy WildFly pro účely správy se typicky využívá rozhraní {\it JBoss management API}.
@@ -795,46 +795,70 @@ celého subsystému.
 \section{Způsob šíření souborů bezpečnostní politiky} \label{sireniSouboru}
 %=============================================================================
 
-Jelikož cílem práce není jen centralizovaná správa, ale i distribuce bezpečnostních politik, je nutné rovněž stanovit způsob, jakým soubory bezpečnostní politiky budou šířeny mezi servery WildFly domény.
+Jelikož cílem práce není jen centralizovaná správa, ale i distribuce bezpečnostních politik, je nutné stanovit způsob, jakým soubory bezpečnostní politiky budou šířeny mezi servery WildFly domény.
 
-Jako pravděpodobně nejjednodušší řešení, které by bylo možné navrhnout, lze označit vytvoření sdíleného adresáře, jež by byl přístupný z každého serveru domény, například protokolem NFS (Network File System).
+Za pravděpodobně nejjednodušší řešení, které by bylo možné navrhnout, lze označit vytvoření sdíleného adresáře, jež by byl přístupný z každého serveru domény, například prostřednictvím protokolu NFS (Network File System).
 
-S tímto řešením však souvisí hned několik potíží. První z nich je vyšší platformní závislost -- zatímco WildFly jakožto aplikace v Javě bez problému běží na mnoha platformách a pod různými operačními systémy, protokol NFS není napříč operačními systémy příliš podporován. Tento problém by bylo možné řešit použitím více rozšířeného protokolu umožňujícího vzdálený přístup k souborům, jakým je například FTP.
+S tímto řešením však souvisí hned několik potíží.
+První z nich je vyšší platformní závislost -- zatímco WildFly jakožto program v Javě bez problému běží na mnoha platformách a pod různými operačními systémy, protokol NFS není napříč operačními systémy příliš podporován.
+Tento problém by bylo možné řešit použitím více rozšířeného protokolu umožňujícího vzdálený přístup k souborům, jakým je například FTP (File Transfer Protocol).
 
-Druhým problém je ale bezpečnost -- protokoly FTP ani NFS samy o sobě nedokáží zaručit autenticitu serveru, ke kterému se klient připojuje. Případný útočník by se tak mohl vydávat za FTP/NFS server na němž jsou bezpečnostní politiky uložené a podvrhnout tak serverům domény vlastní bezpečnostní politiky. Tento problém by mohlo vyřešit použití lépe zabezpečeného protokolu, jakým je například SSH (Secure Shell), jež umožňuje vzdálený přístup k souborům prostřednictvím SSHFS (SSH Filesystem), nebo FTPS (FTP over SSL), kde se server vůči klientovi autentizuje za pomoci asymetrické kryptografie. \cite[3]{ssh}
+Druhým problém je ale bezpečnost -- protokoly FTP ani NFS samy o sobě nedokáží zaručit autenticitu serveru, ke kterému se klient připojuje.
+Případný útočník by se tak mohl vydávat za FTP/NFS server na němž jsou bezpečnostní politiky uložené a podstrčit tak serverům domény vlastní bezpečnostní politiky a sabotovat tím zabezpečení serverů.
 
-Použití těchto lépe zabezpečených protokolů zajistí bezpečnost systému, avšak umocní problém platformních omezení, obzvláště v případě protokolu SSH. Navíc i v případě dokonalého zajištění sdíleného adresáře bezpečnostních politik bude nutné zajistit také bezpečný přenos informací po JBoss Native API, pro bezpečný přenos informace, kterou bezpečnostní politiku má daný server použít.
+Tento problém by mohlo vyřešit použití lépe zabezpečeného protokolu, jakým je například FTPS (FTP over SSL) nebo SSH (Secure Shell), jež umožňuje vzdálený přístup k souborům prostřednictvím SSHFS (SSH Filesystem), kde se server vůči klientovi autentizuje za pomoci asymetrické kryptografie. \cite[3]{ssh}
 
-Problém bezpečnosti distribuce bezpečnostních politik je možné si představit jako řetěz. Řetěz je jen tak silný, jak silný je jeho nejslabší článek. Aby byl řetěz silný, je třeba mít silné všechny jeho články -- v tomto případě bezpečnost komunikačního kanálu, po kterém se přenáší soubory bezpečnostních politik a komunikačního kanálu, po kterém se přenáší informace, který soubor bezpečnostní politiky by měl daný server použít.
+Použití těchto lépe zabezpečených protokolů zajistí bezpečnost systému, avšak umocní problém platformních omezení, obzvláště v případě protokolu SSH.
 
-Touto úvahou lze dojít k závěru, že optimálním řešením je minimalizovat počet článků řetězu -- sloučit tyto dva komunikační kanály do jediného a nadále řešit bezpečnost jen tohoto jediného komunikačního kanálu.
+Výrazně naroste také problém se zajištěním bezpečnosti takového systému, protože problém bezpečnosti si lze představit jako řetěz.
+Tento řetěz je jen tak silný, jak silný je jeho nejslabší článek.
+Ačkoli přidání dalšího článku nemusí řetěz oslabit, zvýší se množství článků jejichž sílu bude nutné sledovat.
+Z toho vyplývá snaha minimalizovat počet článků tohoto řetězu.
 
-Toto lze implementovat za pomoci uzlů konfiguračního stromu jednotlivých politik představujících jednotlivé soubory politik. Vlastností tohoto uzlu by pak obsah samotného souboru bezpečnostní politiky. Soubory bezpečnostní politiky by pak mohly být nahrávány do těchto vlastností konfiguračních uzlů na straně doménového řadiče a naopak z nich čteny na straně ostatních členských serverů WildFly domény.
+Jako optimální řešení se proto jeví využití existujících kanálů pro přenos informace mezi servery domény.
+Takovým kanálem je právě JBoss Management API.
 
-Protože však použití standardní třídy bezpečnostní politiky ({\tt sun.security.provider.PolicyFile}) vyžaduje soubory bezpečnostní politiky přístupné skrze URL adresu souboru, je na straně členských serverů třeba před aplikací bezpečnostní politiky obsah souboru bezpečnostní politiky zapsat do dočasného souboru.
+Přenos souborů skrze JBoss Management API je možné snadno implementovat ukládáním obsahu těchto souborů do konfiguračního stromu WildFly.
 
-Protože bude tento postup nezbytné aplikovat na straně členských serverů domény, je zbytečné řešit toto na doménovém řadiči jinak. Ztrácí se tak také většina důvodů pro to, aby byly bezpečnostní politiky na straně doménového řadiče uloženy v souboru souborového systému.
+Implementovaný subsystém by tedy definoval nový typ uzlu konfiguračního stromu, představující soubor bezpečnostní politiky. Jeho vlastností by pak byl obsah souboru bezpečnostní politiky.
 
-Jako výhodnějším řešením se tedy začíná jevit ukládat bezpečnostní politiky přímo do vlastností konfiguračních uzlů. Tím bude vyřešen i problém, jak ze strany aplikačního serveru detekovat, že byl soubor bezpečnostní politiky změněn. Zatímco v případě souboru by bylo nezbytné se periodicky dotazovat na čas poslední změny tohoto souboru, na změnu hodnoty konfigurační vlastnosti je možné navázat programovou událost, a tím zajistit aplikaci bezpečnostní politiky přímo v návaznosti na změnu hodnoty její konfigurační vlastnosti.
+Soubory bezpečnostní politiky by pak mohly být nahrávány do konfiguračního stromu na straně doménového řadiče a naopak z nich čteny na straně ostatních členských serverů WildFly domény.
+
+Standardní třída bezpečnostní politiky, {\tt sun.security.provider.PolicyFile}, vyžaduje soubory bezpečnostní politiky přístupné skrze URL adresu souboru.
+Je tedy nutné na straně řadových serverů domény bezpečnostní politiku z konfiguračního stromu před jejím nastavením zapsat do dočasného souboru v souborovém systému.
+
+Co však nutné není, je jejich načítání ze souborů v souborovém systému na straně doménového řadiče. Zatímco původní návrh počítal s využitím konfiguračního stromu pouze pro přenos souborů bezpečnostní politiky, ukazuje se jako výhodnější soubory bezpečnostní politiky ukládat přímo do konfiguračního stromu.
+
+Nebude tak třeba ani řešit problém s rozpoznáním, že byl soubor bezpečnostní politiky změněn. Zatímco v souborovém systému by toto bylo nutné řešit periodickým se dotazování na čas poslední změny tohoto souboru, na změnu hodnoty konfigurační vlastnosti není problém skrze událost navázat nové použití bezpečnostní politiky servery domény.
 
 %=============================================================================
 \section{Webové uživatelské rozhraní} \label{navrhGUI}
 %=============================================================================
 
-Součástí zadání práce bylo také vytvořit webové rozhraní pro komunikaci s uživatelem. Jelikož je samotné jádro řešení implementováno jako subsystém WildFly, jako optimální řešení se nabízelo implementovat uživatelské rozhraní tohoto subsystému jako rozšíření webové konzoly WildFly.
+Součástí zadání práce bylo také vytvoření webového rozhraní pro komunikaci implementovaného systému s uživatelem.
+Jelikož je samotné jádro řešení implementováno jako subsystém WildFly, jako logické řešení se nabízí implementovat uživatelské rozhraní tohoto subsystému jako rozšíření webové konzoly WildFly.
 
-Webová konzola WildFly je standardní součástí aplikačního serveru WildFly. Je GWT aplikací běžící na straně klienta, ve webovém prohlížeči, a se serverem komunikuje prostřednictvím HTTP Management API. To je alternativou Native API -- plní stejnou funkci, ale běží nad protokolem HTTP. Tělem odpovědí serveru i tělem POST dotazů klienta je JSON reprezentace uzlu konfiguračního stromu ({\tt ModelNode}). \cite{WildFlyManagementAPIreference}
+Webová konzola WildFly je standardní součástí aplikačního serveru WildFly. Je GWT (Google Web Toolkit) aplikací běžící na straně klienta, ve webovém prohlížeči.
+Aplikační server tato aplikace spravuje prostřednictvím HTTP varianty JBoss Management API.
+Tato varianta Management API běží nad protokolem HTTP a tělem POST dotazů klienta i tělem odpovědí serveru je JSON reprezentace uzlu DMR (blíže popsaném v kapitole \ref{zpusobNastaveniJBoss}).
+\cite{WildFlyManagementAPIreference}
+
+Grafická podoba uživatelského rozhraní, jak byla ve fázi návrhu systému navržena, konkrétně části umožňující samotné nastavení bezpečnostní politiky na jednotlivých serverech a skupinách serverů, je vyobrazena na obrázku \ref{navrhGui}.
+
+Pro srovnání je zároveň na obrázku \ref{vysledneGui} ukázán snímek obrazovky zachycující podobu této části uživatelského rozhraní, jak bylo nakonec implementováno.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=14cm]{fig/mockup}
   \caption{Grafický návrh uživatelského rozhraní plánovaného rozšíření WildFly.}
+  \label{navrhGui}
 \end{figure}
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=14cm]{fig/jsmpolicy-servers}
   \caption{Výsledná podoba webového uživatelského rozhraní.}
+  \label{vysledneGui}
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -845,24 +869,30 @@ Webová konzola WildFly je standardní součástí aplikačního serveru WildFly
 \section{První etapa}
 %=============================================================================
 
-V rámci první etapy implementace řešení byl implementován jednoduchý subsystém WildFly za pomoci kostry subsystému z Maven repozitáře, podle dokumentace WildFly 8 věnující se právě vytváření rozšíření WildFly. \cite{WildFlyExtending}
+V rámci první etapy řešení byl implementován jednoduchý subsystém WildFly za pomoci kostry subsystému z Maven repozitáře, podle dokumentace WildFly 8 věnující se právě vytváření rozšíření WildFly. \cite{WildFlyExtending}
 
-Dle tohoto vzoru byl vytvořen subsystém, jehož jedinou funkcí bylo rozšíření konfiguračního stromu o uzly {\tt server=*} uchovávající informaci o URL bezpečnostních politik, jež by měly být uloženy na jednotlivých serverech domény WildFly odpovídajících svým jménem jménu tohoto konfiguračního uzlu. Tyto uzly fungovaly jako běžné uzly konfiguračního stromu WildFly -- administrátor měl možnost je vytvářet, odstraňovat a nastavovat jejich vlastnost {\tt policy}, jež nesla právě samotnou URL nasazené bezpečnostní politiky.
+Dle tohoto vzoru byl vytvořen subsystém, jehož jedinou funkcí bylo rozšíření konfiguračního stromu o uzly {\tt server=*} uchovávající informaci o URL souborů bezpečnostních politik.
+Ty by měly být uloženy na jednotlivých serverech domény WildFly.
+Tyto uzly fungovaly jako většina typů uzlů konfiguračního stromu WildFly -- administrátor měl možnost je vytvářet, odstraňovat a nastavovat jejich vlastnost {\tt policy}, jež nesla právě samotnou URL nasazené bezpečnostní politiky.
 
-Na změnu této konfigurační vlastnosti zároveň server domény daný jménem uzlu reagoval právě nasazením dané bezpečnostní politiky, prostřednicvím registrace této události při tvorbě konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}.
+Na změnu této konfigurační vlastnosti server domény daný jménem uzlu reagoval nasazením dané bezpečnostní politiky.
 
-Toho bylo dosaženo vytvořením třídy {\tt ServerWriteAttributeHandler} a jejím uvedením v rámci volání provádějícího registraci samotné konfigurační vlastnosti:
+Toho bylo dosaženo registrací události zápisu do této konfigurační vlastnosti při její definici.
+Byla tedy vytvořena třída {\tt ServerWriteAttributeHandler}, jejíž instance byla uvedena při registraci konfigurační vlastnosti {\tt policy}:
 
 \begin{lstlisting}[caption=Registrace konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, label=registraceAtributu]
 resourceRegistration.registerReadWriteAttribute(POLICY,
                 null, ServerWriteAttributeHandler.INSTANCE);
 \end{lstlisting}
 
-Není stanovena třída zprostředkovávající čtení tohoto konfigurační vlastnosti. (Na jejím místě je uveden {\tt null}) Na čtení této vlastnosti není totiž vázána žádná akce, ani není nutné obsah vracený jako odpověď na pokus o čtení vlastnosti nikterak upravovat a je možné uživatele nechat číst samotnou vlastnost přímo.
+Nebyla stanovena třída zprostředkovávající čtení tohoto konfigurační vlastnosti. (Na jejím místě je uveden {\tt null}) Čtení této konfigurační vlastnosti tak nebylo spojeno s žádnou další akcí.
 
-Aby byla bezpečnostní politika aplikována nejen na základě akce administrátora, ale také automaticky po startu serveru, byla její aplikace navázána také na akci přidání nového uzlu {\tt server=*}. Odstranění takového uzlu pak bude navázáno na odebrání bezpečnostní politiky, stejně jako kdyby byla vlastnost {\tt policy} nastavena na nedefinovanou.
+Aby byla bezpečnostní politika aplikována nejen na základě akce administrátora, ale také automaticky při startu serveru, bylo její použití navázáno také na akci přidání nového uzlu {\tt server=*}.
 
-Obě akce je jsou implementovány jako třídy {\tt ServerAdd} a {\tt ServerRemove}, jež jsou na uzly typu {\tt server=*} navázány skrze parametry konstruktoru třídy definující tento uzel konfiguračního stromu:
+Na odstranění tohoto uzlu by zároveň mělo být navázáno odebrání bezpečnostní politiky, stejně jako při nastavení hodnoty vlastnosti {\tt policy} na nedefinovanou.
+
+Pro dosažení provádění obou zmíněných navázaných akcí byly implementovány třídy {\tt ServerAdd} a {\tt ServerRemove}.
+Ty jsou na uzly typu {\tt server=*} navázány při definici těchto konfiguračních uzlů v subsystému:
 
 \begin{lstlisting}[caption=Definice konfiguračního uzlu {\tt server=*}, label=registraceUzluServer]
 public class ServerDefinition extends SimpleResourceDefinition {
@@ -875,7 +905,8 @@ public class ServerDefinition extends SimpleResourceDefinition {
 }
 \end{lstlisting}
 
-Konfigurační uzly {\tt server=*} jsou ukládány do konfiguračního XML souboru domény WildFly, jak je u konfigurační uzlů WildFly běžné. Ukládání veškeré konfigurace subsystému je implementováno ve třídě {\tt SubsystemParser}.
+Konfigurační uzly {\tt server=*} jsou ukládány do konfiguračního XML souboru domény WildFly, jak je u konfigurační uzlů WildFly běžné.
+Ukládání veškeré konfigurace subsystému je implementováno ve třídě {\tt SubsystemParser}, jak je tomu u vzorového subsystému \cite{WildFlyExtending}.
 
 %=============================================================================
 \section{Druhá etapa}
@@ -883,31 +914,35 @@ Konfigurační uzly {\tt server=*} jsou ukládány do konfiguračního XML soubo
 
 V rámci druhé etapy bylo uživatelské rozhraní pozměněno dle grafického návrhu předvedeného v kapitole \ref{navrhGUI}. V souvislosti s touto změnou bylo nutné rozšířit rovněž subsystém WildFly. Jeho dosavadní implementace neumožňovala výběr bezpečnostní politiky formou výběru v rozbalovací nabídce.
 
-Výběr formou rozbalovací nabídky vyžaduje od aplikace zobrazující nabídku znalost voleb, mezi nimiž může uživatel provádět výběr. To při dosavadní implementaci subsystému možné nebylo, neboť aplikace běžící na straně webového prohlížeče měla přístup k souborům (tedy i souborům bezpečnostních politik) možný jen právě prostřednictvím subsystému, který doposud přístup k seznamu souborů bezpečnostních politik neumožňoval.
+Výběr formou rozbalovací nabídky vyžaduje od aplikace zobrazující nabídku znalost voleb, mezi nimiž může uživatel provádět výběr.
+To při dosavadní implementaci subsystému možné nebylo, neboť aplikace běžící na straně webového prohlížeče k souborům na serveru přímo přistupovat nemůže.
+Dosavadní implementace subsystému přístup k seznamu zvolitelných souborů bezpečnostní politiky také neumožňovala.
 
-Do konfiguračního stromu subsystému tak vedle dosavadních uzlů {\tt server=*} popsaných v minulé podkapitole přibyly uzly {\tt policy=*}, jež reprezentovaly právě jednotlivé soubory bezpečnostní politiky, jež bylo možné jako bezpečnostní politiky jednotlivých serverů nastavit. Tyto uzly nebyly ukládány do konfiguračního XML souboru aplikačního serveru, ale byly vytvářeny ze seznamu souborů nacházejících se v k tomu určeném adresáři aplikačního serveru.
+Do části konfiguračního stromu náležející subsystému tak vedle dosavadních uzlů {\tt server=*} přibyly uzly {\tt policy=*}.
+Ty reprezentovaly jednotlivé soubory, které bylo možné jako soubory bezpečnostní politiky jednotlivých serverů nastavit.
 
-Toto načítání seznamu souborů nebylo řešeno cestou ideální, za kterou by šlo nejspíše považovat přímé navázání jakéhokoli pokusu o čtení těchto konfiguračních uzlů na programovou obsluhu, jež by umožnila jako přímý výsledek tohoto dotazu vrátit přímo aktuální seznam souborů v adresáři bezpečnostních politik.
+Tyto uzly nebyly ukládány do konfiguračního XML souboru aplikačního serveru.
+Byly vytvářeny subsystémem při startu aplikačního serveru na základě obsahu adresáře určeného pro soubory bezpečnostních politik.
 
-Vzhledem k ranosti této verze a odstranění těchto schopností systému v pozdějších etapách vývoje bylo načtení seznamu souborů bezpečnostních politik řešeno přímým vytvořením těchto konfiguračních uzlů při startu aplikačního serveru na základě obsahu adresáře bezpečnostních politik ve chvíli startu aplikačního serveru.
+Sdílení tohoto adresáře napříč jednotlivými server domény bylo nezbytné zajistit jinou cestou. (Tento problém je podrobněji popsán v kapitole \ref{sireniSouboru}.)
 
-Hlavní nevýhodou tohoto přístupu byla přetrvávající potřeba zajištění přístupu k souborům bezpečnostních politik uložených na doménovém řadiči, nikoli však již na jednotlivých aplikačních serverech domény. Adresář bezpečnostních politik tak bylo nutné napříč aplikačními servery distribuovat jinou cestou. (Podrobněji popsanou v kapitole \ref{navrhGUI} zabývající se návrhem právě způsobu šíření souboru bezpečnostních politik.)
-
-Později odhaleným nedostatkem se pak stal fakt, že do konfigurační vlastnosti {\tt policy} byla ukládána absolutní cesta k souboru bezpečnostní politiky, což by výrazně zkomplikovalo ostré nasazení implementovaného systému.
+Dodatečně odhaleným nedostatkem byla absolutní cesta k souboru bezpečnostní politiky v konfigurační vlastnosti {\tt policy}.
+Výrazně tak byla zkomplikována možnost ostrého nasazení systému v případě domény více hostitelů.
 
 %=============================================================================
 \section{Třetí etapa}
 %=============================================================================
 
-V rámci třetí etapy implementace byl subsystém WildFly upraven, aby konfigurační strom WildFly nefungoval jen jako úložiště adres nastavených bezpečnostních politik, ale také jako úložiště samotných bezpečnostních politik.
+V rámci třetí etapy byl subsystém WildFly upraven, aby konfigurační strom WildFly nefungoval jen jako úložiště adres nastavených bezpečnostních politik, ale také jako úložiště samotných bezpečnostních politik.
 
-Byl tedy pozměněn význam konfigurační vlastnosti {\tt file} uzlu {\tt policy=*}. Absolutní URL adresa souboru  bezpečnostní politiky byla nahrazena obsahem souboru bezpečnostní politiky.
+Byl tedy pozměněn význam konfigurační vlastnosti {\tt file} uzlu {\tt policy=*}. Absolutní URL adresa souboru bezpečnostní politiky byla nahrazena obsahem souboru bezpečnostní politiky.
 
-Zároveň byl změněn význam konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, jež doposud rovněž obsahoval URL adresu souboru bezpečnostní politiky nasazené na daném serveru. Nově byl nahrazen jménem uzlu {\tt policy=*}, jehož bezpečnostní politika z jeho vlastnosti {\tt file} byla na daný server nově nasazována.
+Zároveň byl změněn význam konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, jež doposud rovněž obsahoval URL adresu souboru bezpečnostní politiky nasazené na daném serveru.
+Nově obsahoval název uzlu {\tt policy=*}, jehož hodnota atributu {\tt file} měla být použita jako soubor bezpečnostní politiky pro daný server.
 
-Nadále tak nestačilo provádět aplikaci bezpečnostní politiky při změně atributu {\tt policy} uzlu {\tt server=*}, ale bylo nutné bezpečnostní politiku používanou aplikačním serverem vyměnit rovněž při změně obsahu vlastnosti {\tt file} uzlu {\tt policy=*}.
+Nadále tak nestačilo provádět aplikaci bezpečnostní politiky při změně atributu {\tt policy} uzlu {\tt server=*}, ale bylo nutné bezpečnostní politiku používanou aplikačním serverem znovu nastavit také při změně obsahu vlastnosti {\tt file} uzlu {\tt policy=*}.
 
-Toto je řešeno analogicky jako právě v případě akce navázané na změnu vlastnosti uzlu serveru -- vytvořením třídy {\tt PolicyWriteAttributeHandler} a jejím navázáním na vlastnost uzlu bezpečnostní politiky.
+Toto je řešeno analogicky jako právě v případě akce navázané na změnu vlastnosti uzlu serveru -- vytvořením třídy {\tt PolicyWriteAttributeHandler} a jejím navázáním na vlastnost uzlu bezpečnostní politiky při její definici.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému} \label{testovani}
