@@ -728,25 +728,68 @@ Záplatu přidávající tuto novou variantu tak je možné začlenit do vývojo
 \chapter{Návrh systému} \label{navrh}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Cílem práce je vytvoření systému pro centralizovanou správu a distribuci bezpečnostních politik. Měl by umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény WildFly a sledovat také, které bezpečnostní politiky jsou právě na kterých serverech domény WildFly nasazeny.
+Cílem práce je vytvoření systému pro centralizovanou správu a distribuci bezpečnostních politik. Měl by umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény WildFly a sledovat také, které bezpečnostní politiky jsou právě na jednotivých serverech domény WildFly nasazeny.
 
-Jako příhodné se pro tento účel zdá využití rozšiřitelnosti systému WildFly a implementace zmíněné funkcionality formou subsystému aplikačního serveru WildFly. Subsystém je rozšířením aplikačního serveru a jeho konfigurace i přítomnost je nastavována zvlášť pro každý profil, přičemž profil je souhrnem konfigurace serveru a je nastavovaný pro celé skupiny serverů. Optimálním řešením by bylo takové rozšíření WildFly, jež by bylo nasazováno a konfigurováno nezávisle na profilech jednotlivých serverů. Takový koncept ale bohužel WildFly neposkytuje.
+Jako příhodné se pro tento účel zdá využití rozšiřitelnosti systému WildFly a implementace formou subsystému aplikačního serveru WildFly.
 
-Nadále proto budeme předpokládat, že všechny skupiny serverů, v rámci kterých chceme s bezpečnostními politikami manipulovat, používají stejný konfigurační profil.
+Subsystém je rozšířením aplikačního serveru, jehož konfigurace i přítomnost je nastavována pro jednotlivé konfigurační profily aplikačního serveru.
+Profil je souhrnem konfigurace nastavovaným pro skupiny serverů napříč hostiteli.
+
+Optimálním řešením by bylo takové rozšíření WildFly, jež by bylo nasazováno a konfigurováno nezávisle na profilech jednotlivých serverů, na celou doménu.
+Takový koncept ale bohužel WildFly neposkytuje.
+
+Dále proto budeme předpokládat, že všechny skupiny serverů, v rámci kterých budeme s bezpečnostními politikami manipulovat, používají stejný profil.
+V opačném případě bude nutné konfiguraci bezpečnostních politik provádět pro každý profil zvlášť.
 
 %=============================================================================
 \section{Způsob nastavení bezpečnostní politiky}
 %=============================================================================
 
-Uživatel i aplikace mohou se subsystémem komunikovat prostřednictvím JBoss native management API. To je navrženo pro maximální jednoduchost a k nejrůznějším nastavením, které by jinak byly reprezentovány objekty velkého množství tříd, je možné přistupovat jako ke stromu objektů obecných tříd uzel ({\tt ModelNode}) a vlastnost (Property). Uzly tvoří strom a každý uzel může mít vlastnosti, jež obsahují samotnou konfiguraci aplikačního serveru ve formě textových řetězců ({\tt String}), do kterých tedy musí být převedeny i hodnoty jiných datových typů. \cite{jbossDetypedManagement}
+Pro komunikaci se subsystémy WildFly pro účely správy se typicky využívá rozhraní {\it JBoss management API}.
+Toto rozhraní umožňuje spravovat doménu WildFly a provádět změny v konfiguraci domény i jednotlivých serverů.
+\cite{jbossDetypedManagement}
 
-Klient JBoss native management API, kterým jsou zejména CLI rozhraní WildFly a Webová konzola WildFly, tedy musí implementovat jen práci s tímto konfiguračním stromem. Jeho implementace tedy teoreticky nemusí vůbec záviset na typu informace v konfiguračním stromu. V praxi toto ale pochopitelně platí jen pro nízkoúrovňové nástroje sloužící k přímé úpravě konfiguračního stromu, jakým je CLI rozhraní WildFly. Webová konzola naproti tomu pracuje s více konkrétními třídami objektů, jakými jsou server, skupina ({\tt server-group}) nebo zdroj dat ({\tt datasource}). Přestože pracuje se stejným konfiguračním stromem, tvořeným jen těmito dvěma datovými typy, je závislá na struktuře kterou uzly tohoto stromu tvoří. Jednoduchost JBoss native management API je tak znatelná spíše jen na stabilitě tohoto API a knihovně pro práci s ním -- {\tt jboss-dmr}. \cite{jbossDetypedManagement}
+Rozhraní zpřístupňuje konfiguraci ve formě stromové struktury skládající se z konfiguračních uzlů a konfigurační vlastností.
+Zatímco konfigurační uzly se mohou libovolně zanořovat, vlastnosti mohou být jen listy této stromové struktury.
+\cite{jbossDetypedManagement}
 
-Rozšíření aplikačního serveru, kterým je například subsystém, vykonává svůj kód zejména v reakci na události, které si zaregistruje. Těmito událostmi bývá zpravidla načtení rozšíření a přidání a odebrání subsystému, často také operace nad uživatelským balíčkem (nasazení apod.) nebo právě operace nad definovanou konfigurační vlastností. \cite{WildFlyExtending}
+Pro reprezentaci dotazů nad touto stromovou strukturou i odpovídajících odpovědí je využívána dynamická reprezentace modelu (DMR -- Dynamic Model Representation).
+DMR reprezentuje jakoukoli informaci (např. dotaz nebo odpověď Management API) jako uzel -- objekt třídy {\tt ModelNode}.
+\cite{jbossDetypedManagement}
 
-Jako vhodné řešení bylo tedy zvoleno nasazení bezpečnostní politiky v návaznosti na nastavení hodnoty konfigurační proměnné. Každý server aplikačního serveru bude mít v konfiguračním stromu svůj uzel a jeho vlastnostmi bude bude určen soubor bezpečnostní politiky, jež by měl být nasazený na daném serveru a také to, zda by měl být security manager pro daný server vůbec zapnutý.
+Obsahem uzlu může být hodnota jednoho z definovaných datových typů (konkrétně viz \cite{jboss7slideShare}) nebo seznam jiných uzlů.
+Uzly tak mohou tvořit strom podobně jako uzly výše uvedeného konfiguračního stromu.
+\cite{jboss7slideShare}
 
-Samotná operace provedení výměny bezpečnostní politiky a případného zapnutí/vypnutí security manageru pak bude spojena s událostí nastavení hodnoty dané vlastnosti. Vlastnosti bude přiřazena metoda, jež má být volána při zápisu do její hodnoty. Ta zajistí výměnu bezpečnostní politiky prostřednictvím k tomu určené třídy, jež bude součástí vytvářeného subsystému.
+Klienti JBoss Management API mohou aplikačnímu serveru pokládat dotazy ve formě uzlů DMR a žádat tak o provedení operace nad konfiguračním stromem.
+Výsledek této operace je pak opět ve formě uzlu DMR předán dotazujícímu se klientovi.
+\cite{jbossDetypedManagement}
+
+Operace mohou sloužit jak ke čtení dat z konfiguračního stromu a jejich zápisu, tak i k provádějí jiných akcí souvisejících se správou serverů nebo domény.
+Příklad posledního uvedeného typu operace může být operace startu, zastavení nebo znovunačtení serveru.
+Nad každým uzlem konfiguračního stromu může být možné provádět jinou množinu operací.
+Na operace, které je možné provést nad vybraným uzlem stromu je možné se rovněž dotázat.
+\cite{jbossDetypedManagement}
+
+Téměř vše co běží v rámci WildFly včetně jeho součástí je služba. Kód služby je prováděn vždy jen v reakci na událost, kterou si služba nějakým způsobem zaregistruje.
+Takovou událostí může být například příchod HTTP požadavku s konkrétní URL adresou.
+Taková událost může být zeregistrována například Servletu v rámci jeho definice v konfiguračním souboru Java EE aplikace, {\tt web.xml}.
+\cite{jboss7slideShare}
+
+Události typicky registrované součástmi WildFly, jakou je například subsystém, mohou souviset také s konfiguračním stromem popsaným výše.
+Mohou tak provádět kód například při vytváření uzlu specifického typu, při jeho odstraňování, při čtení hodnoty jeho vlastnosti nebo při jejím zápisu.
+\cite{WildFlyExtending}
+
+Jako vhodné řešení se tak jeví, provádět nastavení bezpečnostní politiky v návaznosti na nastavení hodnoty odpovídající konfigurační vlastnosti.
+
+Každý server aplikačního serveru bude mít v konfiguračním stromu svůj uzel a jeho vlastnostmi bude bude určen soubor bezpečnostní politiky, jež by měl být nasazený na daném serveru.
+Možnost nastavit hodnotu konfigurační vlastnosti jako nedefinovanou lze zde s výhodou využít pro stanovení, že správce bezpečnosti nemá být použit.
+
+Zmíněná konfigurační vlastnost bude definována se stanoveným objektem ošetřujícím událost změny hodnoty této konfigurační proměnné, který bude zajišťovat
+změnu nastavení bezpečnostních politik a správce bezpečnosti.
+
+Pro úplnost je pak nezbytné obdobným způsobem ošetřit také událost vytvoření konfiguračního uzlu serveru, událost jeho odstranění a událost odstranění
+celého subsystému.
 
 %=============================================================================
 \section{Způsob šíření souborů bezpečnostní politiky} \label{sireniSouboru}
