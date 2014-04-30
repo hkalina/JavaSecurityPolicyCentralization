@@ -870,6 +870,18 @@ Grafická podoba uživatelského rozhraní, jak byla ve fázi návrhu systému n
 
 Pro srovnání je zároveň na obrázku \ref{vysledneGui} ukázán snímek obrazovky zachycující podobu této části uživatelského rozhraní, jak bylo nakonec implementováno.
 
+Celkově se rozšíření webové konzoly WildFly skládá z následujících tří konfiguračních obrazovek:
+
+\begin{enumerate}
+  
+  \item Obrazovka {\bf Servers} (Servery) byla již zmíněna a umožňuje zvolit bezpečnostní politiku jednotlivých serverů a skupin. Umožňuje tedy spravovat konfigurační uzly {\tt server=*}.
+  
+  \item Obrazovka {\bf Policies} (Politiky) umožňuje vytvářet a nastavovat samotné bezpečnostní politiky, které pak mohou být jednotlivým serverům přidělovány na obrazovce {\bf Servers}. Umožňuje tedy spravovat konfigurační uzly {\tt policy=*}.
+  
+  \item Obrazovka {\bf JSM Policy} (JSM Politika) umožňuje zobrazit bezpečnostní politiku nasazenou na vybraném serveru -- její název a obsah.
+  
+\end{enumerate}
+
 \begin{figure}[ht]
   \centering
   \includegraphics[width=14cm]{fig/mockup}
