@@ -1,10 +1,25 @@
 \chapter{Obsah CD}
 
+\begin{itemize}
+  \item {\tt projekt.pdf} -- Technická zpráva ve formátu PDF
+  \item {\tt projekt} -- Zdrojové soubory technické zprávy ve formátu \LaTeX
+  
+  \item {\tt jsm-policy-subsystem} -- Subsystém WildFly implementovaný jako hlavní součást této práce
+  \item {\tt jsm-policy-console-hal} -- Rozšíření webové konzole WildFly umožňující správu výše uvedeného rozšíření
+  \item {\tt jsm-policy-test} -- Repozitář integračních testů implementovaného subsystému WildFly
+  
+  \item {\tt jboss-modules} -- Záplata popsaná v kapitole \ref{zmenaZaBehu} v odpovídajícím Git repozitáři
+  \item {\tt security-manager} -- Záplata zmíněná v kapitole \ref{wildFlySecurityManager} v odpovídajícím Git repozitáři
+  
+  \item {\tt wildfly} -- Instalace WildFly s nainstalovanými potřebnými rošířeními použitelná jako demo bakalářské práce
+  
+\end{itemize}
+
 
 \chapter{Postup instalace}
 
 \begin{enumerate}
-  \item Připravte standardní instalaci aplikačního serveru WildFly. Doporučenou verzí je 8.0.0.Final, podporovány by však měly být i novější verze.
+  \item Připravte standardní instalaci aplikačního serveru WildFly. Doporučenou verzí je 8.0.0.Final. Postup by měl fungovat i pro novější verze.
   
   \item Proveďte instalaci záplaty {\tt jboss-modules}: (Její účel je popsán v kapitole \ref{zmenaZaBehu})
   \begin{enumerate}
@@ -35,7 +50,7 @@ $JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
 /extension=org.picketbox.jsmpolicy.subsystem:add
 /profile=full/subsystem=jsmpolicy:add
       \end{lstlisting}
-    \item Jestliže se oba příkazy zdaří, subsystém {\tt jsmpolicy} byl úspěšně nainstalován a přidán do zadaného profilu. (V příkladu {\tt full})
+    \item Jestliže se oba příkazy zdaří, subsystém {\tt jsmpolicy} byl úspěšně nainstalován a přidán do zadaného profilu. (V uvedeném příkladu {\tt full})
   \end{enumerate}
   
   \item Proveďte instalaci rozšíření webové konzoly WildFly {\tt jsm-policy-console-hal}:
@@ -55,7 +70,7 @@ $JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
 \begin{enumerate}
     \item V nabídce subsystémů ve webové konzoli se nezobrazuje subsystém JSM Policy.
     \begin{enumerate}
-        \item Ve webové konzole je vybraný profil, v kterém není nainstalován subsystém {\tt jsmpolicy} (dle bodu 3 postupu). (V případě {\it standalone} režimu: Není nainstalován subsystém.)
+        \item Ve webové konzole je vybraný profil, v kterém není nainstalován subsystém {\tt jsmpolicy} (dle bodu 3 postupu). (V případě {\it standalone} režimu: Není nainstalován subsystém {\tt jsmpolicy}.)
         \item Zkompilované rozšíření webové konzoly nebylo (dle bodu 4c postupu) nakopírováno do správného adresáře.
         \item V tomto adresáři nebyl upraven soubor {\tt module.xml} tak, aby odkazoval na soubor nakopírovaného rozšíření. (dle bodu 4d)
     \end{enumerate}
