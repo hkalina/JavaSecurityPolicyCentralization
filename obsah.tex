@@ -703,28 +703,31 @@ Jakékoli snahy o výměnu bezpečnostní politiky za běhu aplikačního server
 jsou tedy z objektu bezpečnostní politiky načítána pouze při načítání třídy. Změny bezpečnostní politiky se tak projeví pouze na nově načítaných třídách.
 
 Protože je naším cílem výměna bezpečnostní politiky za běhu aplikačního serveru, je tento stav nedostačující.
-
 Aby byla možná změna bezpečnostní politiky za běhu aplikačního serveru, je nezbytné, aby byla oprávnění používána jako dynamická, jak je popsáno v kapitole \ref{staticPerm}.
-
 V rámci této práce byla tedy vytvořena záplata zavaděče tříd modulů WildFly, která umožňuje používání dynamických oprávnění.
 
 \begin{lstlisting}[caption=Hlavní část záplaty umožňující nastavit používání dynamických oprávnění, label=refreshable]
 +  if (POLICY_REFRESHABLE) {
 +      protectionDomain = new ProtectionDomain(codeSource, permissions,
 +                                 this, null); // staticPermission=false
-+  }else if (POLICY_PERMISSIONS && POLICY_READY.get()) {
++  } else if (POLICY_PERMISSIONS && POLICY_READY.get()) {
 -  if (POLICY_PERMISSIONS && POLICY_READY.get()) {
 \end{lstlisting}
 
-Zatímco řešení popsané v předchozí kapitole bylo založené na ukládání sjednocení množin oprávnění do statických oprávnění ochranné domény, v této variantě jsou do ochranné domény ukládány jen oprávnění udělená dle specifikace Java EE, jak tomu bylo původně.
+Zatímco řešení popsané v předchozí kapitole ukládalo do ochranných domén množinu oprávnění,
+která byla sjednocením oprávnění udělených dle specifikace Java EE a oprávnění z objektu bezpečnostní politiky,
+v této variantě jsou do ochranné domény ukládány opět jen oprávnění udělená dle specifikace Java EE.
 
-Při vytváření této domény je ale použit konstruktor se všemi čtyřmi parametry. Ochranná doména tak není označena jako používající výhradně statická oprávnění.
+Při vytváření této ochranné domény je ale použit konstruktor se všemi čtyřmi parametry, čímž je tato doména označena jako používající dynamická oprávnění.
 Při každém dotazu na oprávnění k provedení potenciálně nežádoucí operace tak je tento dotaz předán objektu bezpečnostní politiky.
 
 Efektivní oprávnění třídy pak jsou sjednocením dynamických oprávnění z objektu bezpečnostní politiky a statických oprávnění přidělených dle specifikace Java EE při načítání třídy.
 
-Použití této nové varianty je přitom podmíněno nastavením nové konfigurační vlastnosti {\tt jboss.modules.policy-refreshable} na hodnotu {\tt true}.
-Záplatu přidávající tuto novou variantu tak je možné začlenit do vývojové větve WildFly, o což bylo také požádáno \cite{jmPullRequest}.
+Použití této nové varianty bylo přitom záměrně omezeno -- byla vytvořena nová konfigurační vlastnost {\tt jboss.modules.policy-refreshable},
+jejíž hodnota určuje, zda má být tato nová varianta použita. Je-li její hodnota {\tt true}, bude použita,
+jinak budou oprávnění ve WildFly fungovat tak jako doposud.
+
+Toto omezení bylo do záplaty vloženo záměrně proto, aby bylo možné začlenění této úpravy do vývojové větve WildFly, o což bylo také požádáno \cite{jmPullRequest}.
 
 %=============================================================================
 \section{Rozhraní pro správu WildFly} \label{managementAPI}
