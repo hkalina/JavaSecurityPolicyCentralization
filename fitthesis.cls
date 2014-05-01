@@ -124,7 +124,7 @@ Práce je chráněna autorským zákonem a její užití bez udělení oprávně
 \def\@departmentname@EN{\@dep@EN\ \@department@EN}
 
 %Nazev prace (v jazyce prace)
-\def\@title{\ifczech\@title@CS\else\@title@EN\fi}
+\def\@title{Centralizace správy bezpečnostních \newline politik v Javě}
 
 %Jmeno, prijmeni, tituly autora
 \def\get@author{\ifx\undefined\@author@tp\else%
@@ -325,7 +325,7 @@ Práce je chráněna autorským zákonem a její užití bez udělení oprávně
 
 \vfill
 
-\mkuctxt{18}{\@title@CS}
+\mkuctxt{18}{Centralizace správy bezpečnostních \newline politik v Javě}
 \mkuctxt{10}{\@title@EN}
 
 \vfill
