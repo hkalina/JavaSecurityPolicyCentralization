@@ -574,7 +574,7 @@ V současnosti se však statická oprávnění opět začaly používat a to za 
 Získáváním oprávnění třídy z objektu bezpečnostní politiky pouze při zavádění třídy a ne při každém požadavku o ověření oprávněnosti k provedení operace je totiž možné proces ověřování oprávněnosti urychlit.
 
 %=============================================================================
-\section{Celkový pohled na bezpečnost v Javě}
+\section{Celkový pohled na bezpečnost v Javě} \label{celkovyPohled}
 %=============================================================================
 
 \begin{figure}[ht]
@@ -632,13 +632,14 @@ Na této adrese pak naslouchá požadavkům a předává je jednotlivým server�
 \cite{jbossLoadBalancing}
 
 %=============================================================================
-\section{Běh WildFly pod správcem bezpečnosti Javy}
+\section{Běh WildFly se správcem bezpečnosti}
 %=============================================================================
+
+Tato podkapitola se zabývá problémem používání správce bezpečnosti a bezpečnostních politik v prostředí JBoss/WildFly.
 
 Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností (popsaných v kapitolách \ref{securityManager} a \ref{nastaveniPolitiky}) při startu JVM za pomoci příslušných parametrů příkazu {\tt java}.
 
 Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro potřeby přidávání vlastních parametrů příkazu {\tt java} používána proměnná {\tt JAVA\_OPTS}.
-
 Připojením potřebných parametrů na konec hodnoty této proměnné bychom tedy měli dosáhnout použití správce bezpečnosti a stanovené bezpečnostní politiky ve všech JVM aplikačního serveru. Každý řádek ukázky kódu \ref{wildflySeSM} tedy přidá na konec proměnné {\tt \$JAVA\_OPTS} jeden parametru příkazu {\tt java}. \cite{jbossSecurityManager}
 
 \begin{lstlisting}[caption=Doplnění spouštěcího skriptu o použití správce bezpečnosti, label=wildflySeSM]
@@ -661,55 +662,27 @@ Zopakujeme-li experiment, zjistíme že s takto nastavenou bezpečnostní politi
 Podrobnějším zkoumáním však zjistíme, že na uživatelské aplikace se tato benevolentní bezpečnostní politika neuplatňuje.
 Zatímco zapnutí správce bezpečnosti možnosti uživatelských aplikací skutečně omezilo, nastavení vše povolujících bezpečnostních politik uživatelským
 aplikacím žádné z odebraných schopností nenavrátilo.
-Podrobnějším průzkumem oprávnění uživatelských aplikací, která zbyla, můžeme zjistit, že odpovídají minimálním oprávněním komponenty v prostředí Java EE,
-jak jsou stanoveny specifikací Java EE. \cite[tabulka EE.6-2]{javaEEspec}
-
-Následující kapitoly popisují postup odhalování příčin neúčinnosti souborů bezpečnostní politiky.
-
-%=============================================================================
-\section{Správce bezpečnosti WildFly} \label{wildFlySecurityManager}
-%=============================================================================
-
-V první chvíli se zdálo, že určitý posun k řešení přineslo zapnutí subsystému správce bezpečnosti WildFly ({\tt WildFlySecurityManager}).
-
-Jeho aktivací totiž uživatelské aplikace začaly být schopny číst soubory, ležící mimo adresář aplikačního serveru, v souladu se stanovenou bezpečnostní politikou.
-Pozdějším průzkumem se však ukázalo, že zapnutím tohoto subsystému byly bezpečnostní kontroly správce bezpečnosti paradoxně zcela vypnuty.
-
-Ukázalo se, že správce bezpečnosti WildFly není pro provoz aplikačního serveru se správcem bezpečnosti zdaleka nutný.
-Jako jeho hlavní účel byla odhalena optimalizace rychlosti aplikačního serveru v případě, kdy běží se správcem bezpečnosti.
-
-Správce bezpečnosti WildFly používá vláknově lokální proměnnou {\tt CHECKING} pro omezení působnosti správce bezpečnosti.
-Je-li její hodnota rovna {\tt TRUE}, bezpečnostní kontroly jsou prováděny a kód tak běží stejně omezený, jako v případě použití standardního správce bezpečnosti.
-V opačném případě je neprovádí a kód tak běží stejně neomezený, jako při vypnutém správci bezpečnosti. \cite{sourceWildFlySecurityManager}
-
-Pravděpodobně proto, že je toto rozšíření stále ve vývoji, nebyl uživatelský kód prováděn skrze metodu {\tt WildFlySecurityManager.doChecked()}, čímž by byla proměnná
-{\tt CHECKING} nastavena před vstupem do uživatelského kódu na {\tt TRUE} a při jeho opuštění na {\tt FALSE}. \cite{sourceWildFlySecurityManager}
-
-Působnost správce bezpečnosti WildFly tak byla vztažena na téměř veškerý kód prováděný v rámci aplikačního serveru. Výjimkou zůstal kód prováděný prostřednictvím metody {\tt WildFlySecurityManager.doUnchecked()} správce bezpečnosti WildFly.
-
-Tento problém se podařilo vyřešit (ne právě v souladu s koncepcí správce bezpečnosti WildFly \cite{smPullRequest}) nastavením implicitní hodnoty {\tt CHECKING}
-na {\tt TRUE}.
-
-Dočasná záplata, provádějící zmíněnou inicializaci, byla navržena k začlenění do vývojové verze správce bezpečnosti WildFly. \cite{smPullRequest}
-Přestože byla tato oprava označena za nekoncepční, nakonec byla začleněna \cite{smPullRequestImpl}.
-
-Jak se však ale v závěru (po vyřešení dále uvedených problémů) ukázalo, zmíněný problém se správcem bezpečnosti byl zcela zbytečný, neboť nepoužití subsystému správce bezpečnosti WildFly mělo zcela totožný účinek.
 
 %=============================================================================
 \section{Zavaděč tříd modulů WildFly} \label{moduleClassLoader}
 %=============================================================================
 
-Protože vyřešení problému se správcem bezpečnosti WildFly popsané v kapitole \ref{wildFlySecurityManager} nijak nepomohlo k vyřešení problému
-neúčinnosti souborů bezpečnostních politik, byl problém dále hledán postupným krokováním programu.
+Tato podkapitola popisuje jádro problému s bezpečnostními politikami ve WildFly -- zavaděč tříd modulů WildFly ({\tt org.jboss.modules.ModuleClassLoader}).
 
-Za pomoci nástrojů pro ladění programu se podařilo ověřit, že používaný objekt bezpečnostní politiky úspěšně opouští správná sada oprávnění. Protože zahrnovala oprávnění ze souboru bezpečnostní politiky, problém nemohl být v žádném z objektů bezpečnostní politiky, které jsou ve WildFly používány. Volání metod {\tt implies()} i {\tt getPermissions()} ochranné domény však vracelo výsledky, které se s touto sadou oprávnění neslučovaly.
+Zavaděč tříd se podařilo jako viníka odhalit postupným krokováním programu.
+To potvrdilo, že objekty bezpečnostní politiky produkují správná oprávnění.
+Zároveň ale ukázalo, že do ochranných domén tříd jsou ukládány oprávnění jiná.
+Jak vyplývá z popisu cesty oprávnění ze souborů bezpečnostních politik do ochranných domén v kapitole \ref{celkovyPohled},
+jediným mezičlánkem, který mohl s oprávněními v této době manipulovat je právě zavaděč tříd.
 
-Problém tak byl dále hledán v zavaděči tříd, neboť problém musel zcela nepochybně vznikat při ukládání oprávnění z objektu bezpečnostní politiky do ochranných domén tříd.
+Toto zjištění se analýzou zdrojového kódu zavaděče tříd modulů potvrdilo -- tento zavaděč oprávnění poskytovaná objektem bezpečnostní politiky implicitně ignoruje.
+Namísto toho třídám do ochranných domén ukládá oprávnění určená specifikací Java EE. \cite{javaEEspec}
+(Ta jsou případě uživatelských aplikací upravitelná souborem {\tt permission.xml}.)
 
-Příčina problému skutečně ležela v zavaděči tříd modulů WildFly ({\tt org.jboss.modules. ModuleClassLoader}).
-Tento zavaděč totiž implicitně zcela ignoruje oprávnění poskytovaná objektem bezpečnostní politiky.
-
-Jak se však podařilo zjistit ze zdrojového kódu jeho třídy, nastavením hodnoty speciální konfigurační proměnné {\tt jboss.modules.policy-permissions} na {\tt true} je možné toto chování změnit. \cite{sourceModuleClassLoader}
+Nastavením konfigurační proměnné Javy {\tt jboss.modules.policy-permissions} na hodnotu {\tt true} je však možné toto chování změnit.
+Bude-li tato konfigurační proměnná takto nastavena, bude tento zavaděč do ochranných domén ukládat jak oprávnění určená specifikací Java EE, tak i oprávnění z objektů bezpečnostní politiky.
+Množina oprávnění třídy pak bude odpovídat sjednocení těchto dvou množin oprávnění.
+\cite{sourceModuleClassLoader}
 
 \begin{lstlisting}[caption=Úprava spouštěcího skriptu pro spuštění se souborem bezpečnostní politiky, label=jbossOpts]
 JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-permissions=true"
@@ -717,7 +690,8 @@ JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{lstlisting}
 
-Přidáním definice této konfigurační proměnné do spouštěcího skriptu, jak ukázáno v ukázce kódu \ref{jbossOpts}, začaly být oprávnění ze souboru bezpečnostní politiky úspěšně uplatňována.
+Ukázka kódu \ref{jbossOpts} ukazuje všechny definice konfiguračních proměnných, které je nutné přidat do spouštěcího skriptu aplikačního serveru WildFly,
+aby byl spuštěn s oprávněními stanovenými soubory bezpečnostní politiky.
 
 %-----------------------------------------------------------------------------
 \subsection{Úpravy zavaděče tříd modulů WildFly} \label{zmenaZaBehu}
