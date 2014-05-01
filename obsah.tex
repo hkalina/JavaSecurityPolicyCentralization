@@ -706,7 +706,7 @@ Za pomoci nástrojů pro ladění programu se podařilo ověřit, že používan
 
 Problém tak byl dále hledán v zavaděči tříd, neboť problém musel zcela nepochybně vznikat při ukládání oprávnění z objektu bezpečnostní politiky do ochranných domén tříd.
 
-Příčina problému skutečně ležela v zavaděči tříd modulů WildFly ({\tt org.jboss.modules.\linebreak ModuleClassLoader}).
+Příčina problému skutečně ležela v zavaděči tříd modulů WildFly ({\tt org.jboss.modules. ModuleClassLoader}).
 Tento zavaděč totiž implicitně zcela ignoruje oprávnění poskytovaná objektem bezpečnostní politiky.
 
 Jak se však podařilo zjistit ze zdrojového kódu jeho třídy, nastavením hodnoty speciální konfigurační proměnné {\tt jboss.modules.policy-permissions} na {\tt true} je možné toto chování změnit. \cite{sourceModuleClassLoader}
@@ -720,10 +720,12 @@ JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 Přidáním definice této konfigurační proměnné do spouštěcího skriptu, jak ukázáno v ukázce kódu \ref{jbossOpts}, začaly být oprávnění ze souboru bezpečnostní politiky úspěšně uplatňována.
 
 %-----------------------------------------------------------------------------
-\subsection{Změna bezpečnostní politiky za běhu} \label{zmenaZaBehu}
+\subsection{Úpravy zavaděče tříd modulů WildFly} \label{zmenaZaBehu}
 %-----------------------------------------------------------------------------
 
-Pokusíme-li se nyní změnit bezpečnostní politiku za běhu aplikačního serveru, tvrdě narazíme -- oprávnění jsou totiž nyní nastavována jako statická,
+Tato podkapitola popisuje úpravy zavaděče tříd modulů WildFly, které bylo nutné provést, aby bylo možné vyměňovat bezpečnostní politiky za běhu aplikačního serveru.
+
+Jakékoli snahy o výměnu bezpečnostní politiky za běhu aplikačního serveru se doposud jevily jako marné. Oprávnění totiž byly nastavována jako statická,
 jsou tedy z objektu bezpečnostní politiky načítána pouze při načítání třídy. Změny bezpečnostní politiky se tak projeví pouze na nově načítaných třídách.
 
 Protože je naším cílem výměna bezpečnostní politiky za běhu aplikačního serveru, je tento stav nedostačující.
@@ -798,7 +800,8 @@ Mohou tak provádět kód například při vytváření uzlu specifického typu,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Cílem práce je vytvoření systému pro centralizovanou správu a distribuci bezpečnostních politik.
-Měl by umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény WildFly a sledovat také, které bezpečnostní politiky jsou právě na jednotlivých serverech domény WildFly nasazeny.
+Tento systém by měl umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény WildFly a sledovat také,
+které bezpečnostní politiky jsou právě na jednotlivých serverech domény WildFly nasazeny.
 
 Jako příhodné se pro tento účel zdá využití rozšiřitelnosti systému WildFly a implementace formou subsystému aplikačního serveru WildFly.
 
