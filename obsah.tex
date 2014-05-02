@@ -274,7 +274,9 @@ Systém řízení přístupu tedy, stejně jako správce bezpečnosti, umožňuj
 
 Máme-li tedy například knihovnu zprostředkovávající přístup k databázi v souboru po záznamech, při použití oprávnění jen na úrovni Java API by bylo možné programu přidělovat oprávnění jen k celému souboru najednou. Jednotlivé záznamy databáze v souboru je však možné považovat za samostatné zdroje knihovny. Knihovna pak může využít systém řízení přístupu k jejich ochraně.
 
-Systém řízení přístupu je schopný pravidla bezpečnostní politiky načítat z textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky. Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení bezpečnostní politiky poupravit textový soubor bezpečnostní politiky. \cite[5]{oaks}
+Systém řízení přístupu je schopný pravidla bezpečnostní politiky načítat z objektů bezpečnostní politiky.
+Implicitní implementace objektu bezpečnostní politiky pak pravidla bezpečnostní politiky načítá z textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky.
+Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení bezpečnostní politiky poupravit textový soubor bezpečnostní politiky. \cite[5]{oaks}
 
 Systém řízení přístupu rozhoduje o povolení potenciálně nežádoucí operace na základě oprávnění třídy, jejíž metoda tuto operaci vyvolala i oprávnění tříd,
 jenž vyvolaly provádění této metody.
@@ -584,20 +586,34 @@ Získáváním oprávnění třídy z objektu bezpečnostní politiky pouze při
   \label{diagramDatovychToku}
 \end{figure}
 
-Diagram datových toků na obrázku \ref{diagramDatovychToku} ukazuje putování informace o oprávněních třídy ze souboru bezpečnostní politiky až do systému řízení přístupu a správce bezpečnosti. Souvislé černé šipky představují přenos informace o oprávněních, zatímco hnědé přenos informace o třídách. Přerušované šipky představují reference. Směr šipky pak vede z třídy objektu s referenční proměnnou do třídy referencovaného objektu.
+Diagram datových toků na obrázku \ref{diagramDatovychToku} ukazuje putování informace o oprávněních třídy ze souborů bezpečnostní politiky (Policy files) až do systému řízení přístupu ({\tt AccessController}) a správce bezpečnosti ({\tt SecurityManager}). Souvislé černé šipky představují přenos informace o oprávněních, zatímco přerušované tlusté šipky přenos informace o třídách. Tenké přerušované šipky představují reference. Směr šipky pak vede z třídy objektu s referenční proměnnou do třídy referencovaného objektu.
 
-Ochranné domény a tím i statická oprávnění třídy jsou třídám přidělovány při jejich zavádění. Objekty ochranných domén ({\tt ProtectionDomain}) vytváří zavaděč tříd a to na základě jejich zdroje kódu ({\tt CodeSource}). Na statická oprávnění, která má zdroji kódu (a tedy i vytvořené ochranné doméně) zavaděč přidělit, se dotazuje aktuálně používaného objektu bezpečnostní politiky ({\tt Policy}).
+Ochranné domény ({\tt ProtectionDomain}) a tím i statická oprávnění třídy jsou třídám přidělovány při jejich zavádění.
+Objekty ochranných domén ({\tt ProtectionDomain}) vytváří zavaděč tříd a to na základě jejich zdroje kódu ({\tt CodeSource}).
+Zavaděč tříd ({\tt ClassLoader}) tak informace o oprávněních předává objektu ochranné domény ({\tt ProtectionDomain}) při jeho vytváření.
+Na statická oprávnění, která má zdroji kódu (a tedy i vytvořené ochranné doméně) zavaděč přidělit, se zavaděč dotazuje aktuálně používaného objektu bezpečnostní politiky ({\tt Policy}).
 
-Výstupem zavaděče tříd pak je objekt třídy ({\tt java.lang.Class}), jež nese referenci na svoji ochrannou doménu, která je společná všem objektům se stejným zdrojem kódu.
+Primárním výstupem zavaděče tříd je ale objekt třídy ({\tt java.lang.Class}).
+Až ten nese referenci na takto vytvořenou ochrannou doménu, kterou má společnou se všemi třídami se stejným zdrojem kódu.
+Zavádění tříd podrobněji viz \ref{classloader}.
 
-Systém řízení přístupu ({\tt java.security.AccessController}) pak rozhoduje na základě oprávnění v ochranné doméně a není-li ochranná doména označena jako používající výhradě statická oprávnění, také na základě odpovědi objektu bezpečnostní politiky ({\tt Policy}).
+Systém řízení přístupu ({\tt java.security.AccessController}) pak při dotazu {\tt checkPermission()} ze strany uživatele nebo ze strany správce bezpečnosti rozhoduje o povolení operace na základě odpovědí na jeho dotaz {\tt implies()} položený ochranným doménám tříd na zásobníku volání.
+Informace o oprávněních tak putují z objektu ochranné domény do systému řízení přístupu, jak je znázorněno na obrázku.
 
-Na systém řízení přístupu pak rozhodování deleguje také standardní správce bezpečnosti ({\tt java.lang.SecurityManager}).
+Metoda {\tt implies()} ochranné domény ({\tt ProtectionDomain}) rozhoduje v závislosti na tom, zda je nastavena jako používající výhradně statická oprávnění.
+Pokud ano, rozhoduje jen na základě statických oprávnění uložených do ochranné domény při jejím vytváření.
+V opačném případě se zároveň dotazuje také objektu bezpečnostní politiky ({\tt Policy}).
+Cesta informace o oprávněních z objektu bezpečnostních politiky do ochranné domény je také znázorněna na obrázku.
+
+Na systém řízení přístupu pak dotaz {\tt checkPermission()} deleguje také standardní správce bezpečnosti ({\tt java.lang.SecurityManager}), což je znázorněno na obrázku jako putování informace ze systému řízení přístupu do objektu správce bezpečnosti.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Distribuované prostředí Red Hat JBoss} \label{jboss}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Tato kapitola popisuje prostředí aplikačního serveru WildFly, dříve známého jako JBoss Application Server.
+Podrobněji pak rozebírá možnosti používání bezpečnostních politik Javy v prostředí tohoto aplikačního serveru.
 
 %=============================================================================
 \section{Úvod do WildFly (JBoss AS)} \label{uvodWildFly}
@@ -620,7 +636,7 @@ Konfigurace profilů pak zahrnuje také konfiguraci subsystémů používaných 
 
 Každý hostitel má zároveň vlastní konfigurační soubor {\tt host.xml}.
 Tento soubor určuje název hostitele, zda-li je tento hostitel doménovým řadičem a, pokud není, také adresu doménového řadiče.
-Zde jsou definovány servery, které na daném hostiteli poběží, porty na kterých budou poskytovat své služby a skupiny do kterých budou patřit.
+Zde jsou definovány servery, které na daném hostiteli poběží, porty, na kterých budou poskytovat své služby, a skupiny, do kterých budou patřit.
 \cite{jbossDomainSetup}
 
 Distribuovanosti prostředí je docíleno nasazováním aplikací ({\it deployment}) na celé skupiny serverů najednou.
@@ -632,7 +648,50 @@ Na této adrese pak naslouchá požadavkům a předává je jednotlivým server�
 \cite{jbossLoadBalancing}
 
 %=============================================================================
-\section{Běh WildFly se správcem bezpečnosti}
+\section{Rozhraní pro správu WildFly} \label{managementAPI}
+%=============================================================================
+
+Tato podkapitola popisuje rozhraní umožňující aplikačních serverů WildFly, {\bf JBoss management API}.
+Toto rozhraní umožňuje spravovat doménu WildFly a provádět změny v konfiguraci domény i jednotlivých serverů.
+\cite{jbossDetypedManagement}
+
+Rozhraní zpřístupňuje konfiguraci ve formě stromové struktury, skládající se z konfiguračních uzlů a konfiguračních vlastností.
+Zatímco konfigurační uzly se mohou libovolně zanořovat, vlastnosti mohou být jen listy této stromové struktury.
+\cite{jbossDetypedManagement}
+
+Pro reprezentaci dotazů nad touto stromovou strukturou i odpovídajících odpovědí je využívána dynamická reprezentace modelu (DMR -- Dynamic Model Representation).
+DMR všechny informace (např. dotaz nebo odpověď Management API) ukládá jako strom uzlů -- objektů třídy {\tt ModelNode}.
+\cite{jbossDetypedManagement}
+
+Na rozdíl od uzlů konfiguračního stromu může být obsahem uzlu {\tt ModelNode} hodnota jednoho z definovaných datových typů (viz \cite{jboss7slideShare}) nebo seznam jiných uzlů. Ne však obojí zároveň.
+\cite{jboss7slideShare}
+
+Klienti JBoss Management API mohou aplikačnímu serveru pokládat dotazy ve formě uzlů DMR a žádat tak o provedení operace nad konfiguračním stromem.
+Výsledek této operace je pak opět ve formě uzlu DMR předán dotazujícímu se klientovi.
+\cite{jbossDetypedManagement}
+
+Operace mohou sloužit jak ke čtení dat z konfiguračního stromu a k jejich zápisu, tak i k provádějí jiných akcí souvisejících se správou serverů nebo domény.
+Příklady posledního uvedeného typu operace mohou být operace startu ({\tt start}) nebo znovunačtení ({\tt reload}) serveru.
+Každý uzel konfiguračního stromu může mít jinou množinu operací, které nad ním lze provádět.
+Na tuto množinu operací je možné se serveru dotázat.
+\cite{jbossDetypedManagement}
+
+%-----------------------------------------------------------------------------
+\subsection{Události v prostředí WildFly} \label{udalostiWildFly}
+%-----------------------------------------------------------------------------
+
+Téměř vše co běží v rámci WildFly, včetně jeho součástí, je služba.
+Kód služby je prováděn vždy jen v reakci na událost, kterou si služba nějakým způsobem zaregistruje.
+Takovou událostí může být například příchod HTTP požadavku s konkrétní URL adresou.
+Taková událost může být zaregistrována například Serveletem v rámci jeho definice v konfiguračním souboru Java EE aplikace, {\tt web.xml}.
+\cite{jboss7slideShare}
+
+Události typicky registrované součástmi WildFly, jakou je například subsystém, mohou souviset také s konfiguračním stromem popsaným výše.
+Mohou tak provádět kód například při vytváření uzlu specifického typu, při jeho odstraňování, při čtení hodnoty jeho vlastnosti nebo při jejím zápisu.
+\cite{WildFlyExtending}
+
+%=============================================================================
+\section{Běh WildFly se správcem bezpečnosti} \label{wildflySeSM}
 %=============================================================================
 
 Tato podkapitola se zabývá problémem používání správce bezpečnosti a bezpečnostních politik v prostředí JBoss/WildFly.
@@ -663,9 +722,9 @@ Podrobnějším zkoumáním však zjistíme, že na uživatelské aplikace se ta
 Zatímco zapnutí správce bezpečnosti možnosti uživatelských aplikací skutečně omezilo, nastavení vše povolujících bezpečnostních politik uživatelským
 aplikacím žádné z odebraných schopností nenavrátilo.
 
-%=============================================================================
-\section{Zavaděč tříd modulů WildFly} \label{moduleClassLoader}
-%=============================================================================
+%-----------------------------------------------------------------------------
+\subsection{Zavaděč tříd modulů WildFly} \label{moduleClassLoader}
+%-----------------------------------------------------------------------------
 
 Tato podkapitola popisuje jádro problému s bezpečnostními politikami ve WildFly -- zavaděč tříd modulů WildFly ({\tt org.jboss.modules.ModuleClassLoader}).
 
@@ -729,52 +788,83 @@ jinak budou oprávnění ve WildFly fungovat tak jako doposud.
 
 Toto omezení bylo do záplaty vloženo záměrně proto, aby bylo možné začlenění této úpravy do vývojové větve WildFly, o což bylo také požádáno \cite{jmPullRequest}.
 
-%=============================================================================
-\section{Rozhraní pro správu WildFly} \label{managementAPI}
-%=============================================================================
-
-Tato podkapitola popisuje rozhraní umožňující aplikačních serverů WildFly, {\bf JBoss management API}.
-Toto rozhraní umožňuje spravovat doménu WildFly a provádět změny v konfiguraci domény i jednotlivých serverů.
-\cite{jbossDetypedManagement}
-
-Rozhraní zpřístupňuje konfiguraci ve formě stromové struktury, skládající se z konfiguračních uzlů a konfiguračních vlastností.
-Zatímco konfigurační uzly se mohou libovolně zanořovat, vlastnosti mohou být jen listy této stromové struktury.
-\cite{jbossDetypedManagement}
-
-Pro reprezentaci dotazů nad touto stromovou strukturou i odpovídajících odpovědí je využívána dynamická reprezentace modelu (DMR -- Dynamic Model Representation).
-DMR všechny informace (např. dotaz nebo odpověď Management API) ukládá jako strom uzlů -- objektů třídy {\tt ModelNode}.
-\cite{jbossDetypedManagement}
-
-Na rozdíl od uzlů konfiguračního stromu může být obsahem uzlu {\tt ModelNode} hodnota jednoho z definovaných datových typů (viz \cite{jboss7slideShare}) nebo seznam jiných uzlů. Ne však obojí zároveň.
-\cite{jboss7slideShare}
-
-Klienti JBoss Management API mohou aplikačnímu serveru pokládat dotazy ve formě uzlů DMR a žádat tak o provedení operace nad konfiguračním stromem.
-Výsledek této operace je pak opět ve formě uzlu DMR předán dotazujícímu se klientovi.
-\cite{jbossDetypedManagement}
-
-Operace mohou sloužit jak ke čtení dat z konfiguračního stromu a k jejich zápisu, tak i k provádějí jiných akcí souvisejících se správou serverů nebo domény.
-Příklady posledního uvedeného typu operace mohou být operace startu ({\tt start}) nebo znovunačtení ({\tt reload}) serveru.
-Každý uzel konfiguračního stromu může mít jinou množinu operací, které nad ním lze provádět.
-Na tuto množinu operací je možné se serveru dotázat.
-\cite{jbossDetypedManagement}
-
-%-----------------------------------------------------------------------------
-\subsection{Události v prostředí WildFly} \label{udalostiWildFly}
-%-----------------------------------------------------------------------------
-
-Téměř vše co běží v rámci WildFly, včetně jeho součástí, je služba.
-Kód služby je prováděn vždy jen v reakci na událost, kterou si služba nějakým způsobem zaregistruje.
-Takovou událostí může být například příchod HTTP požadavku s konkrétní URL adresou.
-Taková událost může být zaregistrována například Serveletem v rámci jeho definice v konfiguračním souboru Java EE aplikace, {\tt web.xml}.
-\cite{jboss7slideShare}
-
-Události typicky registrované součástmi WildFly, jakou je například subsystém, mohou souviset také s konfiguračním stromem popsaným výše.
-Mohou tak provádět kód například při vytváření uzlu specifického typu, při jeho odstraňování, při čtení hodnoty jeho vlastnosti nebo při jejím zápisu.
-\cite{WildFlyExtending}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Návrh systému} \label{navrh}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+V této kapitole je navržen způsob implementace systému pro centralizovanou správu a distribuci bezpečnostních politik.
+
+%=============================================================================
+\section{Specifikace problému} \label{specifikaceProblemu}
+%=============================================================================
+
+Tato práce řeší problém, jakým způsobem používat bezpečnostní politiky Javy v distribuovaných prostředích aplikačních serverů WildFly.
+Tato prostředí jsou typicky tvořena skupinou několika (nebo i mnoha) aplikační serverů seskupených do domény WildFly.
+Cílem této práce proto je, implementovat řešení pro správu bezpečnostních politik, splňující následující požadavky:
+
+\begin{enumerate}
+  \item Systém by měl umožnit nastavovat použití bezpečnostní politiky na serverech domény WildFly.
+  \item Systém by měl umožňovat provádět toto nastavení {\bf hromadně} -- pro celé skupiny serverů domény najednou.
+  \item Systém by měl umožňovat provádět toto nastavení {\bf centrálně} -- z jediného místa.
+  \item Systém by neměl vyžadovat ruční {\bf přenos souborů} bezpečnostní politiky mezi servery, na kterých mají být použity.
+  \item Systém by měl umožňovat provádět toto nastavení uživatelem skrze {\bf webové rozhraní}.
+\end{enumerate}
+
+%=============================================================================
+\section{Možnosti řešení} \label{vycetMoznostiReseni}
+%=============================================================================
+
+Možnosti řešení problému popsaného v kapitole \ref{specifikaceProblemu} jsou následující:
+
+\begin{enumerate}
+  \item Nasazovat bezpečnostní politiky na jednotlivé servery domény ručně, stejným způsobem jako v kapitole \ref{moduleClassLoader}.
+  \item Používat na serverech jako soubor bezpečnostní politiky soubor uložený v jednom centrálním umístění.
+  \item Ukládat soubory bezpečnostních politik do konfiguračního stromu WildFly.
+\end{enumerate}
+
+Všechny varianty jsou podrobněji popsány v následující kapitole.
+
+%=============================================================================
+\section{Rozbor jednotlivých možností řešení} \label{rozborReseni}
+%=============================================================================
+
+Tato kapitola podrobněji rozebírá jednotlivé možnosti řešení z kapitoly \ref{vycetMoznostiReseni}.
+
+%-----------------------------------------------------------------------------
+\subsection{Ruční nasazování bezpečnostních politik} \label{reseniRucni}
+%-----------------------------------------------------------------------------
+
+Pravděpodobně nejtriviálnějším řešením problému, jak soubory bezpečnostní politiky na servery nasazovat, je použít stejné řešení, jaké bylo v kapitole \ref{wildflySeSM} použito pro nasazení bezpečnostní politiky na samostatně stojící server.
+Nastavení by pak bylo ručně prováděno úpravou konfiguračních souborů na jednotlivých server domény.
+
+Tento způsob sice jednoznačně umožňuje nastavovat bezpečnostní politiky na libovolném množství WildFly serverů,
+je ale jednoznačně pracný a nesplňuje většinu požadavků specifikovaných v kapitole \ref{specifikaceProblemu}.
+
+%-----------------------------------------------------------------------------
+\subsection{Společné umístění souboru bezpečnostní politiky} \label{reseniSpolecne}
+%-----------------------------------------------------------------------------
+
+Sofistikovanějším řešením problému je nastavit na server domény ručně adresu souboru bezpečnostní politiky ležícího v umístění společném pro všechny servery domény.
+Pro jakoukoli změnu bezpečnostní politiky by tak stačilo upravit tento jeden společný soubor bezpečnostní politiky.
+
+Sdíleným umístěním by mohl být adresář sdílený prostřednictvím protokolu NFS nebo HTTP.
+
+%-----------------------------------------------------------------------------
+\subsection{Ukládání bezpečnostních politik v konfiguračním stromu WildFly} \label{reseniSpolecne}
+%-----------------------------------------------------------------------------
+
+
+
+%=============================================================================
+\section{Výběr řešení} \label{vyberReseni}
+%=============================================================================
+
+
+
+
+
+
+
 
 Cílem práce je vytvoření systému pro centralizovanou správu a distribuci bezpečnostních politik.
 Tento systém by měl umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény WildFly a sledovat také,
@@ -989,7 +1079,11 @@ Toto je řešeno analogicky jako právě v případě akce navázané na změnu 
 \chapter{Testování systému} \label{testovani}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Protože cílem této bakalářské práce nebylo jen vytvoření systému umožňujícího správu bezpečnostních politik nasazených na jednotlivých serverech distribuovaného systému, ale také jeho otestování, tato kapitola se zabývá tvorbou testů, umožňujících otestovat implementované řešení.
+Protože cílem této bakalářské práce nebylo jen vytvoření systému umožňujícího správu bezpečnostních politik nasazených na jednotlivých serverech distribuovaného systému, ale také prokázání jako kvality prostřednictvím testů, tato kapitola se zabývá tvorbou testů, umožňujících otestovat implementované řešení.
+
+%=============================================================================
+\section{Testování}
+%=============================================================================
 
 Testování je nedílnou součástí vývoje software a je užíváno k odhalení vad software a prokázání, že software dosáhl požadované úrovně kvality v zadaných kritériích. Obvykle se provádí za pomoci automatizovaných programů, takzvaných testů. \cite{ivsTest}
 
