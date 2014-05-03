@@ -690,6 +690,16 @@ Události typicky registrované součástmi WildFly, jakou je například subsys
 Mohou tak provádět kód například při vytváření uzlu specifického typu, při jeho odstraňování, při čtení hodnoty jeho vlastnosti nebo při jejím zápisu.
 \cite{WildFlyExtending}
 
+%-----------------------------------------------------------------------------
+\subsection{Webová konzola WildFly} \label{hal}
+%-----------------------------------------------------------------------------
+
+Webová konzola WildFly je standardní součástí aplikačního serveru WildFly.
+Je GWT (Google Web Toolkit) aplikací běžící na straně klienta, ve webovém prohlížeči.
+Aplikační server tato aplikace spravuje prostřednictvím JBoss Management API.
+Konkrétně využívá jeho variantu běžící nad protokolem HTTP, která dotazy na API zasílá ve formě HTTP POST požadavků, jejichž tělem je JSON reprezentace uzlu DMR, {\tt ModelNode}. Obdobným způsobem pak server zasílá odpověď.
+\cite{WildFlyManagementAPIreference}
+
 %=============================================================================
 \section{Běh WildFly se správcem bezpečnosti} \label{wildflySeSM}
 %=============================================================================
@@ -807,13 +817,13 @@ Tento způsob je ale poměrně pracný, neboť pro každou změnu bezpečnostní
 
 Cílem této práce proto je, implementovat řešení pro správu bezpečnostních politik, splňující následující požadavky:
 
-\begin{enumerate}
-  \item Systém by měl umožnit nastavovat použití bezpečnostní politiky na serverech domény WildFly.
-  \item Systém by měl umožňovat provádět toto nastavení {\bf hromadně} -- pro celé skupiny serverů domény najednou.
-  \item Systém by měl umožňovat provádět toto nastavení {\bf centrálně} -- z jediného místa.
-  \item Systém by neměl vyžadovat ruční {\bf přenos souborů} bezpečnostní politiky mezi servery, na kterých mají být použity.
-  \item Systém by neměl vyžadovat {\bf restart} serverů domény.
-\end{enumerate}
+\begin{itemize}
+  \item Mělo by umožnit nastavovat použití bezpečnostní politiky na serverech domény.
+  \item Mělo by umožňovat provádět toto nastavení {\bf hromadně} -- pro celé skupiny serverů domény najednou.
+  \item Mělo by umožňovat provádět toto nastavení {\bf centrálně} -- z jediného místa.
+  \item Nemělo by vyžadovat ruční {\bf přenos souborů} bezpečnostní politiky mezi servery, na kterých mají být použity.
+  \item Nemělo by vyžadovat {\bf restart} serverů domény pro projevení změn v nastavení politiky.
+\end{itemize}
 
 Návrhy řešení uvedených požadavků zpracovávají následující kapitoly.
 
@@ -823,18 +833,12 @@ Návrhy řešení uvedených požadavků zpracovávají následující kapitoly.
 
 Možnosti řešení problému popsaného v kapitole \ref{specifikaceProblemu} jsou následující:
 
-\begin{enumerate}
+\begin{itemize}
   \item Používat jako soubor bezpečnostní politiky soubor uložený v jednom společném umístění.
-  \item Zajistit přenos souborů bezpečnostní politiky samostatnou aplikací nebo rozšířením WildFly.
-\end{enumerate}
+  \item Zajistit přenos souborů bezpečnostní politiky samostatným programem nebo rozšířením WildFly.
+\end{itemize}
 
-Všechny varianty jsou podrobněji popsány v následující kapitole.
-
-%=============================================================================
-\section{Rozbor jednotlivých možností řešení} \label{rozborReseni}
-%=============================================================================
-
-Tato kapitola podrobněji rozebírá jednotlivé možnosti řešení z kapitoly \ref{vycetMoznostiReseni}.
+Všechny varianty jsou podrobněji popsány v následujících podkapitolách.
 
 %-----------------------------------------------------------------------------
 \subsection{Společné umístění souboru bezpečnostní politiky} \label{reseniSpolecne}
@@ -843,7 +847,7 @@ Tato kapitola podrobněji rozebírá jednotlivé možnosti řešení z kapitoly 
 Poměrně jednoduchým řešením problému by mohlo být nastavit na serverech domény ručně soubor bezpečnostní politiky, ležící v umístění společném pro všechny servery domény.
 Pro jakoukoli změnu bezpečnostní politiky by pak stačilo upravit tento jeden společný soubor bezpečnostní politiky.
 
-Sdíleným umístěním by mohl být adresář sdílený například prostřednictvím protokolu FTP, NFS nebo HTTP.
+Sdíleným umístěním by mohl být adresář sdílený například prostřednictvím protokolu FTP (File Transfer Protocol), NFS (Network File System) nebo HTTP (Hypertext Transfer Protocol).
 Toto umístění by bylo příhodné umístit na doménový řadič, který zajišťuje šíření i ostatní konfigurace mezi servery domény.
 
 Ačkoli toto řešení poměrně elegantně řeší problém změny obsahu souboru bezpečnostní politiky, problematičtější už je používání více souborů bezpečnostní politiky na různých serverech a přepínání mezi nimi.
@@ -853,17 +857,21 @@ Namísto výměny adresy souboru bezpečnostní politiky na straně serveru by t
 Problémem, který přetrvává, je ale způsob, jak zajistit znovunačtení souboru bezpečnostní politiky, a zajistit tak nové načtení bezpečnostní politiky.
 To může zajistit jen aplikace běžící v rámci JVM jednotlivých serverů nebo restart celého aplikačního serveru.
 
-Chceme-li tedy zajistit výměnu bezpečnostní politiky bez potřeby restartu aplikačního serveru, je možné vytvořit aplikaci,
-která bude nasazena na všech serverech domény a bude naslouchat požadavkům na znovunačtení bezpečnostní politiky.
-Stejně tak je možné stejnou funkčnost zajistit ve formě rozšíření aplikačního serveru. V tomto případě však k tomu není žádný důvod.
+Chceme-li tedy zajistit výměnu bezpečnostní politiky bez potřeby restartu aplikačního serveru, je možné vytvořit program,
+který bude nasazen na všech serverech domény a bude naslouchat požadavkům na znovunačtení bezpečnostní politiky.
+Tento program je možné implementovat ve formě Java EE aplikace nebo ve formě rozšíření aplikačního serveru WildFly.
+V tomto případě však ke druhé, složitější, variantě není žádný racionální důvod.
 
 %-----------------------------------------------------------------------------
-\subsection{Přenos souborů bezpečnostní politiky samostatnou aplikací} \label{reseniSpolecne}
+\subsection{Přenos souborů bezpečnostní politiky samostatným programem} \label{reseniSpolecne}
 %-----------------------------------------------------------------------------
 
-V předchozí variantě byla aplikace nasazená na serverech domény využívána jen ke znovunačítání bezpečnostní politiky.
-Tato varianta počítá s využitím aplikace na straně serverů také k nastavení a přenosu samotného souboru bezpečnostní politiky.
-Soubory bezpečnostní politiky by v takovém případě ani nemusely být uchovávány na straně serverů domény -- stačilo by uložení jejich obsahu do dočasného souboru před provedením znovunačtení bezpečnostní politiky. Následně by bylo možné tento soubor bezpečně smazat.
+V předchozí variantě byl program nasazený na serverech domény využíván jen ke znovunačítání bezpečnostní politiky.
+Tato varianta počítá s jeho využitím také k nastavení a přenosu samotného souboru bezpečnostní politiky.
+Soubor bezpečnostní politiky by přitom stačilo na server, na který má být nasazen, uložit až těsně před tím, než by měl být nastaven.
+K jeho uložení by přitom postačoval dočasný soubor, který by následně, po vyvolání znovunačtení bezpečnostní politiky, mohl být bezpečně smazán.
+Soubor bezpečnostní politiky totiž musí na serveru existovat jen po, kdy je jeho obsah načítán,
+k čemuž v tomto případě bude probíhat jen v souvislosti se znovunačítáním bezpečnostní politiky.
 
 Byla by-li tato aplikace implementována jako rozšíření aplikačního serveru WildFly, jakým je například subsystém,
 mohla by k ukládání a distribuci souborů bezpečnostních politik využívat konfigurační strom WildFly.
@@ -884,127 +892,30 @@ Zvoleno bylo kvůli menším nárokům na instalaci a správu takového řešen�
 Případné nižší nároky na implementaci tohoto programu nemohou v tomto případě omluvit vyšší nároky na správu výsledného řešení.
 
 Jako vhodný způsob implementace tohoto programu, zajišťujícího distribuci a znovunačítání souborů bezpečnostní politiky byla dále zvolena varianta ve formě rozšíření aplikačního serveru WildFly.
-
-
-
-
-
-
-
-\iffalse
-
-Cílem práce je vytvoření systému pro centralizovanou správu a distribuci bezpečnostních politik.
-Tento systém by měl umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény WildFly a sledovat také,
-které bezpečnostní politiky jsou právě na jednotlivých serverech domény WildFly nasazeny.
-
-Jako příhodné se pro tento účel zdá využití rozšiřitelnosti systému WildFly a implementace formou subsystému aplikačního serveru WildFly.
-
-Subsystém je rozšířením aplikačního serveru, jehož konfigurace i přítomnost je nastavována pro jednotlivé konfigurační profily aplikačního serveru.
-(O konfiguračních profilech více v kapitole \ref{uvodWildFly}.)
-
-Optimálním řešením by bylo takové rozšíření WildFly, jež by bylo nasazováno a konfigurováno nezávisle na profilech jednotlivých serverů, na celou doménu.
-Takový koncept ale bohužel WildFly neposkytuje.
-
-Dále proto budeme předpokládat, že všechny skupiny serverů, v rámci kterých budeme s bezpečnostními politikami manipulovat, používají stejný profil.
-V opačném případě bude nutné konfiguraci bezpečnostních politik provádět pro každý profil zvlášť.
-
-%=============================================================================
-\section{Návrh způsobu konfigurace subsystému} \label{zpusobNastaveniJBoss}
-%=============================================================================
-
-V této podkapitole je navržen způsob, jakým bude možné komunikovat s implementovaným subsystémem za účelem stanovení bezpečnostních politik, které mají být na jednotlivé servery domény uplatněny.
-
-Pro komunikaci se subsystémy WildFly za účelem správy se typicky využívá rozhraní JBoss management API, popsané v kapitole \ref{managementAPI}.
-Subsystém je pak možné nastavovat, sledovat nebo jinak spravovat prováděním operací tohoto rozhraní nad uzly konfiguračního stromu WildFly,
-konkrétně jeho podstromu patřícímu tomuto subsystému.
-\cite{jbossDetypedManagement}
-
-Jako vhodné se tak jeví využít tento standardní způsob také pro správu v této práci implementovaného subsystému.
-
-Uzel subsystému by tak obsahoval uzly představující jednotlivé servery WildFly domény.
-Vlastností každého uzlu serveru by pak byla bezpečnostní politika, jenž by na tomto serveru měla být nasazena.
-
-Možnost nastavit hodnotu konfigurační vlastnosti jako nedefinovanou lze zde s výhodou využít pro stanovení, že správce bezpečnosti nemá být použit.
-
-Samotné nasazování bezpečnostních politik na jednotlivé servery by pak bylo formou události (viz \ref{udalostiWildFly})
-navázáno na operaci nastavení hodnoty této konfigurační vlastnosti.
-
-Zmíněná konfigurační vlastnost bude definována se stanoveným objektem ošetřujícím událost změny hodnoty této konfigurační proměnné, který bude zajišťovat
-změnu nastavení bezpečnostních politik a správce bezpečnosti.
-
-Pro úplnost je pak nezbytné obdobným způsobem ošetřit také událost vytvoření konfiguračního uzlu serveru, událost jeho odstranění a událost odstranění
-celého subsystému.
-
-Bezpečnostní politika nasazená na serveru tak bude vždy odpovídat aktuální hodnotě konfigurační vlastnosti, určující bezpečnostní politiku serveru, uzlu tohoto serveru.
-
-%=============================================================================
-\section{Způsob šíření souborů bezpečnostní politiky} \label{sireniSouboru}
-%=============================================================================
-
-Jelikož cílem práce není jen centralizovaná správa, ale i distribuce bezpečnostních politik, je nutné stanovit způsob, jakým soubory bezpečnostní politiky budou šířeny mezi servery WildFly domény.
-
-Za pravděpodobně nejjednodušší řešení, které by bylo možné navrhnout, lze označit vytvoření sdíleného adresáře, jež by byl přístupný z každého serveru domény, například prostřednictvím protokolu NFS (Network File System).
-
-S tímto řešením však souvisí hned několik potíží.
-První z nich je vyšší platformní závislost -- zatímco WildFly jakožto program v Javě bez problému běží na mnoha platformách a pod různými operačními systémy, protokol NFS není napříč operačními systémy příliš podporován.
-Tento problém by bylo možné řešit použitím více rozšířeného protokolu umožňujícího vzdálený přístup k souborům, jakým je například FTP (File Transfer Protocol).
-
-Druhým problém je ale bezpečnost -- protokoly FTP ani NFS samy o sobě nedokáží zaručit autenticitu serveru, ke kterému se klient připojuje.
-Případný útočník by se tak mohl vydávat za FTP/NFS server na němž jsou bezpečnostní politiky uložené a podstrčit tak serverům domény vlastní bezpečnostní politiky a sabotovat tím zabezpečení serverů.
-
-Tento problém by mohlo vyřešit použití lépe zabezpečeného protokolu, jakým je například FTPS (FTP over SSL) nebo SSH (Secure Shell), jež umožňuje vzdálený přístup k souborům prostřednictvím SSHFS (SSH Filesystem), kde se server vůči klientovi autentizuje za pomoci asymetrické kryptografie. \cite[3]{ssh}
-
-Použití těchto lépe zabezpečených protokolů zajistí bezpečnost systému, avšak umocní problém platformních omezení, obzvláště v případě protokolu SSH.
-
-Výrazně naroste také problém se zajištěním bezpečnosti takového systému, protože problém bezpečnosti si lze představit jako řetěz.
-Tento řetěz je jen tak silný, jak silný je jeho nejslabší článek.
-Ačkoli přidání dalšího článku nemusí řetěz oslabit, zvýší se množství článků jejichž sílu bude nutné sledovat.
-Z toho vyplývá snaha minimalizovat počet článků tohoto řetězu.
-
-Jako optimální řešení se proto jeví využití existujících kanálů pro přenos informace mezi servery domény.
-Takovým kanálem je právě JBoss Management API.
-
-Přenos souborů skrze JBoss Management API je možné snadno implementovat ukládáním obsahu těchto souborů do konfiguračního stromu WildFly.
-
-Implementovaný subsystém by tedy definoval nový typ uzlu konfiguračního stromu, představující soubor bezpečnostní politiky. Jeho vlastností by pak byl obsah souboru bezpečnostní politiky.
-
-Soubory bezpečnostní politiky by pak mohly být nahrávány do konfiguračního stromu na straně doménového řadiče a naopak z nich čteny na straně ostatních členských serverů WildFly domény.
-
-Standardní třída bezpečnostní politiky, {\tt sun.security.provider.PolicyFile}, vyžaduje soubory bezpečnostní politiky přístupné skrze URL adresu souboru.
-Je tedy nutné na straně řadových serverů domény bezpečnostní politiku z konfiguračního stromu před jejím nastavením zapsat do dočasného souboru v souborovém systému.
-
-Co však nutné není, je jejich načítání ze souborů v souborovém systému na straně doménového řadiče. Zatímco původní návrh počítal s využitím konfiguračního stromu pouze pro přenos souborů bezpečnostní politiky, ukazuje se jako výhodnější soubory bezpečnostní politiky ukládat přímo do konfiguračního stromu.
-
-Nebude tak třeba ani řešit problém s rozpoznáním, že byl soubor bezpečnostní politiky změněn. Zatímco v souborovém systému by toto bylo nutné řešit periodickým se dotazování na čas poslední změny tohoto souboru, na změnu hodnoty konfigurační vlastnosti není problém skrze událost navázat nové použití bezpečnostní politiky servery domény.
-
-\fi
+Výhody spojené s využíváním konfiguračního stromu WildFly pro ukládání souborů bezpečnostní politiky převyšují zvýšené nároky na implementaci programu ve formě rozšíření WildFly, namísto implementace ve formě Java EE aplikace.
 
 %=============================================================================
 \section{Návrh uživatelského rozhraní} \label{navrhGUI}
 %=============================================================================
 
 Součástí zadání práce bylo také vytvoření webového rozhraní pro komunikaci implementovaného systému s uživatelem.
+Toto webové rozhraní by tedy mělo umožňovat následující:
+
+\begin{itemize}
+  \item Zobrazovat bezpečnostní politiku nasazenou na zvoleném serveru domény.
+  \item Upravovat soubory bezpečnostní politiky uložené v konfiguračním stromu WildFly.
+  \item Nasazovat tyto soubory bezpečnostní politiky na jednotlivé servery domény.
+  \item Nasazovat tyto soubory bezpečnostní politiky na celé skupiny serverů domény.
+  \item Vypínat používání bezpečnostní politiky na serverech nebo jejich skupinách.  
+\end{itemize}
+
 Jelikož je samotné jádro řešení implementováno jako subsystém WildFly, jako logické řešení se nabízí implementovat uživatelské rozhraní tohoto subsystému jako rozšíření webové konzoly WildFly.
-
-Webová konzola WildFly je standardní součástí aplikačního serveru WildFly. Je GWT (Google Web Toolkit) aplikací běžící na straně klienta, ve webovém prohlížeči.
-Aplikační server tato aplikace spravuje prostřednictvím HTTP varianty JBoss Management API.
-Tato varianta Management API běží nad protokolem HTTP a tělem POST dotazů klienta i tělem odpovědí serveru je JSON reprezentace uzlu DMR (blíže popsaném v kapitole \ref{zpusobNastaveniJBoss}).
-\cite{WildFlyManagementAPIreference}
-
-Grafická podoba uživatelského rozhraní, jak byla ve fázi návrhu systému navržena, konkrétně části umožňující samotné nastavení bezpečnostní politiky na jednotlivých serverech a skupinách serverů, je vyobrazena na obrázku \ref{navrhGui}.
-
-Pro srovnání je zároveň na obrázku \ref{vysledneGui} ukázán snímek obrazovky zachycující podobu této části uživatelského rozhraní, jak bylo nakonec implementováno.
-
-Celkově se rozšíření webové konzoly WildFly skládá z následujících tří konfiguračních obrazovek:
+Toto rozhraní bylo navrženo jako tři nové konfigurační obrazovky webové konzoly WildFly:
 
 \begin{enumerate}
-  
-  \item Obrazovka {\bf Servers} (Servery) byla již zmíněna a umožňuje zvolit bezpečnostní politiku jednotlivých serverů a skupin. Umožňuje tedy spravovat konfigurační uzly {\tt server=*}.
-  
-  \item Obrazovka {\bf Policies} (Politiky) umožňuje vytvářet a nastavovat samotné bezpečnostní politiky, které pak mohou být jednotlivým serverům přidělovány na obrazovce {\bf Servers}. Umožňuje tedy spravovat konfigurační uzly {\tt policy=*}.
-  
-  \item Obrazovka {\bf JSM Policy} (JSM Politika) umožňuje zobrazit bezpečnostní politiku nasazenou na vybraném serveru -- její název a obsah.
-  
+  \item Obrazovka {\bf Servers} (Servery) umožňuje zvolit, které bezpečnostní politiky mají být nasazeny na jednotlivých serverech a skupinách domény. Nastavením prázdné (None/{\tt null}) bezpečnostní politiky navíc umožňuje používání bezpečnostní politiky na serveru nebo skupině vypnout.
+  \item Obrazovka {\bf Policies} (Politiky) umožňuje vytvářet, upravovat a odstraňovat samotné bezpečnostní politiky. Ty pak mohou být jednotlivým serverům přidělovány na obrazovce {\bf Servers}.
+  \item Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy) umožňuje zobrazit bezpečnostní politiku nasazenou na vybraném serveru -- její název a obsah.
 \end{enumerate}
 
 \begin{figure}[ht]
@@ -1020,6 +931,23 @@ Celkově se rozšíření webové konzoly WildFly skládá z následujících t�
   \caption{Výsledná podoba webového uživatelského rozhraní.}
   \label{vysledneGui}
 \end{figure}
+
+Grafický návrh první uvedené konfigurační obrazovky, umožňující zvolit, které bezpečnostní politiky mají být nasazeny na jednotlivých serverech a skupinách, je vyobrazen na obrázku \ref{navrhGui}. Zároveň je pro srovnání na obrázku \ref{vysledneGui} ukázán snímek obrazovky ukazující výslednou podobu této konfigurační obrazovky, jak byla později implementována.
+
+Jako způsob výběru bezpečnostní politiky serveru i skupiny byla zvolena omezená nabídka. Tato nabídka umožňuje výběr jedné bezpečnostní politiky ze seznamu politik vytvořených prostřednictvím druhé konfigurační obrazovky. Umožňuje zároveň vypnout používání bezpečnostní politiky výběrem speciální hodnoty {\bf none} (žádná). Další speciální hodnota {\bf ambiguous} (neurčitá) má signalizovat, že servery skupiny používají různé bezpečnostní politiky.
+
+Celou konfigurační obrazovku mimo nadpisu tvoří seznam skupin v doméně. Každou položku tohoto seznamu přitom tvoří tlačítko pro zobrazení seznamu serverů obsažených v této skupině, název skupiny, výše popsaná nabídka pro výběr politiky pro celou skupinu najednou a tlačítko pro uložení změny výběru.
+
+Použitím tlačítka pro zobrazení seznamu serverů skupiny je pod položkou skupiny zobrazen server serverů této skupiny podobný seznamu serverů. Jeho položky jsou tvořeny názvem serveru, nabídkou pro výběr politiky a tlačítkem pro uložení změny.
+
+Na obrázku \ref{vysledneGui} je navíc vidět také základní ovládací prvky webové konzoly WildFly, které jsou v návrhu vyobrazeny jen schématicky.
+V levé části obrazovky se nachází menu subsystémů -- umožňuje navigaci mezi konfiguračními obrazovkami jednotlivých subsystémů WildFly ve zvoleném profilu.
+Vrchní menu zobrazuje informace o systému, přihlášeném uživateli a umožňuje navigovat mezi jednotlivými části WildFly konzoly.
+
+Odkaz na konfigurační obrazovky {\bf Servers} a {\bf Policies} se nachází v části {\bf Configuration} (Konfigurace), je-li přepnuta na profil, v kterém je nainstalován implementovaný subsystém. Konfigurační obrazovka {\bf JSM Policy} zobrazující informace o politice nasazené na zvoleném serveru je v části {\bf Runtime} (Za běhu).
+
+Webová konzola umožňuje také rozdělit jednu konfigurační obrazovku na více panelů. (Příklad panelu je na obrázku \ref{navrhGui} popsán jako {\bf Policies}.)
+Této možnosti však v tomto rozšíření webové konzoly není využito.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Popis implementace systému} \label{implementace}
