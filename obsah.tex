@@ -821,7 +821,7 @@ Cílem této práce proto je, implementovat řešení pro správu bezpečnostní
 
 \begin{itemize}
   \item Mělo by umožnit nastavovat použití bezpečnostní politiky na serverech domény.
-  \item Mělo by umožňovat provádět toto nastavení {\bf hromadně} -- pro celé skupiny serverů domény najednou.
+%  \item Mělo by umožňovat provádět toto nastavení {\bf hromadně} -- pro celé skupiny serverů domény najednou. % toto je na urovni GUI
   \item Mělo by umožňovat provádět toto nastavení {\bf centrálně} -- z jediného místa.
   \item Nemělo by vyžadovat ruční {\bf přenos souborů} bezpečnostní politiky mezi servery, na kterých mají být použity.
   \item Nemělo by vyžadovat {\bf restart} serverů domény pro projevení změn v nastavení politiky.
@@ -1055,95 +1055,54 @@ Protože cílem této bakalářské práce nebylo jen vytvoření systému umož
 %=============================================================================
 
 Cílem implementace řešení bylo umožnění nasazování bezpečnostní politik na servery v doméně aplikačních serverů WildFly.
-Implementované řešení by mělo být schopné nasadit bezpečnostní politiku na 
+Implementované řešení by mělo být schopné nasadit bezpečnostní politiku na specifikovaný server na základě požadavku skrze JBoss Management API.
+Testování by se tak jednoznačně mělo soustředit právě na schopnost systému nastavit na základě požadavku na stanoveném serveru stanovenou politiku.
+
+Testování této klíčové vlastnosti je možné provádět jedině v rámci testu integračního, tedy testu testujícího systém jako celek.
+Jednotkové testování v této oblasti sice rovněž může odhalit některé chyby, s hledáním klíčových chyb, vyplývajících z manipulací s bezpečnostními politikami pod WildFly, však pomoci nemůže.
+
+Integrační test pak bude založen na testování schopnosti uživatelské aplikace přistoupit k souboru, k němuž je přístup omezen bezpečnostní politikou a na vyměňování bezpečnostní politiky skrze testovaný subsystém v průběhu testu.
+
+Vzhledem k tomu že nejsložitější možnou situací, která může v rámci jednoho serveru nastat je výměna jedné bezpečnostní politiky za druhou,
+k úplnému otestování implementovaného řešení postačují dva testovací soubory a dvě testovací bezpečnostní politiky.
+První bezpečnostní politika přitom bude přidělovat oprávnění přístupu pouze k prvnímu souboru a druhá pouze k druhému.
 
 %=============================================================================
 \section{Implementace testů} % popis implementacniho reseni
 %=============================================================================
 
+Implementované integrační testy jsou tvořeny dvěma částmi -- {\it agentem} a {\it managerem}.
 
+{\bf Agent} je standardní uživatelskou Java EE aplikací nasazovanou na testovaný aplikační server. Na základě požadavku na rozhraní REST (Representational State Transfer) se pokusí přečíst požadovaný testovací soubor. Následně vrátí řetězec {\tt true} v případě že se mu to podaří. V případě že mu v tom bezpečnostní politiky zabrání, vrátí řetězec {\tt false}.
+
+{\bf Manager} je běžným JUnit testem. Na základě komunikace s agentem prostřednictvím rozhraní REST zjišťuje, ke kterým testovacím souborům má agent oprávnění přistupovat. Skrze rozhraní JBoss Management API pak je schopný požádat subsystém nainstalovaný na serveru o použití vybrané politiky na vybraný server.
+
+Samotný test řídí Manager. Postupně žádá o nasazení jednotlivých souborů bezpečnostní politiky a testuje, zdali má Agent oprávnění přistupovat ke správné podmnožině z nich.
 
 %=============================================================================
 \section{Testovací prostředí} % popis popis runtime testovaciho prostredi
 %=============================================================================
 
+Implementované testy předpokládají doménu aplikačních serverů o alespoň dvou WildFly serverech. Otestovanou verzí WildFly je 8.0.0.Final.
+Názvy těchto serverů a URL adresy na kterých poskytují své služby je možné nastavit v souboru {\tt manager/src/test/java/org/pic ketbox/jsmpolicy/test/Constants.java}. Na stejném místě je možné nastavit také adresu doménového řadiče a port na kterém poskytuje HTTP Management API.
 
+Tyto servery mohou ale také nemusí být servery jediného hostitele. Na všech hostitelích ale již musí být nainstalováno implementované rozšíření a záplata zavaděče tříd modulů WildFly nastavená na používání dynamických bezpečnostních politik. Samotný subsystém nemusí být na jednotlivých serverech nasazen, bude nasazen automaticky v rámci inicializace testu.
 
 %=============================================================================
 \section{Výsledky testování}
 %=============================================================================
 
-
+Všechny testy proběhly v rámci závěrečného testování implementovaného řešení v pořádku.
+Byla-li na server nasazena bezpečnostní politika, byla účinná ihned po skončení provádění příkazu provádějícího její nasazení.
+Byly-li na různé servery souběžně nasazovány dvě různé politiky, vzájemně se neovlivňovaly -- na první server je vždy aplikována jen politika určená pro první server a na druhý server jen politika určená druhému serveru.
 
 %=============================================================================
 \section{Zhodnocení}
 %=============================================================================
 
+Testování prokázalo, že implementovaný subsystém dokáže bez problémů nastavovat bezpečnostní politiky serverů domény, aniž by se přitom bezpečnostní politiky nasazené na různých serverech domény vzájemně ovlivňovaly.
 
-
-
-\iffalse
-
-%=============================================================================
-\section{Testování}
-%=============================================================================
-
-Testování je nedílnou součástí vývoje software a je užíváno k odhalení vad software a prokázání, že software dosáhl požadované úrovně kvality v zadaných kritériích. Obvykle se provádí za pomoci automatizovaných programů, takzvaných testů. \cite{ivsTest}
-
-Testy se běžně dělí následovně: \cite{testsTypes}\cite{ivsTest}
-
-\begin{enumerate}
-  
-  \item {\textbf Jednotkové testy (Unit tests)} testují jednotlivé jednotky systému. Jednotkou je typicky třída programovacího jazyka. Každá jednotka se testuje samostatně, s maximální snahou o izolaci od ostatních součástí systému. Jejich cílem je především ověřit, zda jednotlivé jednotky splňují svoji specifikaci -- dodávají na základě testovacího vstupu odpovídající výstup. Nijak neřeší problémy v komunikaci jednotlivých jednotek mezi sebou nebo se zbytkem systému (v tomto případě aplikačním serverem WildFly). \cite{testsTypes}\cite{ivsTest}
-  
-  \item {\textbf Systémové testy (System tests)} testují celý systém jako jediný celek a umožňují ověřit zda systém jako celek dokáže plnit svůj účel, pro který byl vytvořen. Testovaný systém ovlivňují a kontrolují zpravidla z jeho vnějšku. \cite{testsTypes}\cite{ivsTest}
-  
-  \item {\textbf Integrační testy (Integration tests)} jsou mezistupněm mezi jednotkovými a systémovými testy. Jak jejich název napovídá, jejich hlavním účelem je ověřit zda spolu testované jednotky správně spolupracují. \cite{testsTypes}\cite{ivsTest}
-  
-\end{enumerate}
-
-Protože lze systémové testy někdy chápat také jako zvláštní případ integračních testů, jsou systémové testy někdy mezi integrační testy zahrnovány. \cite{testsUnitVsInteg}
-
-%=============================================================================
-\section{Jednotkové testy}
-%=============================================================================
-
-Jednotkové testy tedy umožňují testovat jednotlivé jednotky systému a těmito jednotkami, po kterých se systém testuje, jsou typicky třídy programovacího jazyka. Každé třídě programu by v ideálním případě měla být přidělena jedna třída testu, jež by měla ověřit správnost fungování této třídy. \cite{ivsTest}
-
-Testované jednotky by měly být testovány ve vzájemné izolaci. Toho se dosahuje buď jejich vhodným návrhem, nebo použitím napodobenin objektů ({\it mock object}) z jiných jednotek, na kterých tato jednotka závisí. \cite{ivsTest}
-
-Komplikace jež by mohly ohrozit samotnou výměnu bezpečnostní politiky nebo správce bezpečnosti vyplývají převážně z integrace s aplikačním serverem WildFly. Vytvoření jednotkových testů pro výměnu bezpečnostní politiky a správce bezpečnosti by tedy nebylo příliš užitečné.
-
-Byly však vytvořeny jednotkové testy pro testování podpůrných součástí implementovaného subsystému -- testy syntaktické kontroly souborů bezpečnostní politiky, práce s částí konfiguračního strom DMR náležející implementovaného subsystému a načítání části konfiguračního souboru WildFly náležející subsystému.
-
-%=============================================================================
-\section{Integrační testy}
-%=============================================================================
-
-Integrační testy testují systém jako celek. Implementovaný systém byl tímto způsobem testován na schopnost plnění základních požadavků daných zadáním této práce -- schopnosti zapnout a vypnout správce bezpečnosti a vyměnit používanou bezpečnostní politiku skrze JBoss Management API.
-
-Byl tedy vytvořen integrační test umožňující otestovat zmíněné schopnosti na běžícím aplikačním serveru WildFly s nainstalovaným subsystémem pro nastavení bezpečnostní politiky, jehož vytvoření je popsáno v kapitole \ref{implementace}.
-
-Tento test se skládá ze dvou částí -- agenta, aplikace nasazované na testovaný server, a manažeru -- testu vytvořeného za pomoci knihovny JUnit, řídícího proces samotného testování.
-
-{\it Agent} je Java EE aplikací nabízející své služby skrze rozhraní REST. Službami, jež poskytuje, je zejména otestování schopnosti provést vybranou akci z pozice aplikace nasazené na testovaném serveru. Klient rozhraní REST se tedy k této službě může připojit a požádat o otestování schopnosti provést vybranou operaci. Jako odpověď pak dostane informaci, zda-li se provedení této operace zdařilo, nebo zda bylo zmařeno Access controllerem.
-
-Mimo toho tato služba umožňuje manageru zjistit také některé další informace o aplikačním serveru, zjistitelné ze strany aplikace nasazené na tomto aplikačním serveru, jako je aktuálně používaná třída security manageru, používaná třída bezpečnostní politiky, nebo samotná přítomnost agenta na testovaném aplikačním serveru.
-
-{\it Manager} je část systémového testu běžící mimo aplikační server. Sestává z testů založených na knihovně JUnit a pomocných tříd {\tt Domain} a {\tt Server}.
-
-Třída {\tt Server} zajišťuje komunikaci manageru s agentem nasazeným na testovaném serveru WildFly prostřednictvím protokolu REST. Některé testy, například testy vzájemného ovlivňování serverů mezi sebou, mohou vyžadovat monitoring více serverů WildFly najednou. Na každém z nich pak musí být nasazena aplikace agenta a s každým z nich pak bude moci test komunikovat prostřednictvím samostatné instance třídy {\tt Server}.
-
-Třída {\tt Domain} mezitím zajišťuje komunikace se samotnou doménou aplikačních serverů prostřednictvím protokolu JBoss Native API. Umožňuje manipulovat s konfiguračním stromem WildFly, zejména přidávat a upravovat hodnoty konfiguračních vlastností uzlů {\tt server=*} a {\tt policy=*} a tím nasazovat bezpečnostní politiky na jednotlivé servery WildFly domény.
-
-Určitý problém, jež bylo nutno vyřešit, zde představuje způsob, jakým po skončení každého testu navrátit systém do původního stavu. Jelikož se jedná o testování z vně aplikačního serveru, není pro tento účel možné využít operaci {\tt rollback}, jež se běžně automaticky provádí při selhání objektu ošetřujícího událost úpravy konfiguračního uzlu.
-
-Budeme-li však předpokládat že testy budou prováděny na k tomu určené doméně aplikačních serverů, můžeme pominout požadavek na navrácení původní konfigurace po ukončení testování a omezit navrácení do původního stavu na navrácení do stavu s prázdným konfiguračním uzlem subsystému, tedy bez jakýchkoli konfiguračních uzlů 
-{\tt server=*} nebo {\tt policy=*}.
-
-Další operací objektu domény tak bude navrácení subsystému do počátečního stavu. Toho bude dosaženo spojením operace odstranění uzlu subsystému {\tt jsmpolicy} konfiguračního stromu a jeho opětovné přidání.
-
-\fi
+Implementované řešení tedy dosáhlo cílů, které byly při jeho návrhu stanoveny.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Závěr}
