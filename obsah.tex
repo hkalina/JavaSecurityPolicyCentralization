@@ -800,6 +800,11 @@ V této kapitole je navržen způsob implementace systému pro centralizovanou s
 
 Tato práce řeší problém, jakým způsobem používat bezpečnostní politiky Javy v distribuovaných prostředích aplikačních serverů WildFly.
 Tato prostředí jsou typicky tvořena skupinou několika (nebo i mnoha) aplikační serverů seskupených do domény WildFly.
+
+Pravděpodobně nejjednodušším možným řešením, jak bezpečnostní politiky na tyto domény serverů nasazovat, je použít stejné řešení, jaké bylo v kapitole \ref{wildflySeSM} použito pro nasazení politiky na samostatný server.
+
+Tento způsob je ale poměrně pracný, neboť pro každou změnu bezpečnostní politiky vyžaduje zkopírování tohoto souboru na jednotlivé servery nebo úpravu jeho adresy ve spouštěcího skriptu WildFly. Následně je navíc nutné server WildFly restartovat.
+
 Cílem této práce proto je, implementovat řešení pro správu bezpečnostních politik, splňující následující požadavky:
 
 \begin{enumerate}
@@ -807,8 +812,10 @@ Cílem této práce proto je, implementovat řešení pro správu bezpečnostní
   \item Systém by měl umožňovat provádět toto nastavení {\bf hromadně} -- pro celé skupiny serverů domény najednou.
   \item Systém by měl umožňovat provádět toto nastavení {\bf centrálně} -- z jediného místa.
   \item Systém by neměl vyžadovat ruční {\bf přenos souborů} bezpečnostní politiky mezi servery, na kterých mají být použity.
-  \item Systém by měl umožňovat provádět toto nastavení uživatelem skrze {\bf webové rozhraní}.
+  \item Systém by neměl vyžadovat {\bf restart} serverů domény.
 \end{enumerate}
+
+Návrhy řešení uvedených požadavků zpracovávají následující kapitoly.
 
 %=============================================================================
 \section{Možnosti řešení} \label{vycetMoznostiReseni}
@@ -817,9 +824,8 @@ Cílem této práce proto je, implementovat řešení pro správu bezpečnostní
 Možnosti řešení problému popsaného v kapitole \ref{specifikaceProblemu} jsou následující:
 
 \begin{enumerate}
-  \item Nasazovat bezpečnostní politiky na jednotlivé servery domény ručně, stejným způsobem jako v kapitole \ref{moduleClassLoader}.
-  \item Používat na serverech jako soubor bezpečnostní politiky soubor uložený v jednom centrálním umístění.
-  \item Ukládat soubory bezpečnostních politik do konfiguračního stromu WildFly.
+  \item Používat jako soubor bezpečnostní politiky soubor uložený v jednom společném umístění.
+  \item Zajistit přenos souborů bezpečnostní politiky samostatnou aplikací nebo rozšířením WildFly.
 \end{enumerate}
 
 Všechny varianty jsou podrobněji popsány v následující kapitole.
@@ -831,40 +837,61 @@ Všechny varianty jsou podrobněji popsány v následující kapitole.
 Tato kapitola podrobněji rozebírá jednotlivé možnosti řešení z kapitoly \ref{vycetMoznostiReseni}.
 
 %-----------------------------------------------------------------------------
-\subsection{Ruční nasazování bezpečnostních politik} \label{reseniRucni}
-%-----------------------------------------------------------------------------
-
-Pravděpodobně nejtriviálnějším řešením problému, jak soubory bezpečnostní politiky na servery nasazovat, je použít stejné řešení, jaké bylo v kapitole \ref{wildflySeSM} použito pro nasazení bezpečnostní politiky na samostatně stojící server.
-Nastavení by pak bylo ručně prováděno úpravou konfiguračních souborů na jednotlivých server domény.
-
-Tento způsob sice jednoznačně umožňuje nastavovat bezpečnostní politiky na libovolném množství WildFly serverů,
-je ale jednoznačně pracný a nesplňuje většinu požadavků specifikovaných v kapitole \ref{specifikaceProblemu}.
-
-%-----------------------------------------------------------------------------
 \subsection{Společné umístění souboru bezpečnostní politiky} \label{reseniSpolecne}
 %-----------------------------------------------------------------------------
 
-Sofistikovanějším řešením problému je nastavit na server domény ručně adresu souboru bezpečnostní politiky ležícího v umístění společném pro všechny servery domény.
-Pro jakoukoli změnu bezpečnostní politiky by tak stačilo upravit tento jeden společný soubor bezpečnostní politiky.
+Poměrně jednoduchým řešením problému by mohlo být nastavit na serverech domény ručně soubor bezpečnostní politiky, ležící v umístění společném pro všechny servery domény.
+Pro jakoukoli změnu bezpečnostní politiky by pak stačilo upravit tento jeden společný soubor bezpečnostní politiky.
 
-Sdíleným umístěním by mohl být adresář sdílený prostřednictvím protokolu NFS nebo HTTP.
+Sdíleným umístěním by mohl být adresář sdílený například prostřednictvím protokolu FTP, NFS nebo HTTP.
+Toto umístění by bylo příhodné umístit na doménový řadič, který zajišťuje šíření i ostatní konfigurace mezi servery domény.
+
+Ačkoli toto řešení poměrně elegantně řeší problém změny obsahu souboru bezpečnostní politiky, problematičtější už je používání více souborů bezpečnostní politiky na různých serverech a přepínání mezi nimi.
+Tento problém je možné vyřešit za pomoci symbolických odkazů -- soubor používaný JVM by byl symbolickým odkazem daného serveru.
+Namísto výměny adresy souboru bezpečnostní politiky na straně serveru by tak byl vyměňován cíl odkazu tohoto symbolického odkazu.
+
+Problémem, který přetrvává, je ale způsob, jak zajistit znovunačtení souboru bezpečnostní politiky, a zajistit tak nové načtení bezpečnostní politiky.
+To může zajistit jen aplikace běžící v rámci JVM jednotlivých serverů nebo restart celého aplikačního serveru.
+
+Chceme-li tedy zajistit výměnu bezpečnostní politiky bez potřeby restartu aplikačního serveru, je možné vytvořit aplikaci,
+která bude nasazena na všech serverech domény a bude naslouchat požadavkům na znovunačtení bezpečnostní politiky.
+Stejně tak je možné stejnou funkčnost zajistit ve formě rozšíření aplikačního serveru. V tomto případě však k tomu není žádný důvod.
 
 %-----------------------------------------------------------------------------
-\subsection{Ukládání bezpečnostních politik v konfiguračním stromu WildFly} \label{reseniSpolecne}
+\subsection{Přenos souborů bezpečnostní politiky samostatnou aplikací} \label{reseniSpolecne}
 %-----------------------------------------------------------------------------
 
+V předchozí variantě byla aplikace nasazená na serverech domény využívána jen ke znovunačítání bezpečnostní politiky.
+Tato varianta počítá s využitím aplikace na straně serverů také k nastavení a přenosu samotného souboru bezpečnostní politiky.
+Soubory bezpečnostní politiky by v takovém případě ani nemusely být uchovávány na straně serverů domény -- stačilo by uložení jejich obsahu do dočasného souboru před provedením znovunačtení bezpečnostní politiky. Následně by bylo možné tento soubor bezpečně smazat.
 
+Byla by-li tato aplikace implementována jako rozšíření aplikačního serveru WildFly, jakým je například subsystém,
+mohla by k ukládání a distribuci souborů bezpečnostních politik využívat konfigurační strom WildFly.
+Nebylo by tak třeba žádného speciálního úložiště souborů bezpečnostní politiky -- soubory bezpečnostní politiky
+by tak byly uloženy společně s konfigurací většiny součástí WildFly v konfiguračním souboru domény.
+(O konfiguračních souborech WildFly viz \ref{uvodWildFly}.)
+
+Tím, že by soubory bezpečnostní politiky byly uloženy v konfiguračním stromě WildFly by navíc bylo možné provádět znovunačítání
+bezpečnostní politiky v reakci na událost změny používané bezpečnostní politiky.
+Na změnu hodnoty v konfiguračním stromu WildFly je totiž při její definici možné provést navázání akce. (viz \ref{!!!!!!!!!!!!!!!!!!!!!!!!})
 
 %=============================================================================
 \section{Výběr řešení} \label{vyberReseni}
 %=============================================================================
 
+Jako lepší řešení bylo zvoleno druhé uvedené řešení -- řešení ve formě programu provádějícího jak znovunačítání, tak také distribuci souborů bezpečnostní politiky.
+Zvoleno bylo kvůli menším nárokům na instalaci a správu takového řešení -- zatímco první řešení by vyžadovalo jak přípravu sdíleného umístění souborů politiky, tak i instalaci programu umožňujícího provést znovunačtení politiky, zvolené řešení vystačí jen s instalací implementovaného programu.
+Případné nižší nároky na implementaci tohoto programu nemohou v tomto případě omluvit vyšší nároky na správu výsledného řešení.
+
+Jako vhodný způsob implementace tohoto programu, zajišťujícího distribuci a znovunačítání souborů bezpečnostní politiky byla dále zvolena varianta ve formě rozšíření aplikačního serveru WildFly.
 
 
 
 
 
 
+
+\iffalse
 
 Cílem práce je vytvoření systému pro centralizovanou správu a distribuci bezpečnostních politik.
 Tento systém by měl umožnit nasazovat bezpečnostní politiky na jednotlivé servery domény WildFly a sledovat také,
@@ -950,8 +977,10 @@ Co však nutné není, je jejich načítání ze souborů v souborovém systému
 
 Nebude tak třeba ani řešit problém s rozpoznáním, že byl soubor bezpečnostní politiky změněn. Zatímco v souborovém systému by toto bylo nutné řešit periodickým se dotazování na čas poslední změny tohoto souboru, na změnu hodnoty konfigurační vlastnosti není problém skrze událost navázat nové použití bezpečnostní politiky servery domény.
 
+\fi
+
 %=============================================================================
-\section{Webové uživatelské rozhraní} \label{navrhGUI}
+\section{Návrh uživatelského rozhraní} \label{navrhGUI}
 %=============================================================================
 
 Součástí zadání práce bylo také vytvoření webového rozhraní pro komunikaci implementovaného systému s uživatelem.
