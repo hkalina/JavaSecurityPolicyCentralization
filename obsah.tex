@@ -87,7 +87,7 @@ Pro maximální nastavitelnost omezení kladených na programy běžící ve vir
 Správce bezpečnosti je objektem třídy {\tt java.lang.SecurityManager} nebo její podtřídy.
 Třídu, jejíž objekt JVM použije při svém startu jako objekt správce bezpečnosti, lze nastavit skrze konfigurační proměnnou JVM {\tt java.security.manager}. \cite{javaSecurityArch}
 
-Aplikace může referenci na aktuálně používaný objekt správce bezpečnosti získat voláním {\tt System.getSecurityManager()} a vypnout nebo jej vyměnit voláním {\tt System.setSecu\linebreak rityManager()}. Volání těchto metod je samo chráněno správcem bezpečnosti.
+Aplikace může referenci na aktuálně používaný objekt správce bezpečnosti získat voláním {\tt System.getSecurityManager()} a vypnout nebo jej vyměnit voláním {\tt System.setSecu rityManager()}. Volání těchto metod je samo chráněno správcem bezpečnosti.
 Nehrozí tedy, že by se program neoprávněně zbavil omezení, která na něj správce bezpečnosti uvalil, jeho vypnutím nebo výměnou.
 \cite{tutorialsTSM}
 
@@ -397,16 +397,12 @@ class DatabazeVSouboru {
 }
 \end{lstlisting}
 
-Kód jež nemá oprávnění pro přístup k souboru volá metodu {\tt nactiZaznam()}.
-Tato metoda nejprve voláním {\tt checkPermission()} zkontroluje, zdali má tento kód oprávnění pro přístup k danému záznamu.
-Pro tento 
-
-
-Každá metoda knihovny zpřístupňující záznam v databázi nejprve ověří oprávněnost požadavku na přístup k danému záznamu. Tato kontrola se provede stejně jako v ukázce kódu \ref{pouzitiAccessControlleru}, voláním metody {\tt checkPermission()}.
-
-Zde je důležité poznamenat že tato kontrola se musí provést mimo privilegovaný blok, čímž bude vlastnictví kontrolovaného oprávnění vyžadováno nejen od kódu samotné knihovny, ale také od kódu, jež tuto operaci nad záznamem vyvolal. Pokud některá z tříd na zásobníku volání nebude mít požadované oprávnění, provádění operace nad databází bude přerušeno výjimkou systému řízení přístupu ({\tt java.security.AccessControlException}).
-
-V opačném případě se pokračuje provedením samotné operace nad databází v rámci privilegovaného bloku. Tím bude tato operace provedena s oprávněními třídy knihovny, nezávisle na oprávněních kódu, jež metodu knihovny volal. Aby se tak samotná operace nad databázovým souborem provedla, bude postačovat přidělení oprávnění třídě knihovny.
+Kód jež nemá oprávnění pro přístup k souboru zde volá metodu {\tt nactiZaznam()}.
+Tato metoda nejprve (na 4. řádku) voláním {\tt checkPermission()} zkontroluje, zdali má tento kód oprávnění pro přístup k danému záznamu.
+Pokud by oprávnění neměl, bylo by vykonávání metody již nyní přerušeno výjimkou systému řízení přístupu ({\tt java.security.AccessControlException}).
+Následně uvnitř privilegovaného bloku (na 8. řádku) provede načtení záznamu z databázového souboru.
+Protože toto bude provedeno v rámci privilegovaného bloku, nezabrání tomuto čtení absence oprávnění ke čtení databázového souboru kódu, jež volal metodu {\tt nactiZaznam()}.
+Hodnota vrácená z privilegovaného bloku je nakonec vrácena také metodou {\tt nactiZaznam()} (na 6. řádku).
 
 %-----------------------------------------------------------------------------
 \subsection{Soubory bezpečnostní politiky} \label{souboryBP}
@@ -677,18 +673,24 @@ Na tuto množinu operací je možné se serveru dotázat.
 \cite{jbossDetypedManagement}
 
 %-----------------------------------------------------------------------------
-\subsection{Události v prostředí WildFly} \label{udalostiWildFly}
+\subsection{Rozšíření WildFly} \label{rozsireniWildFly}
 %-----------------------------------------------------------------------------
 
-Téměř vše co běží v rámci WildFly, včetně jeho součástí, je služba.
-Kód služby je prováděn vždy jen v reakci na událost, kterou si služba nějakým způsobem zaregistruje.
-Takovou událostí může být například příchod HTTP požadavku s konkrétní URL adresou.
-Taková událost může být zaregistrována například Serveletem v rámci jeho definice v konfiguračním souboru Java EE aplikace, {\tt web.xml}.
-\cite{jboss7slideShare}
+Funkce poskytované aplikačním serverem aplikacím i jeho správcům je možné různými způsoby rozšiřovat za pomoci rozšíření.
+Typickým obsahem rozšíření je subsystém. Subsystémy jsou konfigurovány pro jednotlivé konfigurační profily, tedy pro všechny servery používající daný profil.
 
-Události typicky registrované součástmi WildFly, jakou je například subsystém, mohou souviset také s konfiguračním stromem popsaným výše.
-Mohou tak provádět kód například při vytváření uzlu specifického typu, při jeho odstraňování, při čtení hodnoty jeho vlastnosti nebo při jejím zápisu.
+Pro potřeby této práce důležité zmínit hlavně to, že rozšíření může vytvářet vlastní typy uzlů konfiguračního stromu.
+Těmto uzlům pak může definovat vlastnosti, které mohou mít a uzlům i vlastnostem následně přidělovat třídy ošetřující operace nad nimi.
 \cite{WildFlyExtending}
+
+Je tak například možné definovat typ uzlu, který při svém vytvoření nebo smazání spustí pro tento účel definovanou proceduru.
+Obdobně mohou být procedury spouštěny také při nastavení hodnoty nebo nastavení nedefinované hodnoty konfigurační vlastnosti tohoto uzlu.
+
+V podstatě nic co běží v rámci WildFly, ať již součásti WildFly nebo uživatelské aplikace, neběží celou dobu běhu aplikačního serveru, ale pouze si zaregistruje události, na které později, až se vyskytnou, reaguje -- říkáme že vše co běží v rámci WildFly je služba. \cite{jboss7slideShare}
+
+Běžnějším příkladem registrované události, než jakou je úprava konfiguračního uzlu, je příchod HTTP požadavku se specifikovanou URL.
+Takové události jsou typicky registrovány Servlety v rámci své definice v konfiguračním souboru {\tt web.xml} své aplikace.
+\cite{jboss7slideShare}
 
 %-----------------------------------------------------------------------------
 \subsection{Webová konzola WildFly} \label{hal}
@@ -863,7 +865,7 @@ Tento program je možné implementovat ve formě Java EE aplikace nebo ve formě
 V tomto případě však ke druhé, složitější, variantě není žádný racionální důvod.
 
 %-----------------------------------------------------------------------------
-\subsection{Přenos souborů bezpečnostní politiky samostatným programem} \label{reseniSpolecne}
+\subsection{Přenos souborů bezpečnostní politiky samostatným programem} \label{reseniProgramem}
 %-----------------------------------------------------------------------------
 
 V předchozí variantě byl program nasazený na serverech domény využíván jen ke znovunačítání bezpečnostní politiky.
@@ -881,7 +883,7 @@ by tak byly uloženy společně s konfigurací většiny součástí WildFly v k
 
 Tím, že by soubory bezpečnostní politiky byly uloženy v konfiguračním stromě WildFly by navíc bylo možné provádět znovunačítání
 bezpečnostní politiky v reakci na událost změny používané bezpečnostní politiky.
-Na změnu hodnoty v konfiguračním stromu WildFly je totiž při její definici možné provést navázání akce. (viz \ref{!!!!!!!!!!!!!!!!!!!!!!!!})
+Na změnu hodnoty v konfiguračním stromu WildFly je totiž při její definici možné provést navázání akce. (viz \ref{rozsireniWildFly})
 
 %=============================================================================
 \section{Výběr řešení} \label{vyberReseni}
@@ -953,6 +955,16 @@ Této možnosti však v tomto rozšíření webové konzoly není využito.
 \chapter{Popis implementace systému} \label{implementace}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Implementace řešení byla rozdělena do několika etap. V první etapě byl vytvořen první prototyp systému umožňující nasazení bezpečnostní politiky na základě hodnoty konfigurační vlastnosti, v které byla prozatím jen URL adresa tohoto souboru. Tento prototyp prokázal, že nasazování bezpečnostních politik implementovaným způsobem je možné.
+
+
+
+
+.........................
+
+
+
+
 %=============================================================================
 \section{První etapa}
 %=============================================================================
@@ -963,7 +975,7 @@ Dle tohoto vzoru byl vytvořen subsystém, jehož jedinou funkcí bylo rozšíř
 Ty by měly být uloženy na jednotlivých serverech domény WildFly.
 Tyto uzly fungovaly jako většina typů uzlů konfiguračního stromu WildFly -- administrátor měl možnost je vytvářet, odstraňovat a nastavovat jejich vlastnost {\tt policy}, jež nesla právě samotnou URL nasazené bezpečnostní politiky.
 
-Na změnu této konfigurační vlastnosti server domény daný jménem uzlu reagoval nasazením dané bezpečnostní politiky.
+Na změnu této konfigurační vlastnosti server domény daný jménem uzlu reagoval nasazením dané bezpečnostní politiky, jak bylo navrženo v kapitole \ref{reseniProgramem}.
 
 Toho bylo dosaženo registrací události zápisu do této konfigurační vlastnosti při její definici.
 Byla tedy vytvořena třída {\tt ServerWriteAttributeHandler}, jejíž instance byla uvedena při registraci konfigurační vlastnosti {\tt policy}:
@@ -1039,6 +1051,40 @@ Toto je řešeno analogicky jako právě v případě akce navázané na změnu 
 Protože cílem této bakalářské práce nebylo jen vytvoření systému umožňujícího správu bezpečnostních politik nasazených na jednotlivých serverech distribuovaného systému, ale také prokázání jako kvality prostřednictvím testů, tato kapitola se zabývá tvorbou testů, umožňujících otestovat implementované řešení.
 
 %=============================================================================
+\section{Analýza} % na co testy delat
+%=============================================================================
+
+Cílem implementace řešení bylo umožnění nasazování bezpečnostní politik na servery v doméně aplikačních serverů WildFly.
+Implementované řešení by mělo být schopné nasadit bezpečnostní politiku na 
+
+%=============================================================================
+\section{Implementace testů} % popis implementacniho reseni
+%=============================================================================
+
+
+
+%=============================================================================
+\section{Testovací prostředí} % popis popis runtime testovaciho prostredi
+%=============================================================================
+
+
+
+%=============================================================================
+\section{Výsledky testování}
+%=============================================================================
+
+
+
+%=============================================================================
+\section{Zhodnocení}
+%=============================================================================
+
+
+
+
+\iffalse
+
+%=============================================================================
 \section{Testování}
 %=============================================================================
 
@@ -1096,6 +1142,8 @@ Budeme-li však předpokládat že testy budou prováděny na k tomu určené do
 {\tt server=*} nebo {\tt policy=*}.
 
 Další operací objektu domény tak bude navrácení subsystému do počátečního stavu. Toho bude dosaženo spojením operace odstranění uzlu subsystému {\tt jsmpolicy} konfiguračního stromu a jeho opětovné přidání.
+
+\fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Závěr}
