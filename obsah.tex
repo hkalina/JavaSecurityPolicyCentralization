@@ -965,9 +965,7 @@ Teprve následně byla implementována konečná verze řešení, jež do konfig
 
 Prototyp subsystému byl založen na kostře subsystému z Maven repozitáře, podle dokumentace WildFly 8 věnující se právě vytváření rozšíření WildFly. \cite{WildFlyExtending}
 
-Z této kostry byl vytvořen subsystém, jehož jedinou funkcí bylo rozšíření konfiguračního stromu o uzly {\tt server=*} uchovávající informaci o URL adrese souboru bezpečnostní politiky, jež má být použita na serveru daného jména.
-
-Subsystém v této verzi žádným způsobem nezajišťoval distribuci souborů bezpečnostní politiky -- soubor musel být skrze uvedenou URL adresu přístupný ze serveru, na kterém měla být politika nasazena. V opačném případě se nasazení bezpečnostní politiky nezdařilo.
+Z této kostry byl vytvořen subsystém, jehož jedinou funkcí bylo rozšíření konfiguračního stromu o {\tt subsystem=jsmpolicy} a jeho uzly {\tt server=*}, uchovávající informaci o URL adrese souboru bezpečnostní politiky, jež má být použita na serveru daného jména.
 
 \begin{figure}[ht]
   \centering
@@ -976,18 +974,55 @@ Subsystém v této verzi žádným způsobem nezajišťoval distribuci souborů 
   \label{tridy1}
 \end{figure}
 
-Uzly serveru fungovaly jako většina typů uzlů konfiguračního stromu WildFly -- administrátor měl možnost je vytvářet, odstraňovat a nastavovat jejich vlastnost {\tt policy}, jež nesla právě samotnou URL nasazené bezpečnostní politiky.
+Byla tedy definována třída definující rozšíření, {\tt JsmPolicyExtension}.
+Její vnitřní třídou byla třída zajišťující načítání a ukládání podstromu konfiguračního stromu patřící subsystému, {\tt SubsystemParser}.
 
-Na změnu této konfigurační vlastnosti server domény daný jménem uzlu reagoval nasazením dané bezpečnostní politiky, jak bylo navrženo v kapitole \ref{reseniProgramem}.
-Toho bylo dosaženo registrací události zápisu do této konfigurační vlastnosti při její definici.
-Byla tedy vytvořena třída {\tt ServerWriteAttributeHandler}, jejíž instance byla uvedena při registraci konfigurační vlastnosti {\tt policy}:
+Subsystém {\tt jsmpolicy} byl definován třídou {\tt SubsystemDefinition} a zaregistrován jakou součást rozšíření {\tt JsmPolicyExtension}.
+Uzel serveru ({\tt server=*}) byl definován třídou {\tt ServerDefinition} a rovněž zaregistrován v rámci rozšíření {\tt JsmPolicyExtension}.
 
-\begin{lstlisting}[caption=Registrace konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, label=registraceAtributu]
-resourceRegistration.registerReadWriteAttribute(POLICY,
-                null, ServerWriteAttributeHandler.INSTANCE);
+\begin{lstlisting}[caption=Konstruktor třídy {\tt ServerDefinition} definující konfigurační uzel server, label=registraceUzluServer]
+    private ServerDefinition() {
+        super(JsmPolicyExtension.SERVER_PATH,
+                JsmPolicyExtension.getResourceDescriptionResolver("server"),
+                ServerAdd.INSTANCE,
+                ServerRemove.INSTANCE);
+    }
 \end{lstlisting}
 
+V rámci definice uzlu serveru byla definována a zaregistrována jeho konfigurační vlastnost {\tt policy}.
+
+\begin{lstlisting}[caption=Registrace konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, label=registraceAtributu]
+    public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
+        resourceRegistration.registerReadWriteAttribute(POLICY,
+                           null, ServerWriteAttribute.INSTANCE);
+    }
+\end{lstlisting}
+
+Způsob registrace této konfigurační vlastnosti ukazuje ukázka kódu \ref{registraceAtributu}.
+Objektu zajišťujícímu registrace zdrojů je zde předán objekt definované konfigurační vlastnosti a objekt ošetřující zápis do této konfigurační vlastnosti ({\tt ServerWriteAttribute}).
+Není uveden objekt ošetřující čtení této konfigurační vlastnosti -- na jejím místě je uveden {\tt null}. Čtení této konfigurační vlastnosti tak je prováděno přímo z konfiguračního stromu a bez spouštění dalších akcí.
+
+
+
+Operace vytvoření uzlu serveru byla ošetřena za pomoci třídy {\tt ServerAdd} a operace změny hodnoty konfigurační vlastnosti {\tt policy} třídou {\tt ServerWriteAttribute}.
+Tyto třídy ošetřující operace zajišťovaly nastavení bezpečnostní politiky při provádění operací nad konfiguračním stromem.
+Samotné nastavení bezpečnostní politiky přitom zajišťovala samostatná třída {\tt PolicyManager}.
+
+
+
+
+
+
+
+Subsystém v této verzi žádným způsobem nezajišťoval distribuci souborů bezpečnostní politiky -- soubor musel být skrze uvedenou URL adresu přístupný ze serveru, na kterém měla být politika nasazena. V opačném případě se nasazení bezpečnostní politiky nezdařilo.
+
+
+
+
 Nebyla stanovena třída zprostředkovávající čtení tohoto konfigurační vlastnosti. (Na jejím místě je uveden {\tt null}) Čtení této konfigurační vlastnosti tak nebylo spojeno s žádnou další akcí.
+
+
+
 
 Aby byla bezpečnostní politika aplikována nejen na základě akce administrátora, ale také automaticky při startu serveru, bylo její použití navázáno také na akci přidání nového uzlu {\tt server=*}.
 
