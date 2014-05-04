@@ -578,7 +578,7 @@ Získáváním oprávnění třídy z objektu bezpečnostní politiky pouze při
 \begin{figure}[ht]
   \centering
   \includegraphics[width=14cm]{fig/domain-schema}
-  \caption{Diagram datových toků tříd (hnědé šipky) a oprávnění tříd (černé šipky) v Javě}
+  \caption{Diagram datových toků tříd (hnědé šipky) a oprávnění tříd (černé šipky)}
   \label{diagramDatovychToku}
 \end{figure}
 
@@ -957,26 +957,28 @@ Této možnosti však v tomto rozšíření webové konzoly není využito.
 
 Implementace řešení byla rozdělena do několika etap. V první etapě byl vytvořen první prototyp systému umožňující nasazení bezpečnostní politiky na základě hodnoty konfigurační vlastnosti, v které byla prozatím jen URL adresa tohoto souboru. Tento prototyp prokázal, že nasazování bezpečnostních politik implementovaným způsobem je možné.
 
-
-
-
-.........................
-
-
-
+Teprve následně byla implementována konečná verze řešení, jež do konfiguračního stromu WildFly ukládala soubory politik ve formě konfiguračních uzlů a uzly jednotlivých serverů jako odkazů na ně.
 
 %=============================================================================
-\section{První etapa}
+\section{Prototyp subsystému}
 %=============================================================================
 
-V rámci první etapy řešení byl implementován jednoduchý subsystém WildFly za pomoci kostry subsystému z Maven repozitáře, podle dokumentace WildFly 8 věnující se právě vytváření rozšíření WildFly. \cite{WildFlyExtending}
+Prototyp subsystému byl založen na kostře subsystému z Maven repozitáře, podle dokumentace WildFly 8 věnující se právě vytváření rozšíření WildFly. \cite{WildFlyExtending}
 
-Dle tohoto vzoru byl vytvořen subsystém, jehož jedinou funkcí bylo rozšíření konfiguračního stromu o uzly {\tt server=*} uchovávající informaci o URL souborů bezpečnostních politik.
-Ty by měly být uloženy na jednotlivých serverech domény WildFly.
-Tyto uzly fungovaly jako většina typů uzlů konfiguračního stromu WildFly -- administrátor měl možnost je vytvářet, odstraňovat a nastavovat jejich vlastnost {\tt policy}, jež nesla právě samotnou URL nasazené bezpečnostní politiky.
+Z této kostry byl vytvořen subsystém, jehož jedinou funkcí bylo rozšíření konfiguračního stromu o uzly {\tt server=*} uchovávající informaci o URL adrese souboru bezpečnostní politiky, jež má být použita na serveru daného jména.
+
+Subsystém v této verzi žádným způsobem nezajišťoval distribuci souborů bezpečnostní politiky -- soubor musel být skrze uvedenou URL adresu přístupný ze serveru, na kterém měla být politika nasazena. V opačném případě se nasazení bezpečnostní politiky nezdařilo.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=10cm]{fig/tridy1}
+  \caption{Diagram tříd prototypu}
+  \label{tridy1}
+\end{figure}
+
+Uzly serveru fungovaly jako většina typů uzlů konfiguračního stromu WildFly -- administrátor měl možnost je vytvářet, odstraňovat a nastavovat jejich vlastnost {\tt policy}, jež nesla právě samotnou URL nasazené bezpečnostní politiky.
 
 Na změnu této konfigurační vlastnosti server domény daný jménem uzlu reagoval nasazením dané bezpečnostní politiky, jak bylo navrženo v kapitole \ref{reseniProgramem}.
-
 Toho bylo dosaženo registrací události zápisu do této konfigurační vlastnosti při její definici.
 Byla tedy vytvořena třída {\tt ServerWriteAttributeHandler}, jejíž instance byla uvedena při registraci konfigurační vlastnosti {\tt policy}:
 
@@ -1009,31 +1011,10 @@ Konfigurační uzly {\tt server=*} jsou ukládány do konfiguračního XML soubo
 Ukládání veškeré konfigurace subsystému je implementováno ve třídě {\tt SubsystemParser}, jak je tomu u vzorového subsystému \cite{WildFlyExtending}.
 
 %=============================================================================
-\section{Druhá etapa}
+\section{Konečná verze subsystému}
 %=============================================================================
 
-V rámci druhé etapy bylo uživatelské rozhraní pozměněno dle grafického návrhu předvedeného v kapitole \ref{navrhGUI}. V souvislosti s touto změnou bylo nutné rozšířit rovněž subsystém WildFly. Jeho dosavadní implementace neumožňovala výběr bezpečnostní politiky formou výběru v rozbalovací nabídce.
-
-Výběr formou rozbalovací nabídky vyžaduje od aplikace zobrazující nabídku znalost voleb, mezi nimiž může uživatel provádět výběr.
-To při dosavadní implementaci subsystému možné nebylo, neboť aplikace běžící na straně webového prohlížeče k souborům na serveru přímo přistupovat nemůže.
-Dosavadní implementace subsystému přístup k seznamu zvolitelných souborů bezpečnostní politiky také neumožňovala.
-
-Do části konfiguračního stromu náležející subsystému tak vedle dosavadních uzlů {\tt server=*} přibyly uzly {\tt policy=*}.
-Ty reprezentovaly jednotlivé soubory, které bylo možné jako soubory bezpečnostní politiky jednotlivých serverů nastavit.
-
-Tyto uzly nebyly ukládány do konfiguračního XML souboru aplikačního serveru.
-Byly vytvářeny subsystémem při startu aplikačního serveru na základě obsahu adresáře určeného pro soubory bezpečnostních politik.
-
-Sdílení tohoto adresáře napříč jednotlivými server domény bylo nezbytné zajistit jinou cestou. (Tento problém je podrobněji popsán v kapitole \ref{sireniSouboru}.)
-
-Dodatečně odhaleným nedostatkem byla absolutní cesta k souboru bezpečnostní politiky v konfigurační vlastnosti {\tt policy}.
-Výrazně tak byla zkomplikována možnost ostrého nasazení systému v případě domény více hostitelů.
-
-%=============================================================================
-\section{Třetí etapa}
-%=============================================================================
-
-V rámci třetí etapy byl subsystém WildFly upraven, aby konfigurační strom WildFly nefungoval jen jako úložiště adres nastavených bezpečnostních politik, ale také jako úložiště samotných bezpečnostních politik.
+Konečná verze subsystému se od prototypu liší zejména tím, že v konfiguračním stromu již nejsou ukládány jen URL adresy souborů politiky, ale také samotné soubory bezpečnostní politiky.
 
 Byl tedy pozměněn význam konfigurační vlastnosti {\tt file} uzlu {\tt policy=*}. Absolutní URL adresa souboru bezpečnostní politiky byla nahrazena obsahem souboru bezpečnostní politiky.
 
@@ -1043,6 +1024,13 @@ Nově obsahoval název uzlu {\tt policy=*}, jehož hodnota atributu {\tt file} m
 Nadále tak nestačilo provádět aplikaci bezpečnostní politiky při změně atributu {\tt policy} uzlu {\tt server=*}, ale bylo nutné bezpečnostní politiku používanou aplikačním serverem znovu nastavit také při změně obsahu vlastnosti {\tt file} uzlu {\tt policy=*}.
 
 Toto je řešeno analogicky jako právě v případě akce navázané na změnu vlastnosti uzlu serveru -- vytvořením třídy {\tt PolicyWriteAttributeHandler} a jejím navázáním na vlastnost uzlu bezpečnostní politiky při její definici.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=12cm]{fig/tridy2}
+  \caption{Diagram tříd konečné verze}
+  \label{tridy2}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému} \label{testovani}
