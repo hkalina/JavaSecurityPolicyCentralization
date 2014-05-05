@@ -960,7 +960,7 @@ Implementace řešení byla rozdělena do několika etap. V první etapě byl vy
 Teprve následně byla implementována konečná verze řešení, jež do konfiguračního stromu WildFly ukládala soubory politik ve formě konfiguračních uzlů a uzly jednotlivých serverů jako odkazů na ně.
 
 %=============================================================================
-\section{Prototyp subsystému}
+\section{Prototyp subsystému} \label{prototyp}
 %=============================================================================
 
 Prototyp subsystému byl založen na kostře subsystému z Maven repozitáře, podle dokumentace WildFly 8, věnující se právě vytváření rozšíření WildFly. \cite{WildFlyExtending}
@@ -993,7 +993,7 @@ V rámci konstruktoru třídy definující server bylo provedeno navázání akc
 
 \begin{lstlisting}[caption=Registrace konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, label=registraceAtributu]
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        resourceRegistration.registerReadWriteAttribute(POLICY,
+            resourceRegistration.registerReadWriteAttribute(POLICY,
                            null, ServerWriteAttribute.INSTANCE);
     }
 \end{lstlisting}
@@ -1006,6 +1006,33 @@ Na všechny operace nad stromem ošetřené k tomu vytvořenými třídami ({\tt
 
 Bezpečnostní politika tak byla na server odpovídajícího názvu nasazována při vytvoření uzlu tohoto serveru, při změně obsahu konfigurační vlastnosti tohoto uzlu, stanovující URL adresu k souboru bezpečnostní politiky, a odstraňována při odstranění uzlu tohoto serveru.
 
+\begin{lstlisting}[caption=Metoda {\tt PolicyManager.setPolicy()} zajišťující nasazení souboru bezpečnostní politiky, label=setPolicyMethod]
+public void setPolicy(String policy) throws OperationFailedException {
+    if (policy == null) {
+        System.setSecurityManager(null);
+    } else {
+        System.setProperty("java.security.policy", policy);
+        refreshDelegatingPolicy(); // DelegatingPolicy.delegate.refresh()
+        System.setSecurityManager(new SecurityManager());
+    }
+}
+\end{lstlisting}
+
+Samotnou metodu {\tt setPolicy()} zajišťující nasazení souboru bezpečnostní politiky ukazuje ukázka kódu \ref{setPolicyMethod}.
+Je-li jako parametr předána hodnota  {\tt null}, je správce bezpečnosti vypnut.
+Je-li jako parametr předán platný řetězec, je použit jako URL adresa souboru bezpečnostní politiky -- je uložen do konfigurační proměnné {\tt java.security.policy}, je vyžádáno znovunačtení bezpečnostní politiky a jako správce bezpečnosti je použit standardní správce bezpečnosti Javy.
+
+\begin{lstlisting}[caption=Znovunačtení bezpečnostní politiky při nastavené {\tt DelegatingPolicy}, label=refreshDelegating]
+    Field f = delegatingPolicy.getDeclaredField("delegate");
+    f.setAccessible(true);
+    Policy in = (Policy) f.get(Policy.getPolicy());
+    in.refresh();
+\end{lstlisting}
+
+Samotné znovunačtení politiky přitom nemůže být provedeno pouhým voláním metody {\tt refresh()} používaného objektu bezpečnostní politiky.
+Protože je jako jako objekt bezpečnostní politiky využíváno {\tt DelegatingPolicy}, je nutné toto metodu volat nad jeho privátní vlastností {\tt delegate()}.
+Protože je však privátní, je nutné ji volat za pomoci reflexe, jak je zjednodušeně ukázáno v ukázce kódu \ref{refreshDelegating}.
+
 Subsystém v této verzi žádným způsobem nezajišťoval distribuci souborů bezpečnostní politiky -- soubor musel být skrze uvedenou URL adresu přístupný ze serveru, na kterém měla být politika nasazena. V opačném případě se nasazení bezpečnostní politiky nezdařilo.
 
 %=============================================================================
@@ -1017,11 +1044,9 @@ Konečná verze subsystému se od prototypu liší zejména tím, že v konfigur
 Byl tedy pozměněn význam konfigurační vlastnosti {\tt file} uzlu {\tt policy=*}. Absolutní URL adresa souboru bezpečnostní politiky byla nahrazena obsahem souboru bezpečnostní politiky.
 
 Zároveň byl změněn význam konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, jež doposud rovněž obsahoval URL adresu souboru bezpečnostní politiky nasazené na daném serveru.
-Nově obsahoval název uzlu {\tt policy=*}, jehož hodnota atributu {\tt file} měla být použita jako soubor bezpečnostní politiky pro daný server.
+Nově obsahuje název uzlu {\tt policy=*}, jehož hodnota atributu {\tt file} má být použita jako obsah souboru bezpečnostní politiky pro daný server.
 
-Nadále tak nestačilo provádět aplikaci bezpečnostní politiky při změně atributu {\tt policy} uzlu {\tt server=*}, ale bylo nutné bezpečnostní politiku používanou aplikačním serverem znovu nastavit také při změně obsahu vlastnosti {\tt file} uzlu {\tt policy=*}.
-
-Toto je řešeno analogicky jako právě v případě akce navázané na změnu vlastnosti uzlu serveru -- vytvořením třídy {\tt PolicyWriteAttributeHandler} a jejím navázáním na vlastnost uzlu bezpečnostní politiky při její definici.
+Nestačilo tak nadále ani provádět nasazení bezpečnostní politiky při změně atributu {\tt policy} uzlu {\tt server=*}, ale bylo nutné bezpečnostní politiku používanou aplikačním serverem znovu nastavit také při změně obsahu konfigurační vlastnosti {\tt file} uzlu {\tt policy=*}.
 
 \begin{figure}[ht]
   \centering
@@ -1029,6 +1054,35 @@ Toto je řešeno analogicky jako právě v případě akce navázané na změnu 
   \caption{Diagram tříd konečné verze}
   \label{tridy2}
 \end{figure}
+
+Nasazování bezpečnostní politiky je řešeno analogicky jako právě v případě akce navázané na změnu vlastnosti uzlu serveru -- třídou {\tt PolicyWriteAttribute} ošetřující zápis do konfigurační vlastnosti {\tt file}.
+Při definici této konfigurační vlastnosti byl navíc definován také objekt validátoru -- objektu zajišťujícího kontrolu ukládané hodnoty konfigurační vlastnosti {\tt file}. Není-li hodnota platným souborem bezpečnostní politiky, je uložení odmítnuto. Tato kontrola je prováděna za pomoci třídní metody {\tt validatePolicyFile()} třídy {\tt PolicyManager}.
+Aby bylo možné stejnou kontrolu provádět také při vytváření nového uzlu bezpečnostní politiky, musela být vytvořena třída {\tt PolicyAdd} ošetřující vytváření těchto uzlů.
+
+Zároveň byla definována také třída {\tt Remove policy} ošetřující operaci odstranění uzlu bezpečnostní politiky. Ta znemožňuje odstranění uzlu bezpečnostní politiky, která je aktuálně používána alespoň jedním serverem. (Existuje uzel serveru, jehož vlastnost {\tt policy} obsahuje název odstraňovaného uzlu {\tt policy=*}.)
+
+\begin{lstlisting}[caption=Klíčová část metody {\tt setPolicyFile()} třídy {\tt PolicyManager}, label=setPolicyFile]
+if (fileContent == null) {
+  setPolicy(null);
+} else {
+  String tempDirString = System.getProperty("jboss.server.temp.dir", null);
+  File tempDir = tempDirString == null ? null : new File(tempDirString);
+  File temp = File.createTempFile("jsm-", ".policy", tempDir);
+  FileOutputStream out = new FileOutputStream(temp);
+  out.write(fileContent.getBytes());
+  out.close();
+  setPolicy(temp.getAbsolutePath()); // use temp file as policy file
+  temp.delete();
+}
+\end{lstlisting}
+
+Samotné nasazování bezpečnostní politiky zajišťuje metoda {\tt setPolicyFile()}. Její hlavní část zachycuje ukázka kódu {\tt setPolicyFile}.
+Jak je vidět, k samotnému nasazení bezpečnostní politiky využívá metodu {\tt setPolicy()} popsanou v kapitole \ref{prototyp}.
+Jejím vstupem však není adresa souboru bezpečnostní politiky, ale jeho obsah. Není-li tedy tento obsah roven {\tt null},
+je vytvořen dočasný soubor {\tt jsm-*.policy} a obsah souboru bezpečnostní politiky ({\tt fileContent}) uložen do něj.
+Vytvořený dočasný soubor bezpečnostní politiky je nasazen metodou {\tt setPolicy()} popsanou v kapitole \ref{prototyp} a smazán.
+
+Jak je tedy vidět, používání souborů bezpečnostních politik uložených v konfiguračním stromu WildFly tak je ve své podstatě triviální.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému} \label{testovani}
