@@ -765,7 +765,7 @@ Ukázka kódu \ref{jbossOpts} ukazuje všechny definice konfiguračních proměn
 aby byl spuštěn s oprávněními stanovenými soubory bezpečnostní politiky.
 
 %-----------------------------------------------------------------------------
-\subsection{Úpravy zavaděče tříd modulů WildFly} \label{zmenaZaBehu}
+\subsection{Úpravy zavaděče tříd modulů WildFly} \label{upravaZavadeceWildFly}
 %-----------------------------------------------------------------------------
 
 Tato podkapitola popisuje úpravy zavaděče tříd modulů WildFly, které bylo nutné provést, aby bylo možné vyměňovat bezpečnostní politiky za běhu aplikačního serveru.
@@ -799,6 +799,30 @@ jejíž hodnota určuje, zda má být tato nová varianta použita. Je-li její 
 jinak budou oprávnění ve WildFly fungovat tak jako doposud.
 
 Toto omezení bylo do záplaty vloženo záměrně proto, aby bylo možné začlenění této úpravy do vývojové větve WildFly, o což bylo také požádáno \cite{jmPullRequest}.
+
+%-----------------------------------------------------------------------------
+\subsection{Výměna bezpečnostní politiky za běhu} \label{zmenaZaBehu}
+%-----------------------------------------------------------------------------
+
+Tato podkapitola popisuje postup, který je nutné použít, aby bylo možné aplikace nebo rozšíření WildFly provést výměnu bezpečnostní politiky.
+
+Jak již bylo popsáno v kapitole \ref{nastaveniPolitiky}, pro výměnu jedné bezpečnostní politiky za druhou je nutné pozměnit hodnotu konfigurační proměnné
+{\tt java.security.policy} a vyžádat od objektu bezpečnostní politiky znovunačtení souboru bezpečnostní politiky.
+V prostředí WildFly však bohužel nestačí zavolat metodu {\tt refresh()} aktuálně používaného objektu bezpečnostní politiky -- tímto objektem je totiž instance třídy {org.jboss.security.jacc.DelegatingPolicy}. Tento objekt sice všechny volání metody {\tt implies()} nesouvisející s JACC (Java Authorization Contract for Containers) deleguje na původní objekt bezpečnostní politiky, metodu {\tt refresh()} na něj však nedeleguje.
+
+Toto chování bylo nahlášeno jako chyba implementace třídy {\tt DelegatingPolicy}. \cite{issueDelegating} Není totiž logické aby objekt delegoval dotazy na legálnost operace ale nepropouštěl požadavky na znovunačtení politiky, rozhodující o legálnosti těchto operací.
+
+\begin{lstlisting}[caption=Znovunačtení bezpečnostní politiky při nastavené {\tt DelegatingPolicy}, label=refreshDelegating]
+    Class<?> delegatingPolicy = Class.forName("org.jboss.security.jacc.DelegatingPolicy");
+    Field f = delegatingPolicy.getDeclaredField("delegate");
+    f.setAccessible(true);
+    Policy in = (Policy) f.get(Policy.getPolicy());
+    in.refresh();
+\end{lstlisting}
+
+Pro potřeby této bakalářské práce však bylo znovunačtení bezpečnostní politiky prozatím provedeno za pomoci reflexe, jak je ukázáno v ukázce kódu \ref{refreshDelegating}.
+Reflexí je zde získána hodnota atributu {\tt delegate} aktuálně používaného objektu bezpečnostní politiky.
+Touto hodnotou je další objekt bezpečnostní politiky. Zavolání jeho metody {\tt refresh()} již postačuje k dosažení znovunačtení bezpečnostní politiky ve WildFly.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Návrh systému} \label{navrh}
@@ -1022,16 +1046,9 @@ Samotnou metodu {\tt setPolicy()} zajišťující nasazení souboru bezpečnostn
 Je-li jako parametr předána hodnota  {\tt null}, je správce bezpečnosti vypnut.
 Je-li jako parametr předán platný řetězec, je použit jako URL adresa souboru bezpečnostní politiky -- je uložen do konfigurační proměnné {\tt java.security.policy}, je vyžádáno znovunačtení bezpečnostní politiky a jako správce bezpečnosti je použit standardní správce bezpečnosti Javy.
 
-\begin{lstlisting}[caption=Znovunačtení bezpečnostní politiky při nastavené {\tt DelegatingPolicy}, label=refreshDelegating]
-    Field f = delegatingPolicy.getDeclaredField("delegate");
-    f.setAccessible(true);
-    Policy in = (Policy) f.get(Policy.getPolicy());
-    in.refresh();
-\end{lstlisting}
-
 Samotné znovunačtení politiky přitom nemůže být provedeno pouhým voláním metody {\tt refresh()} používaného objektu bezpečnostní politiky.
-Protože je jako jako objekt bezpečnostní politiky využíváno {\tt DelegatingPolicy}, je nutné toto metodu volat nad jeho privátní vlastností {\tt delegate()}.
-Protože je však privátní, je nutné ji volat za pomoci reflexe, jak je zjednodušeně ukázáno v ukázce kódu \ref{refreshDelegating}.
+Protože je jako jako objekt bezpečnostní politiky využíváno {\tt DelegatingPolicy}, je nutné toto metodu volat nad jeho privátní vlastností {\tt delegate()},
+jak je již popsáno v kapitole \ref{zmenaZaBehu}. Metoda {\tt refreshDelegatingPolicy()} zde svojí funkčností odpovídá ukázce kódu \ref{refreshDelegating}.
 
 Subsystém v této verzi žádným způsobem nezajišťoval distribuci souborů bezpečnostní politiky -- soubor musel být skrze uvedenou URL adresu přístupný ze serveru, na kterém měla být politika nasazena. V opačném případě se nasazení bezpečnostní politiky nezdařilo.
 
