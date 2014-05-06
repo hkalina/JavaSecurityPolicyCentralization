@@ -745,10 +745,10 @@ Tato podkapitola se zabývá problémem používání správce bezpečnosti a be
 Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v Javě -- nastavením patřičných konfiguračních vlastností (popsaných v kapitolách \ref{securityManager} a \ref{nastaveniPolitiky}) při startu JVM za pomoci příslušných parametrů příkazu {\tt java}.
 
 Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro potřeby přidávání vlastních parametrů příkazu {\tt java} používána proměnná {\tt JAVA\_OPTS}.
-Připojením potřebných parametrů na konec hodnoty této proměnné bychom tedy měli dosáhnout použití správce bezpečnosti a stanovené bezpečnostní politiky ve všech JVM aplikačního serveru. Každý řádek ukázky kódu \ref{wildflySeSM} tedy přidá na konec proměnné {\tt \$JAVA\_OPTS} jeden parametru příkazu {\tt java}. \cite{jbossSecurityManager}
+Připojením potřebných parametrů na konec hodnoty této proměnné bychom tedy měli dosáhnout použití správce bezpečnosti a stanovené bezpečnostní politiky ve všech JVM aplikačního serveru. Každý řádek ukázky kódu \ref{wildflySeSMcode} tedy přidá na konec proměnné {\tt \$JAVA\_OPTS} jeden parametru příkazu {\tt java}. \cite{jbossSecurityManager}
 
 \begin{figure}[tbh]
-\begin{lstlisting}[caption=Doplnění spouštěcího skriptu o použití správce bezpečnosti, label=wildflySeSM]
+\begin{lstlisting}[caption=Doplnění spouštěcího skriptu o použití správce bezpečnosti, label=wildflySeSMcode]
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==wildfly.policy"
 \end{lstlisting}

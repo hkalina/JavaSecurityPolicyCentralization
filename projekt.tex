@@ -9,8 +9,10 @@
 % připomínky posílejte na e-mail: bidlom AT fit.vutbr.cz
 % vim: set syntax=tex encoding=latin2:
 %============================================================================
+
 \documentclass[cover]{fitthesis} % odevzdani do wisu - odkazy, na ktere se da klikat
 %\documentclass[cover,print]{fitthesis} % pro tisk - na odkazy se neda klikat
+
 %\documentclass[english,print]{fitthesis} % pro tisk - na odkazy se neda klikat
 %      \documentclass[english]{fitthesis}
 % * Je-li prace psana v anglickem jazyce, je zapotrebi u tridy pouzit 
@@ -31,15 +33,17 @@
 \DeclareUnicodeCharacter{00A0}{~} % oprava chyby Unicode char \u8:�. not set up for use with LaTeX
 
 \usepackage{color}
-\definecolor{light-gray}{gray}{0.95}
 \usepackage{listings}
+\definecolor{light-gray}{gray}{0.95}
+\definecolor{dark-gray}{gray}{0.8}
 \renewcommand{\lstlistingname}{Ukázka kódu}
 \lstset{
 language=Java,                          % Code langugage
 basicstyle=\ttfamily,                   % Code font, Examples: \footnotesize, \ttfamily
 stepnumber=1,                           % Step between two line-numbers
 numbersep=5pt,                          % How far are line-numbers from code
-frame=l,                             % A frame around the code (lrtb/none)
+%frame=l,                               % A frame around the code (lrtb/none)
+frame=lrtb,                             % A frame around the code (lrtb/none)
 tabsize=2,                              % Default tab size
 captionpos=b,                           % Caption-position = bottom
 breaklines=true,                        % Automatic line breaking?
@@ -49,7 +53,10 @@ showtabs=false,                         % Dont make tabls visible
 columns=flexible,                       % Column format
 extendedchars=true,                     % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
 showstringspaces=false,
-backgroundcolor=\color{light-gray},
+%backgroundcolor=\color{light-gray},
+rulecolor=\color{dark-gray},
+xleftmargin=5pt,
+xrightmargin=5pt,
 }
 
 % =======================================================================
