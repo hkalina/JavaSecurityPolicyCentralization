@@ -91,6 +91,7 @@ Aplikace může referenci na aktuálně používaný objekt správce bezpečnost
 Nehrozí tedy, že by se program neoprávněně zbavil omezení, která na něj správce bezpečnosti uvalil, jeho vypnutím nebo výměnou.
 \cite{tutorialsTSM}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Příkazy spouštějící program s výchozím správcem bezpečnosti, label=smEx]
 java -Djava.security.manager HelloWorld
 java -Djava.security.manager="" HelloWorld
@@ -98,6 +99,7 @@ java -Djava.security.manager=default HelloWorld
 java -Djava.security.manager=java.lang.SecurityManager HelloWorld
 java -Djava.security.manager=cz.test.TestovaciSM HelloWorld
 \end{lstlisting}
+\end{figure}
 
 Hodnotu konfigurační proměnné {\tt java.security.manager} při startu JVM je možné nastavit za pomoci k tomu určeného parametru {\tt -D} příkazu {\tt java}.
 Je-li hodnota této konfigurační proměnné stanovena na {\tt default} nebo je-li definována bez uvedení hodnoty
@@ -136,6 +138,7 @@ Pro stanovení bezpečnostní politiky tak stačí přepsat tuto jedinou metodu.
 
 Příklad jednoduchého správce bezpečnosti ukazuje kód \ref{TestovaciSM}:
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Jednoduchý správce bezpečnosti, label=TestovaciSM]
 public class TestovaciSM extends SecurityManager {
 	@Override
@@ -146,6 +149,7 @@ public class TestovaciSM extends SecurityManager {
 	}
 }
 \end{lstlisting}
+\end{figure}
 
 Tento jednoduchý správce bezpečnosti implementuje výše zmíněnou metodu {\tt checkPermission()}.
 Ta je volána při každém pokusu o provedení potenciálně nebezpečné operace.
@@ -153,15 +157,19 @@ Je-li oprávnění, které uživatelský kód vyžaduje, třídy {\tt FilePermis
 
 V rámci vlastní aplikace je možné používání vlastního správce bezpečnosti vyvolat za pomoci dříve zmíněného příkazu {\tt System.setSecurityManager()}:
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Nastavení správce bezpečnosti zevnitř JVM, label=setSM]
 System.setSecurityManager(new TestovaciSM());
 \end{lstlisting}
+\end{figure}
 
 Z vně aplikace pak je možné použití tohoto správce bezpečnosti nastavit při startu JVM obdobně, jak je to popsáno v kapitole \ref{securityManager}:
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Spuštění aplikace se správcem bezpečnosti, label=runWithSM]
 java -Djava.security.manager=TestovaciSM HelloWorld
 \end{lstlisting}
+\end{figure}
 
 Vedlejším efektem existence metod volaných při každém pokusu o provedení potenciálně nebezpečné operace je také možnost vedení statistik, jaká oprávnění
 aplikace nejčastěji využívá. Ty by pak teoreticky mohly být základem pro inteligentního správce bezpečnosti, přidělujícího programu oprávnění
@@ -186,10 +194,12 @@ Zavaděč je objekt odpovědný za načítání tříd a rozhraní v Javě. Na z
 
 Třída každého zavaděče tříd musí být podtřídou třídy {\tt java.lang.ClassLoader} a musí implementovat metodu {\tt findClass()}. Ta je jádrem celého zavaděče -- provádí samotné vyhledání třídy podle názvu. Jejím výstupem je objekt třídy {\tt java.lang.Class}, představující samotnou třídu. \cite{refClassLoader}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Získávání názvu třídy neznámého objektu, label=getClassName]
 Class classOfUnknown = unknown.getClass();
 String nameOfClass = classOfUnknown.getName(); // "java.lang.String"
 \end{lstlisting}
+\end{figure}
 
 Při programování běžných aplikací můžeme objekty tříd využít například při snaze získat název třídy neznámého objektu jako řetězec za běhu aplikace,
 jak ukazuje ukázka kódu \ref{getClassName}.
@@ -235,9 +245,11 @@ Třídy načítá ze souborů, jejíž adresu odvozuje z názvu třídy, balíč
 Je-li tedy JVM spuštěna příkazem uvedeným v ukázce kódu \ref{javaClasspath}, bude spuštěna třídní metoda {\tt main()} třídy {\tt Test}
 ze souboru {\tt /srv/classes/my/program/Test.class}.
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Spuštění JVM s hodnotou proměnné {\tt CLASSPATH} rovnou {\tt /srv/classes}, label=javaClasspath]
 java -classpath /srv/classes my.program.Test
 \end{lstlisting}
+\end{figure}
 
 Systémový zavaděč je používán k načítání jen nejzákladnějších tříd, zejména tříd Java API a dalších tříd potřebných k provozu jiných zavaděčů tříd.
 Ostatní třídy z {\tt CLASSPATH} jsou pak načítány jinými zavaděči, typicky zavaděčem tříd z URL, jež bude popsán dále, v kapitole \ref{URLClassLoader}.
@@ -295,6 +307,7 @@ Systém řízení přístupu je implementován třídou {\tt AccessController}. 
 
 Ukázka kódu \ref{pouzitiAccessControlleru} ukazuje způsob, jakým se může kód dotázat systému řízení přístupu, zdali má zadané oprávnění. \cite[5.5]{oaks}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Příklad položení dotazu systému řízení přístupu, label=pouzitiAccessControlleru]
 try {
     // ma tento program opravneni pripojit se na lokalni port 80?
@@ -306,6 +319,7 @@ try {
     System.out.println("Pripojeni bylo zamitnuto");
 }
 \end{lstlisting}
+\end{figure}
 
 Dotaz je položen voláním metody {\tt AccessController.checkPermission()}, přičemž je jako parametr připojen objekt oprávnění.
 Má-li kód toto oprávnění, provádění pokračuje a je tak na standardní výstup vypsáno, že operace byla povolena.
@@ -325,6 +339,7 @@ Aby bylo možné třídu oprávnění použít, musí být definován její kons
 
 Ukázka kódu \ref{prikladTridyOpravneni} ukazuje nejjednodušší způsob vytvoření vlastní třídy oprávnění. Jako příklad je zde použita třída oprávnění z příkladu s knihovnou pro přístup k záznamům v databázovém souboru. (Později bude využita v příkladu v kapitole \ref{databazeVsouboru}).
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Demonstrační třída oprávnění, label=prikladTridyOpravneni]
 public class ZaznamPermission extends java.security.BasicPermission {
     public ZaznamPermission(String name, String actions) {
@@ -332,6 +347,7 @@ public class ZaznamPermission extends java.security.BasicPermission {
     }
 }
 \end{lstlisting}
+\end{figure}
 
 %-----------------------------------------------------------------------------
 \subsection{Privilegované bloky kódu}\label{privilegovaneBloky}
@@ -353,6 +369,7 @@ Právě tento problém řeší privilegované bloky kódu. Kód v privilegované
 
 Ukázka kódu \ref{prikladBloku} ukazuje jednoduchý příklad použití privilegovaného bloku: \cite{refAccessController}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Příklad použití privilegovaného bloku, label=prikladBloku]
 class DatabazeVSouboru {
  public void provedOperaciNadDatabazi(){
@@ -366,6 +383,7 @@ class DatabazeVSouboru {
  }
 }
 \end{lstlisting}
+\end{figure}
 
 Metoda {\tt provedOperaciNadDatabazi()} je spuštěna omezená oprávněními kódu, který ji zavolal.
 Volá metodu {\tt doPrivileged()} systému řízení přístupu, čímž privilegovaně spouští kód metody {\tt run()} objektu, který metodě {\tt doPrivileged()} předal.
@@ -382,6 +400,7 @@ Má-li tedy být výstupem privilegovaně spuštěného kódu primitivní datov�
 
 Ukázka kódu \ref{pouzitiBloku} ukazuje možnou implementaci knihovny pro přístup k databázi navržené v kapitole \ref{privilegovaneBloky}.
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Demonstrační knihovna pro přístup k databázi, label=pouzitiBloku]
 class DatabazeVSouboru {
   public Zaznam nactiZaznam(String klic){
@@ -396,6 +415,7 @@ class DatabazeVSouboru {
   }
 }
 \end{lstlisting}
+\end{figure}
 
 Kód jež nemá oprávnění pro přístup k souboru zde volá metodu {\tt nactiZaznam()}.
 Tato metoda nejprve (na 4. řádku) voláním {\tt checkPermission()} zkontroluje, zdali má tento kód oprávnění pro přístup k danému záznamu.
@@ -415,12 +435,14 @@ Původ třídy je zde stanoven na základě podpisu JAR archivu, z kterého byla
 
 Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je ukázána v ukázce kódu \ref{syntaxeSouboruBP}. \cite[5.3.1]{oaks}\cite{refPolicyFiles}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Syntaxe souboru bezpečnostní politiky, label=syntaxeSouboruBP]
 grant signedBy "autor", codeBase "/koren", principal Trida "jmeno@realm" {
     permission TridaOpravneni "parametry","konstruktoru";
     ...
 };
 \end{lstlisting}
+\end{figure}
 
 Jak je vidět, oprávnění jsou přidělována kombinacím podepsaného autora ({\tt signedBy}), kořene systému balíčků ({\tt codeBase}) a identifikátoru uživatele nebo role ({\tt principal}).
 Samotná oprávnění pak jsou definována názvem třídy oprávnění a parametry jeho konstruktoru oddělenými čárkami.
@@ -454,6 +476,7 @@ V obou případech jsou soubory politiky určeny konfiguračními proměnnými (
 
 Tento příklad ukazuje jednoduchou bezpečnostní politiku, opět v kontextu příkladu knihovny pro přístup k databázi z kapitoly \ref{databazeVsouboru}.
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Příklad souboru bezpečnostní politiky, label=prikladSouboruBP]
 grant codeBase "file:/srv/program/" {
   permission ZaznamPermission "Lucka", "nacteni";
@@ -463,6 +486,7 @@ grant codeBase "file:/srv/knihovna/" {
   permission java.io.FilePermission "/srv/knihovna/data/-","read,write";
 };
 \end{lstlisting}
+\end{figure}
 
 Program zde má přiděleno oprávnění k načtení záznamu \uv{Lucka}. Třída tohoto oprávnění byla definována v kapitole \ref{zaznamPerm}.
 Nemá ale přiděleno oprávnění k přístupu k samotným databázovým souborům.
@@ -498,12 +522,14 @@ v konfiguračních proměnných {\tt policy.url.n}, kde {\tt n} je pořadové č
 Načítání souborů bezpečnostní politiky začíná od {\tt policy.url.1} a postupně se {\tt n} inkrementuje a načítají se jednotlivé soubory bezpečnostní politiky,
 dokud {\tt policy.url.n} existuje. \cite{refPolicyFiles}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Význačnější proměnné konfiguračního souboru {\tt java.security}, label=javasecurityexample]
 policy.provider=sun.security.provider.PolicyFile
 policy.url.1=file:${java.home}/lib/security/java.policy
 policy.url.2=file:${user.home}/.java.policy
 policy.url.3=file:/my-policies/my.policy
 \end{lstlisting}
+\end{figure}
 
 Příklady nastavení konfiguračních proměnných v tomto souboru jsou uvedeny v ukázce kódu \ref{javasecurityexample}, která je rozšířením příkladu z knihy pana Oakse. \cite[5.3.1]{oaks}
 
@@ -514,28 +540,36 @@ Implicitně jsou používány právě první dvě uvedená umístění -- {\tt \
 
 Bezpečnostní politiku je dále možné rozšířit při startu JVM o další soubor bezpečnostní politiky. Stačí nastavit konfigurační proměnnou {\tt java.security.policy} při startu JVM: \cite[5.3.1]{oaks}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Spuštění JVM s vlastním souborem bezpečnostní politiky, label=nastaveniBP]
 java -Djava.security.policy=dalsi_soubor_politiky.policy ProgramABC
 \end{lstlisting}
+\end{figure}
 
 V tomto případě bude uvedený soubor bezpečnostní politiky použit zároveň s výše uvedeným standardním souborem bezpečnostní politiky. Chceme-li standardní soubory bezpečnostní politiky určené souborem {\tt java.security} zcela nahradit, stačí namísto jednoho rovnítka v definici konfigurační proměnné použít rovnítka dvě: \cite[5.3.1]{oaks}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Spuštění JVM jen s vlastním souborem bezpečnostní politiky, label=nastaveniBP2]
 java -Djava.security.policy==jediny_soubor_politiky.policy ProgramABC
 \end{lstlisting}
+\end{figure}
 
 Obsah této proměnné je možné změnit i za běhu programu, má-li daná část programu oprávnění k zápisu do této proměnné.
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Nastavení souboru bezpečnostní politiky zevnitř JVM, label=nastaveniBP3]
 System.setProperty("java.security.policy", "jiny_soubor_politky.policy");
 \end{lstlisting}
+\end{figure}
 
 Protože, jak již bylo zmíněno v kapitole \ref{souboryBP}, nové načtení bezpečnostní politiky ze souborů bezpečnostní politiky je možné provést
 skrze metodu {\tt refresh()} objektu bezpečnostní politiky, je možné provedenou změnu bezpečnostní politiky nechat projevit jejím zavoláním:
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Znovunačtení souboru bezpečnostní politiky, label=refreshBP]
 Policy.getPolicy().refresh();
 \end{lstlisting}
+\end{figure}
 
 Problémem je, že tato metoda je označena jako nedoporučovaná ({\it deprecated}), protože je implementačně závislá -- zatímco u třídy bezpečnostní politiky {\tt PolicyFile} správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. \cite{refPolicy}
 
@@ -713,21 +747,25 @@ Na první pohled se může zdát, že nakonfigurovat použití správce bezpečn
 Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro potřeby přidávání vlastních parametrů příkazu {\tt java} používána proměnná {\tt JAVA\_OPTS}.
 Připojením potřebných parametrů na konec hodnoty této proměnné bychom tedy měli dosáhnout použití správce bezpečnosti a stanovené bezpečnostní politiky ve všech JVM aplikačního serveru. Každý řádek ukázky kódu \ref{wildflySeSM} tedy přidá na konec proměnné {\tt \$JAVA\_OPTS} jeden parametru příkazu {\tt java}. \cite{jbossSecurityManager}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Doplnění spouštěcího skriptu o použití správce bezpečnosti, label=wildflySeSM]
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==wildfly.policy"
 \end{lstlisting}
+\end{figure}
 
 Uvedený soubor bezpečnostní politiky ({\tt wildfly.policy}) prozatím ponecháme prázdný.
 Zkusíme-li nyní aplikační server spustit, spuštění skončí neúspěchem kvůli chybějícím oprávněním, nezbytných k běhu aplikačního serveru. Tento výsledek je ale pro nás pozitivní, neboť prokazuje, že aplikační server byl bezpečnostní politikou skutečně omezen.
 
 Do souboru bezpečnostní politiky dále přidáme přidělení všech oprávnění veškerému kódu běžícímu v rámci aplikačního serveru. Vzniklý soubor bezpečnostní politiky ukazuje ukázka kódu \ref{wildflyPolicy}.
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=První testovací soubor bezpečnostní politiky, label=wildflyPolicy]
 grant {
     permission java.security.AllPermission;
 };
 \end{lstlisting}
+\end{figure}
 
 Zopakujeme-li experiment, zjistíme že s takto nastavenou bezpečnostní politikou se aplikační server bez problémů spustil a bez problému funguje.
 Podrobnějším zkoumáním však zjistíme, že na uživatelské aplikace se tato benevolentní bezpečnostní politika neuplatňuje.
@@ -755,11 +793,13 @@ Bude-li tato konfigurační proměnná takto nastavena, bude tento zavaděč do 
 Množina oprávnění třídy pak bude odpovídat sjednocení těchto dvou množin oprávnění.
 \cite{sourceModuleClassLoader}
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Úprava spouštěcího skriptu pro spuštění se souborem bezpečnostní politiky, label=jbossOpts]
 JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-permissions=true"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{lstlisting}
+\end{figure}
 
 Ukázka kódu \ref{jbossOpts} ukazuje všechny definice konfiguračních proměnných, které je nutné přidat do spouštěcího skriptu aplikačního serveru WildFly,
 aby byl spuštěn s oprávněními stanovenými soubory bezpečnostní politiky.
@@ -777,6 +817,7 @@ Protože je naším cílem výměna bezpečnostní politiky za běhu aplikační
 Aby byla možná změna bezpečnostní politiky za běhu aplikačního serveru, je nezbytné, aby byla oprávnění používána jako dynamická, jak je popsáno v kapitole \ref{staticPerm}.
 V rámci této práce byla tedy vytvořena záplata zavaděče tříd modulů WildFly, která umožňuje používání dynamických oprávnění.
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Hlavní část záplaty umožňující nastavit používání dynamických oprávnění, label=refreshable]
 +  if (POLICY_REFRESHABLE) {
 +      protectionDomain = new ProtectionDomain(codeSource, permissions,
@@ -784,6 +825,7 @@ V rámci této práce byla tedy vytvořena záplata zavaděče tříd modulů Wi
 +  } else if (POLICY_PERMISSIONS && POLICY_READY.get()) {
 -  if (POLICY_PERMISSIONS && POLICY_READY.get()) {
 \end{lstlisting}
+\end{figure}
 
 Zatímco řešení popsané v předchozí kapitole ukládalo do ochranných domén množinu oprávnění,
 která byla sjednocením oprávnění udělených dle specifikace Java EE a oprávnění z objektu bezpečnostní politiky,
@@ -812,6 +854,7 @@ V prostředí WildFly však bohužel nestačí zavolat metodu {\tt refresh()} ak
 
 Toto chování bylo nahlášeno jako chyba implementace třídy {\tt DelegatingPolicy}. \cite{issueDelegating} Není totiž logické aby objekt delegoval dotazy na legálnost operace ale nepropouštěl požadavky na znovunačtení politiky, rozhodující o legálnosti těchto operací.
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Znovunačtení bezpečnostní politiky při nastavené {\tt DelegatingPolicy}, label=refreshDelegating]
     Class<?> delegatingPolicy = Class.forName("org.jboss.security.jacc.DelegatingPolicy");
     Field f = delegatingPolicy.getDeclaredField("delegate");
@@ -819,6 +862,7 @@ Toto chování bylo nahlášeno jako chyba implementace třídy {\tt DelegatingP
     Policy in = (Policy) f.get(Policy.getPolicy());
     in.refresh();
 \end{lstlisting}
+\end{figure}
 
 Pro potřeby této bakalářské práce však bylo znovunačtení bezpečnostní politiky prozatím provedeno za pomoci reflexe, jak je ukázáno v ukázce kódu \ref{refreshDelegating}.
 Reflexí je zde získána hodnota atributu {\tt delegate} aktuálně používaného objektu bezpečnostní politiky.
@@ -1004,6 +1048,7 @@ Její vnitřní třídou byla třída, zajišťující načítání a ukládán�
 Uzel subsystému {\tt jsmpolicy} byl definován třídou {\tt SubsystemDefinition} a uzel serveru ({\tt server=*}) třídou {\tt ServerDefinition}.
 Oba uzly byly zaregistrovány jako součásti rozšíření {\tt JsmPolicyExtension}.
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Konstruktor třídy {\tt ServerDefinition} definující konfigurační uzel server, label=registraceUzluServer]
     private ServerDefinition() {
         super(JsmPolicyExtension.SERVER_PATH,
@@ -1012,15 +1057,18 @@ Oba uzly byly zaregistrovány jako součásti rozšíření {\tt JsmPolicyExtens
                 ServerRemove.INSTANCE);
     }
 \end{lstlisting}
+\end{figure}
 
 V rámci konstruktoru třídy definující server bylo provedeno navázání akcí vytvoření serveru a odstranění serveru na třídy ošetřující tyto akce -- {\tt ServerAdd} a {\tt ServerRemove} -- pomocí konstruktoru nadtřídy {\tt SimpleResourceDefinition} (jak je uvedeno v ukázce kódu \ref{registraceUzluServer}).
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Registrace konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, label=registraceAtributu]
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
             resourceRegistration.registerReadWriteAttribute(POLICY,
                            null, ServerWriteAttribute.INSTANCE);
     }
 \end{lstlisting}
+\end{figure}
 
 V rámci k tomu určené metody třídy definující konfigurační uzel serveru byla zároveň zaregistrována jeho konfigurační vlastnost {\tt policy} (jak je ukázáno v ukázce kódu \ref{registraceAtributu}).
 Objektu zajišťujícímu registrace zdrojů je zde předán objekt definované konfigurační vlastnosti a objekt ošetřující zápis do této konfigurační vlastnosti ({\tt ServerWriteAttribute}).
@@ -1030,6 +1078,7 @@ Na všechny operace nad stromem ošetřené k tomu vytvořenými třídami ({\tt
 
 Bezpečnostní politika tak byla na server odpovídajícího názvu nasazována při vytvoření uzlu tohoto serveru, při změně obsahu konfigurační vlastnosti tohoto uzlu, stanovující URL adresu k souboru bezpečnostní politiky, a odstraňována při odstranění uzlu tohoto serveru.
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Metoda {\tt PolicyManager.setPolicy()} zajišťující nasazení souboru bezpečnostní politiky, label=setPolicyMethod]
 public void setPolicy(String policy) throws OperationFailedException {
     if (policy == null) {
@@ -1041,6 +1090,7 @@ public void setPolicy(String policy) throws OperationFailedException {
     }
 }
 \end{lstlisting}
+\end{figure}
 
 Samotnou metodu {\tt setPolicy()} zajišťující nasazení souboru bezpečnostní politiky ukazuje ukázka kódu \ref{setPolicyMethod}.
 Je-li jako parametr předána hodnota  {\tt null}, je správce bezpečnosti vypnut.
@@ -1078,6 +1128,7 @@ Aby bylo možné stejnou kontrolu provádět také při vytváření nového uzl
 
 Zároveň byla definována také třída {\tt Remove policy} ošetřující operaci odstranění uzlu bezpečnostní politiky. Ta znemožňuje odstranění uzlu bezpečnostní politiky, která je aktuálně používána alespoň jedním serverem. (Existuje uzel serveru, jehož vlastnost {\tt policy} obsahuje název odstraňovaného uzlu {\tt policy=*}.)
 
+\begin{figure}[tbh]
 \begin{lstlisting}[caption=Klíčová část metody {\tt setPolicyFile()} třídy {\tt PolicyManager}, label=setPolicyFile]
 if (fileContent == null) {
   setPolicy(null);
@@ -1092,6 +1143,7 @@ if (fileContent == null) {
   temp.delete();
 }
 \end{lstlisting}
+\end{figure}
 
 Samotné nasazování bezpečnostní politiky zajišťuje metoda {\tt setPolicyFile()}. Její hlavní část zachycuje ukázka kódu {\tt setPolicyFile}.
 Jak je vidět, k samotnému nasazení bezpečnostní politiky využívá metodu {\tt setPolicy()} popsanou v kapitole \ref{prototyp}.
