@@ -1,17 +1,18 @@
 \chapter{Obsah CD}
 
 \begin{itemize}
+
   \item {\tt projekt.pdf} -- Technická zpráva ve formátu PDF
   \item {\tt projekt} -- Zdrojové soubory technické zprávy ve formátu \LaTeX
-  
+
+  \item {\tt wildfly-8.0.0.Final} -- Instalace WildFly s nainstalovanými implementovanými rošířeními, použitelná pro předvádění bakalářské práce
+
   \item {\tt jsm-policy-subsystem} -- Subsystém WildFly implementovaný jako hlavní součást této práce
-  \item {\tt jsm-policy-console-hal} -- Rozšíření webové konzole WildFly umožňující správu výše uvedeného rozšíření
-  \item {\tt jsm-policy-test} -- Repozitář integračních testů implementovaného subsystému WildFly
-  
+  \item {\tt jsm-policy-console-hal} -- Rozšíření webové konzole WildFly umožňující správu výše uvedeného rozšíření (popsané v kapitole \ref{navrhGUI})
+  \item {\tt jsm-policy-test} -- Repozitář integračních testů popsaných v kapitole \ref{testovani}
+
   \item {\tt jboss-modules} -- Záplata popsaná v kapitole \ref{upravaZavadeceWildFly} v odpovídajícím Git repozitáři
-  
-  \item {\tt wildfly} -- Instalace WildFly s nainstalovanými potřebnými rošířeními použitelná jako demo bakalářské práce
-  
+
 \end{itemize}
 
 
@@ -25,12 +26,12 @@
     \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jboss-modules}. Získat jej můžete z přiloženého CD nebo z GitHub:
       \newline\url{https://github.com/honza889/jboss-modules}
     \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
-    \item Výsledným archivem ({\tt target/jboss-modules-*.jar}) nahraďte archiv \newline {\tt jboss-modules.jar} v adresáři WildFly.
-    \item Na začátek spouštěcího skriptu WildFly přidejte:
+    \item Výsledným archivem ({\tt target/jboss-modules-*-SNAPSHOT.jar}) nahraďte archiv {\tt jboss-modules.jar} v adresáři WildFly.
+    \item Na začátek spouštěcího skriptu, kterým budete WildFly spouštět, (např. {\tt bin/dom ain.sh}) přidejte:
       \begin{lstlisting}
-$JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
+JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
       \end{lstlisting}
-    \item Po dalším startu by již WildFly měl používat dynamická oprávnění.
+    \item Po dalším startu by již WildFly měl používat dynamická oprávnění. (viz kapitola \ref{staticPerm})
   \end{enumerate}
   
   \item Proveďte instalaci rozšíření WildFly {\tt jsm-policy-subsystem}:
@@ -49,7 +50,7 @@ $JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
 /extension=org.picketbox.jsmpolicy.subsystem:add
 /profile=full/subsystem=jsmpolicy:add
       \end{lstlisting}
-    \item Jestliže se oba příkazy zdaří, subsystém {\tt jsmpolicy} byl úspěšně nainstalován a přidán do zadaného profilu. (V uvedeném příkladu {\tt full})
+    \item Jestliže se oba příkazy zdaří, subsystém {\tt jsmpolicy} byl úspěšně nainstalován a přidán do profilu. (V příkladu pro {\tt domain} režim do profilu {\tt full}.)
   \end{enumerate}
   
   \item Proveďte instalaci rozšíření webové konzoly WildFly {\tt jsm-policy-console-hal}:
@@ -57,9 +58,10 @@ $JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
     \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-console-hal}. Získat jej můžete opět z přiloženého CD nebo z GitHub:
       \newline\url{https://github.com/honza889/jsm-policy-console-hal}
     \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
-    \item Výsledný archiv ({\tt build/app/target/jboss-as-console-*-resources.jar}) nahrajte do adresáře {\tt modules/system/layers/base/org/jboss/as/console/main/} v adresáři WildFly.
-    \item Upravte soubor {\tt module.xml}, aby atribut {\tt path} elementu {\tt resource-root} odpovídal názvu souboru zkopírovaném v minulém kroku.    
-    \item Jestliže se po příštím startu aplikačního serveru WildFly ve webové administrační konzole v nabídce subsystémů ({\it Subsystems}) ukáže nová položka {\bf JSM Policy}, bylo toto rozšíření úspěšně nainstalováno.
+    \item Výsledný archiv ({\tt build/app/target/jboss-as-console-*-resources.jar}) nahrajte do adresáře {\tt modules/system/layers/base/org/jboss/as/console/main} v adresáři WildFly.
+    \item Upravte soubor {\tt module.xml}, aby atribut {\tt path} elementu {\tt resource-root} odpovídal názvu souboru zkopírovaném v minulém kroku.
+    \item Proveďte restart aplikačního serveru WildFly a následně znovunačtěte webovou stránku s webovou konzolou WildFly. (Např. stisknutím klávesy F5 nebo Ctrl+F5 ve webovém prohlížeči.)
+    \item Jestliže se ve webové administrační konzole v nabídce subsystémů {\it (Subsystems)} ukáže nová položka {\bf JSM Policy}, bylo toto rozšíření úspěšně nainstalováno.
   \end{enumerate}
   
 \end{enumerate}
@@ -72,9 +74,24 @@ $JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
         \item Ve webové konzole je vybraný profil, v kterém není nainstalován subsystém {\tt jsmpolicy} (dle bodu 3 postupu). (V případě {\it standalone} režimu: Není nainstalován subsystém {\tt jsmpolicy}.)
         \item Zkompilované rozšíření webové konzoly nebylo (dle bodu 4c postupu) nakopírováno do správného adresáře.
         \item V tomto adresáři nebyl upraven soubor {\tt module.xml} tak, aby odkazoval na soubor nakopírovaného rozšíření. (dle bodu 4d)
+        \item Webová stránka s webovou konzolí WildFly nebyla znovunačtena nebo server WildFly restartován (dle bodu 4e postupu).
     \end{enumerate}
 \end{enumerate}
 
+
+\section{Spuštění integračních testů}
+
+Jestliže jste úspěšně dokončili instalaci rozšíření aplikačního, můžete provést instalaci a spuštění integračních testů popsaných v kapitole \ref{testovani}.
+
+\begin{enumerate}
+  \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-test}. Získat jej můžete z přiloženého CD nebo z GitHub:
+    \newline\url{https://github.com/honza889/jsm-policy-test}
+  \item Ujistěte se že testovací servery testovací domény WildFly s nainstalovanými rozšířeními jsou spuštěné. Integrační test využívá dvou testovacích serverů.
+  \item Upravte v konfiguračním souboru nástroje Maven {\tt agent/pom.xml} údaje nezbytné pro přihlášení k testovací doméně.
+  \item Upravte v souboru {\tt manager/src/test/java/org/picketbox/jsmpolicy/test/Con stants.java} informace o testovacích serverech a testovací doméně.
+  \item Spusťte skript {\tt ./test.sh}
+  \item Výsledky testů budou uloženy ve formě HTML dokumentu do souboru {\tt manager/targe t/site/surefire-report.html}, který by měl být po skončení testů automaticky zobrazen.
+\end{enumerate}
 
 %\chapter{Manual}
 %\chapter{Konfigrační soubor}

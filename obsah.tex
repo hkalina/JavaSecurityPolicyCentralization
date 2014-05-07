@@ -594,7 +594,7 @@ V současnosti jsou obvykle preferována oprávnění dynamická, jež poskytuj�
 programu -- změny v ní se projeví jakmile začne být uplatňována metodou {\tt implies()} objektu bezpečnostní politiky, tedy zpravidla po volání metody
 {\tt refresh()} používaného objektu bezpečnostní politiky.
 
-Dynamická oprávnění jsou používána na všechny třídy zaváděné zavaděčem tříd z URL (viz \ref{URLClassLoader}) a jsou tedy využívána ve většině programů v Javě.
+Dynamická oprávnění jsou používána na všechny třídy zaváděné zavaděčem tříd z URL (viz kapitola \ref{URLClassLoader}) a jsou tedy využívána ve většině programů v Javě.
 \cite{sourceURLClassLoader}
 
 Umožňují navíc přidělovat oprávnění nejen na základě zdroje kódu, ale také na základě rolí uživatele spouštějícího daný kód. Tato dvě kritéria se však
@@ -625,7 +625,7 @@ Na statická oprávnění, která má zdroji kódu (a tedy i vytvořené ochrann
 
 Primárním výstupem zavaděče tříd je ale objekt třídy ({\tt java.lang.Class}).
 Až ten nese referenci na takto vytvořenou ochrannou doménu, kterou má společnou se všemi třídami se stejným zdrojem kódu.
-Zavádění tříd podrobněji viz \ref{classloader}.
+Zavádění tříd podrobněji viz kapitola \ref{classloader}.
 
 Systém řízení přístupu ({\tt java.security.AccessController}) pak při dotazu {\tt checkPermission()} ze strany uživatele nebo ze strany správce bezpečnosti rozhoduje o povolení operace na základě odpovědí na jeho dotaz {\tt implies()} položený ochranným doménám tříd na zásobníku volání.
 Informace o oprávněních tak putují z objektu ochranné domény do systému řízení přístupu, jak je znázorněno na obrázku.
@@ -947,11 +947,11 @@ Byla by-li tato aplikace implementována jako rozšíření aplikačního server
 mohla by k ukládání a distribuci souborů bezpečnostních politik využívat konfigurační strom WildFly.
 Nebylo by tak třeba žádného speciálního úložiště souborů bezpečnostní politiky -- soubory bezpečnostní politiky
 by tak byly uloženy společně s konfigurací většiny součástí WildFly v konfiguračním souboru domény.
-(O konfiguračních souborech WildFly viz \ref{uvodWildFly}.)
+(O konfiguračních souborech WildFly více v kapitole \ref{uvodWildFly}.)
 
 Tím, že by soubory bezpečnostní politiky byly uloženy v konfiguračním stromě WildFly by navíc bylo možné provádět znovunačítání
 bezpečnostní politiky v reakci na událost změny používané bezpečnostní politiky.
-Na změnu hodnoty v konfiguračním stromu WildFly je totiž při její definici možné provést navázání akce. (viz \ref{rozsireniWildFly})
+Na změnu hodnoty v konfiguračním stromu WildFly je totiž při její definici možné provést navázání akce. (viz kapitola \ref{rozsireniWildFly})
 
 %=============================================================================
 \section{Výběr řešení} \label{vyberReseni}
@@ -1118,7 +1118,7 @@ Nestačilo tak nadále ani provádět nasazení bezpečnostní politiky při zm�
 \begin{figure}[ht]
   \centering
   \includegraphics[width=12cm]{fig/tridy2}
-  \caption{Diagram tříd konečné verze}
+  \caption{Diagram tříd konečné verze implementovaného rozšíření WildFly}
   \label{tridy2}
 \end{figure}
 
@@ -1147,9 +1147,10 @@ if (fileContent == null) {
 
 Samotné nasazování bezpečnostní politiky zajišťuje metoda {\tt setPolicyFile()}. Její hlavní část zachycuje ukázka kódu {\tt setPolicyFile}.
 Jak je vidět, k samotnému nasazení bezpečnostní politiky využívá metodu {\tt setPolicy()} popsanou v kapitole \ref{prototyp}.
-Jejím vstupem však není adresa souboru bezpečnostní politiky, ale jeho obsah. Není-li tedy tento obsah roven {\tt null},
+Jejím vstupem však není adresa souboru bezpečnostní politiky, ale jeho obsah. Není-li tento obsah roven {\tt null},
 je vytvořen dočasný soubor {\tt jsm-*.policy} a obsah souboru bezpečnostní politiky ({\tt fileContent}) uložen do něj.
 Vytvořený dočasný soubor bezpečnostní politiky je nasazen metodou {\tt setPolicy()} popsanou v kapitole \ref{prototyp} a smazán.
+V opačném případě, kdy je obsah souboru bezpečnostní politiky roven {\tt null} je rovněž volána metoda {\tt setPolicy()}, ale s parametrem {\tt null}.
 
 Jak je tedy vidět, používání souborů bezpečnostních politik uložených v konfiguračním stromu WildFly tak je ve své podstatě triviální.
 
