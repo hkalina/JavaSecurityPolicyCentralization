@@ -116,14 +116,20 @@ xrightmargin=5pt,
 \abstract[cs]{
   WildFly je platformou pro distribuované prostředí splňující specifikaci Java Enterprise Edition.
   Tato práce se zabývá možnostmi centrální správy bezpečnostních politik v tomto prostředí.
-  Bezpečnostní politika je sada oprávnění, na které virtuální stroje Javy (JVM) omezují možnosti v sobě spuštěných aplikací provádět potenciálně nežádoucí operace.
-  Právě možnosti používání bezpečnostních politik byly ve WildFly silně omezeny.
-  Výsledkem práce jsou rozšiřující moduly WildFly doplňující programové rozhraní WildFly a webovou administrační konzolu WildFly o možnost
-  centrálního stanovování bezpečnostních politik a jejich nasazování na jednotlivé servery domény WildFly bez potřeby jejich 
-  domény WildFly. Součástí výsledku je také záplata samotného jádra WildFly, řešící problém nemožnosti výměny bezpečnostní politiky za běhu JVM WildFly.
+  Bezpečnostní politika je sada oprávnění, na které virtuální stroje Javy (JVM) omezují možnosti spuštěných aplikací.
+  Právě možnosti používání bezpečnostních politik byly ve WildFly dosud silně omezeny.
+  Výsledkem práce jsou rozšiřující moduly WildFly, doplňující programové rozhraní WildFly a webovou administrační konzolu WildFly o možnost centrálního
+  nasazování bezpečnostních politik na jednotlivé servery domény WildFly bez potřeby jejich restartu.
+  Součástí výsledku je také záplata samotného jádra WildFly, řešící problém nemožnosti výměny bezpečnostní politiky za běhu JVM WildFly.
 }
 \abstract[en]{
-  %This thesis deals with implementation of system for centralised management of security policies in distributed environment of Red Hat JBoss/WildFly.
+  WildFly is a platform for distributed environments, which meets specification of Java Enterprise Edition.
+  This thesis deals with possibilities of centralized management of security policies in this environment.
+  Security policy is a set of permissions to which the Java virtual machine (JVM) limits possibilities of running applications.
+  Just possibilities of security policy using was in WildFly so far heavily restricted.
+  The result of the thesis are extensions of WildFly, which add possibility of central deployment of security policies to individual servers,
+  without the need for restart that server, into program interface of WildFly and into WildFly management console.
+  Part of result is also patch of core of WildFly, which solve problem of the inability to exchange security policies at runtime of JVM WildFly.
 }
 
 %Klicova slova (cesky, anglicky)
