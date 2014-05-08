@@ -1,7 +1,6 @@
 \chapter{Obsah CD}
 
 \begin{itemize}
-
   \item {\tt projekt.pdf} -- Technická zpráva ve formátu PDF
   \item {\tt projekt} -- Zdrojové soubory technické zprávy ve formátu \LaTeX
 
@@ -12,20 +11,21 @@
   \item {\tt jsm-policy-test} -- Repozitář integračních testů popsaných v kapitole \ref{testovani}
 
   \item {\tt jboss-modules} -- Záplata popsaná v kapitole \ref{upravaZavadeceWildFly} v odpovídajícím Git repozitáři
-
 \end{itemize}
 
 
 \chapter{Postup instalace}
+
+Uvedený postup předpokládá operační systém Linux s nainstalovaným běhovým prostředím Javy. Testován byl na distribuci Ubuntu 13.10 s běhovým prostředím Javy OpenJDK 7.
 
 \begin{enumerate}
   \item Připravte standardní instalaci aplikačního serveru WildFly. Doporučenou verzí je 8.0.0.Final. Postup by měl fungovat i pro novější verze.
   
   \item Proveďte instalaci záplaty {\tt jboss-modules}: (Její účel je popsán v kapitole \ref{zmenaZaBehu})
   \begin{enumerate}
-    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jboss-modules}. Získat jej můžete z přiloženého CD nebo z GitHub:
+    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jboss-modules}. Získat jej můžete ze stejně pojmenovaného adresáře na přiloženém CD nebo z GitHub:
       \newline\url{https://github.com/honza889/jboss-modules}
-    \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
+    \item Proveďte kompilaci za pomoci nástroje Maven -- v adresáři {\tt jboss-modules} spusťte: {\tt mvn install}
     \item Výsledným archivem ({\tt target/jboss-modules-*-SNAPSHOT.jar}) nahraďte archiv {\tt jboss-modules.jar} v adresáři WildFly.
     \item Na začátek spouštěcího skriptu, kterým budete WildFly spouštět, (např. {\tt bin/dom ain.sh}) přidejte:
       \begin{lstlisting}
@@ -55,7 +55,7 @@ JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
   
   \item Proveďte instalaci rozšíření webové konzoly WildFly {\tt jsm-policy-console-hal}:
   \begin{enumerate}
-    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-console-hal}. Získat jej můžete opět z přiloženého CD nebo z GitHub:
+    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-console-hal}. Získat jej můžete z přiloženého CD nebo z GitHub:
       \newline\url{https://github.com/honza889/jsm-policy-console-hal}
     \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
     \item Výsledný archiv ({\tt build/app/target/jboss-as-console-*-resources.jar}) nahrajte do adresáře {\tt modules/system/layers/base/org/jboss/as/console/main} v adresáři WildFly.

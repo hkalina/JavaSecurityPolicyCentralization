@@ -129,7 +129,7 @@ Java API se dotáže správce bezpečnosti na oprávněnost této operace tím, 
 Správce bezpečnosti pak na základě parametrů tohoto volání rozhodne o tom, zda operaci zakáže a vyvolá k tomu určenou výjimku {\tt SecurityException}.
 Není-li žádná výjimka vyvolána, považuje se operace za povolenou a je provedena. \cite[4.1.1]{oaks}
 
-Bezpečnostní politiku tak můžeme definovat vytvořením vlastní podtřídy třídy {\tt SecurityManager}, kde přepíšeme metody rozhodující o povolení
+Bezpečnostní politiku tak můžeme definovat vytvořením vlastní podtřídy třídy {\tt Security Manager}, kde přepíšeme metody rozhodující o povolení
 operací, jejichž oprávněnost chceme stanovit.
 
 Od Javy verze {\it Java 2 (SDK v1.2)} je možné používat univerzálnější řešení než přepisovat jednotlivé kontrolní metody.
@@ -976,7 +976,7 @@ Toto webové rozhraní by tedy mělo umožňovat následující:
   \item Upravovat soubory bezpečnostní politiky uložené v konfiguračním stromu WildFly.
   \item Nasazovat tyto soubory bezpečnostní politiky na jednotlivé servery domény.
   \item Nasazovat tyto soubory bezpečnostní politiky na celé skupiny serverů domény.
-  \item Vypínat používání bezpečnostní politiky na serverech nebo jejich skupinách.  
+  \item Vypínat používání bezpečnostní politiky na serverech nebo jejich skupinách.
 \end{itemize}
 
 Jelikož je samotné jádro řešení implementováno jako subsystém WildFly, jako logické řešení se nabízí implementovat uživatelské rozhraní tohoto subsystému jako rozšíření webové konzoly WildFly.

@@ -114,20 +114,16 @@ xrightmargin=5pt,
 
 %Abstrakt (cesky, anglicky)
 \abstract[cs]{
-  Tato práce se zabývá implementací systému pro centralizovanou správu bezpečnostních politik v distribuovaném prostředí Red Hat JBoss/WildFly.
-  Práce je tvořena třemi částmi.
-  První část popisuje, jak je implementován systém bezpečnostních politik v Javě.
-  Druhá část se zabývá způsobem jak bezpečnostní politiky Javy používat v prostředí JBoss/WildFly a řešením souvisejících problémů.
-  Třetí část se pak zabývá návrhem a implementací rozšíření aplikačního serveru WildFly, umožňujícího centrálně spravovat bezpečnostní
-  politiky nasazené na jednotlivých serverech domény.
+  WildFly je platformou pro distribuované prostředí splňující specifikaci Java Enterprise Edition.
+  Tato práce se zabývá možnostmi centrální správy bezpečnostních politik v tomto prostředí.
+  Bezpečnostní politika je sada oprávnění, na které virtuální stroje Javy (JVM) omezují možnosti v sobě spuštěných aplikací provádět potenciálně nežádoucí operace.
+  Právě možnosti používání bezpečnostních politik byly ve WildFly silně omezeny.
+  Výsledkem práce jsou rozšiřující moduly WildFly doplňující programové rozhraní WildFly a webovou administrační konzolu WildFly o možnost
+  centrálního stanovování bezpečnostních politik a jejich nasazování na jednotlivé servery domény WildFly bez potřeby jejich 
+  domény WildFly. Součástí výsledku je také záplata samotného jádra WildFly, řešící problém nemožnosti výměny bezpečnostní politiky za běhu JVM WildFly.
 }
 \abstract[en]{
-  This thesis deals with implementation of system for centralised management of security policies in distributed environment of Red Hat JBoss/WildFly.
-  The thesis is composed of three parts.
-  The first part describes, how is implemented system of security policies in Java.
-  The second part deals with the way how to use security policies of Java in JBoss/WildFly environment and with solving of related problems.
-  The third section deals with the design and implementation of WildFly extension, allowing centrally manage security
-  policies deployed on each server of the domain.
+  %This thesis deals with implementation of system for centralised management of security policies in distributed environment of Red Hat JBoss/WildFly.
 }
 
 %Klicova slova (cesky, anglicky)
