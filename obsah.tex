@@ -66,7 +66,7 @@ Tato práce se zabývá bezpečností ve smyslu prvních tří bodů uvedeného 
 %=============================================================================
 
 Programy v jazyce Java bývají překládány do platformě nezávislého a efektivně interpretovatelného mezikódu, takzvaného bajtkódu.
-Bajtkód ({\it bytecode}) bývá zpravidla interpretován virtuálním strojem Javy (JVM - Java Virtual Machine).
+Bajtkód (bytecode) bývá zpravidla interpretován virtuálním strojem Javy (JVM - Java Virtual Machine).
 \cite{jvmIntro}
 
 JVM je abstraktní výpočetní stroj. Podobně jako reálné výpočetní stroje má svoji instrukční sadu a paměť, se kterou může manipulovat, ale na rozdíl od nich pro něj neexistuje jeho fyzická implementace, pouze emulovaná implementace softwarová.
@@ -132,7 +132,7 @@ Není-li žádná výjimka vyvolána, považuje se operace za povolenou a je pro
 Bezpečnostní politiku tak můžeme definovat vytvořením vlastní podtřídy třídy {\tt Security Manager}, kde přepíšeme metody rozhodující o povolení
 operací, jejichž oprávněnost chceme stanovit.
 
-Od Javy verze {\it Java 2 (SDK v1.2)} je možné používat univerzálnější řešení než přepisovat jednotlivé kontrolní metody.
+Od Javy verze Java 2 (SDK v1.2) je možné používat univerzálnější řešení než přepisovat jednotlivé kontrolní metody.
 Od této verze totiž všechny kontrolní metody (jakou je {\tt checkExit()}) delegují své rozhodnutí na metodu {\tt checkPermission()} správce bezpečnosti.
 Pro stanovení bezpečnostní politiky tak stačí přepsat tuto jedinou metodu. \cite{refSecurityManager}
 
@@ -176,7 +176,7 @@ aplikace nejčastěji využívá. Ty by pak teoreticky mohly být základem pro 
 na základě heuristické analýzy.
 
 Z těchto statistik můžeme zjistit například to, že i v rámci vykonávání prázdného programu v Javě (třídy, jejíž metoda {\tt main()} neobsahuje žádný příkaz) je prováděno celkem 29 potenciálně nebezpečných operací.
-V 18 případech je příčinou dotazu čtení obsahu konfiguračních proměnných ({\it Property}), v 8 případech jde o manipulaci s vlákny ({\it Thread}) a ve zbývajících 3 případech jde o čtení souboru spouštěné třídy ({\tt Program.class}). Ve všech případech jde tedy o operace související se samotnou inicializací JVM.
+V 18 případech je příčinou dotazu čtení obsahu konfiguračních proměnných (Property), v 8 případech jde o manipulaci s vlákny (Thread) a ve zbývajících 3 případech jde o čtení souboru spouštěné třídy ({\tt Program.class}). Ve všech případech jde tedy o operace související se samotnou inicializací JVM.
 
 Pro stanovení bezpečnostní politiky se však tento způsob (vytvoření vlastního správce bezpečnosti) v současnosti již nepoužívá, ačkoli stále možný je.
 Důvodem je, že vyžaduje od správce serveru, na němž aplikace běží, znalosti programování.
@@ -188,9 +188,9 @@ Neumožňuje navíc jednoduchým způsobem přidělovat oprávnění v závislos
 
 Než se dostaneme k v současnosti využívanému způsobu stanovování bezpečnostní politiky, pozastavíme se nad tématem zavádění tříd.
 Ačkoli se na první pohled může zdát, že toto téma s bezpečností příliš nesouvisí, opak je pravdou.
-Jen a pouze zavaděč tříd ({\it classloader}), který třídu do paměti zavádí, totiž může určit původ třídy, od kterého se oprávnění kódu této třídy zpravidla odvozuje.
+Jen a pouze zavaděč tříd (classloader), který třídu do paměti zavádí, totiž může určit původ třídy, od kterého se oprávnění kódu této třídy zpravidla odvozuje.
 
-Zavaděč je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy ({\it binary name of class}) \cite{binaryNameOfClass}, tedy označení třídy používaného v bajtkódu (např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}), se tuto třídu pokusí vyhledat a načíst do paměti. \cite{refClassLoader}
+Zavaděč je objekt odpovědný za načítání tříd a rozhraní v Javě. Na základně binárního názvu třídy (binary name of class) \cite{binaryNameOfClass}, tedy označení třídy používaného v bajtkódu (např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}), se tuto třídu pokusí vyhledat a načíst do paměti. \cite{refClassLoader}
 
 Třída každého zavaděče tříd musí být podtřídou třídy {\tt java.lang.ClassLoader} a musí implementovat metodu {\tt findClass()}. Ta je jádrem celého zavaděče -- provádí samotné vyhledání třídy podle názvu. Jejím výstupem je objekt třídy {\tt java.lang.Class}, představující samotnou třídu. \cite{refClassLoader}
 
@@ -278,7 +278,7 @@ jehož klíčem je objekt zdroje kódu a hodnotou objekt ochranné domény.
 \section{Systém řízení přístupu a soubory bezpečnostní politiky}
 %=============================================================================
 
-Systém řízení přístupu ({\it Access controller}) je mechanismus využívající ochranné domény tříd na zásobníku volání k rozhodnutí, zda operaci požadovanou programem povolit či nikoliv.
+Systém řízení přístupu (access controller) je mechanismus využívající ochranné domény tříd na zásobníku volání k rozhodnutí, zda operaci požadovanou programem povolit či nikoliv.
 
 Na oprávněnost volajícího kódu provést vybranou akci se jej může dotazovat uživatelský kód a veškeré rozhodování na něj zároveň deleguje standardní správce bezpečnosti v Javě verze 2 a novějších. \cite[5]{oaks}
 
@@ -468,7 +468,7 @@ Díky tomu je bezpečnostní politika vyměňována atomicky -- jeden objekt {\t
 V průběhu výměny bezpečnostní politiky tak nemůže dojít k okamžiku, kdy by byla uplatňována jen z části načtená politika.
 
 K inicializaci a tedy i k načítání politiky ze souborů dochází při vytváření objektu {\tt PolicyFile} a při volání jeho metody {\tt refresh()}.
-V obou případech jsou soubory politiky určeny konfiguračními proměnnými ({\it property}) popsanými v kapitole \ref{nastaveniPolitiky}.
+V obou případech jsou soubory politiky určeny konfiguračními proměnnými (property) popsanými v kapitole \ref{nastaveniPolitiky}.
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 \subsubsection{Příklad souboru bezpečnostní politiky}
@@ -571,7 +571,7 @@ Policy.getPolicy().refresh();
 \end{lstlisting}
 \end{figure}
 
-Problémem je, že tato metoda je označena jako nedoporučovaná ({\it deprecated}), protože je implementačně závislá -- zatímco u třídy bezpečnostní politiky {\tt PolicyFile} správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. \cite{refPolicy}
+Problémem je, že tato metoda je označena jako nedoporučovaná (deprecated), protože je implementačně závislá -- zatímco u třídy bezpečnostní politiky {\tt PolicyFile} správně způsobí projevení změn v souboru bezpečnostní politiky, u jiných implementací bezpečnostní politiky může být implementována jako prázdná operace. \cite{refPolicy}
 
 Tato práce se proto bude zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy}, {\tt sun.security.provider.PolicyFile}, a na ní postavených nebo na ni delegujících implementacích.
 
@@ -653,9 +653,9 @@ WildFly, dříve známý jako JBoss Application Server, je aplikační server st
 Poskytuje běhové prostředí (nejen) Java EE aplikacím, které jsou na tomto aplikačním serveru nainstalovány.
 \cite{wildflyRename}
 
-Jednotlivé instalace WildFly nazýváme hostiteli ({\it host}). Hostitel typicky odpovídá jednomu fyzickému serveru.
-V rámci každého hostitele může běžet více serverů ({\it server}).
-Hostitelé mohou být spojováni do domén ({\it domain}), přičemž jeden z nich v takovém případě zastává roli tzv. doménového řadiče ({\it domain controller}).
+Jednotlivé instalace WildFly nazýváme hostiteli (host). Hostitel typicky odpovídá jednomu fyzickému serveru.
+V rámci každého hostitele může běžet více serverů (server).
+Hostitelé mohou být spojováni do domén (domain), přičemž jeden z nich v takovém případě zastává roli tzv. doménového řadiče (domain controller).
 Ostatní hostitelé domény se k němu pak registrují a je na ně aplikována doménová konfigurace.
 \cite{jbossDomainSetup}
 
@@ -669,8 +669,8 @@ Tento soubor určuje název hostitele, zda-li je tento hostitel doménovým řad
 Zde jsou definovány servery, které na daném hostiteli poběží, porty, na kterých budou poskytovat své služby, a skupiny, do kterých budou patřit.
 \cite{jbossDomainSetup}
 
-Distribuovanosti prostředí je docíleno nasazováním aplikací ({\it deployment}) na celé skupiny serverů najednou.
-Požadavky směřované na aplikace pak jsou rozprostírány mezi všechny servery domény osazené danou aplikací pomocí tzv. vyvažovačů zátěže ({\it load balancer}).
+Distribuovanosti prostředí je docíleno nasazováním aplikací (deployment) na celé skupiny serverů najednou.
+Požadavky směřované na aplikace pak jsou rozprostírány mezi všechny servery domény osazené danou aplikací pomocí tzv. vyvažovačů zátěže (load balancer).
 \cite{jbossLoadBalancing}
 
 Vyvažovač zátěže umožňuje skrýt celou doménu serverů za jedinou IP adresu.
@@ -681,7 +681,7 @@ Na této adrese pak naslouchá požadavkům a předává je jednotlivým server�
 \section{Rozhraní pro správu WildFly} \label{managementAPI}
 %=============================================================================
 
-Tato podkapitola popisuje rozhraní umožňující aplikačních serverů WildFly, {\bf JBoss management API}.
+Tato podkapitola popisuje rozhraní umožňující správu aplikačních serverů WildFly, {\bf JBoss management API}.
 Toto rozhraní umožňuje spravovat doménu WildFly a provádět změny v konfiguraci domény i jednotlivých serverů.
 \cite{jbossDetypedManagement}
 
@@ -1181,7 +1181,7 @@ První bezpečnostní politika přitom bude přidělovat oprávnění přístupu
 \section{Implementace testů} % popis implementacniho reseni
 %=============================================================================
 
-Implementované integrační testy jsou tvořeny dvěma částmi -- {\it agentem} a {\it managerem}.
+Implementované integrační testy jsou tvořeny dvěma částmi -- agentem a managerem.
 
 {\bf Agent} je standardní uživatelskou Java EE aplikací nasazovanou na testovaný aplikační server. Na základě požadavku na rozhraní REST (Representational State Transfer) se pokusí přečíst požadovaný testovací soubor. Následně vrátí řetězec {\tt true} v případě že se mu to podaří. V případě že mu v tom bezpečnostní politiky zabrání, vrátí řetězec {\tt false}.
 
@@ -1219,27 +1219,24 @@ Implementované řešení tedy dosáhlo cílů, které byly při jeho návrhu st
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Cílem práce bylo navrhnout, vytvořit a otestovat systém pro centralizovanou správu a distribuci bezpečnostních politik Javy v distribuovaném prostředí aplikačního serveru WildFly.
+Ačkoli jen samotné používání bezpečnostní politiky ve WildFly bylo v době tvorby této práce bez znalosti zdrojového kódu nemožné (viz kapitola \ref{jboss}),
+byl v rámci této bakalářské práce nejen nalezen způsob jak bezpečnostní politiky ve WildFly používat, ale také vytvořen nový způsob, umožňující také její výměnu za běhu aplikačního serveru bez potřeby jeho restartu nebo znovunačtení.
 
-Ačkoli jen samotné používání bezpečnostní politiky ve WildFly bylo v době tvorby této práce bez úpravy zdrojového kódu nemožné (viz kapitola \ref{jboss}),
-bylo v rámci této bakalářské práce umožněno nejen používání bezpečnostní politiky, ale také její výměna za běhu aplikačního serveru bez potřeby
-jeho restartu nebo znovunačtení.
-
-Dosaženo toho bylo za pomoci vytvořené záplaty ({\it patch}) WildFly (viz kapitola \ref{upravaZavadeceWildFly}), která byla zároveň předána
+Dosaženo toho bylo za pomoci vytvořené záplaty (patch) WildFly (viz kapitola \ref{upravaZavadeceWildFly}), která byla zároveň předána
 k začlenění do hlavní vývojové větve. \cite{jbossModulesPullRequest}
-
-O začlenění nebylo zažádáno pouze v případě záplaty správce bezpečnosti WildFly umožňující povolení nastavování správce bezpečnosti,
-zejména pro potřeby jeho vypínání, protože porušovala původní návrh této součásti WildFly.
-
 Po vyřešení samotného používání a výměny bezpečnostních politik v prostředí aplikačního serveru WildFly bylo vytvořeno rozšíření aplikačního serveru.
-
 To umožňuje provádět výměnu používané politiky a zapínat/vypínat správce bezpečnosti v návaznosti na změnu konfigurace pro příslušný server
 v konfiguračním stromu WildFly.
-
 Konfigurační strom WildFly se zároveň používá také pro ukládání jednotlivých souborů bezpečnostní politiky, které jsou tímto způsobem distribuovány napříč aplikačními servery domény.
 
 Nad tímto rozšířením aplikačního serveru pak bylo vytvořeno webové uživatelské rozhraní ve formě rozšíření webové administrační konzoly WildFly.
 To umožňuje nastavovat použití správce bezpečnosti a nastavovat bezpečnostní politiky na jednotlivých serverech nebo celých skupinách serverů WildFly domény.
 
-Na implementované řešení byla nakonec vytvořena automatizovaná sada testů umožňující otestovat schopnost implementovaného systému měnit oprávnění
+Na implementované řešení byla nakonec vytvořena automatizovaná sada testů, umožňující otestovat schopnost implementovaného systému měnit oprávnění
 aplikací nasazených na aplikačním serveru nebo v doméně aplikačních serverů.
+
+Možným vylepšením implementovaného řešení do budoucna by mohlo být umožnění nasazování bezpečnostních politik na celé skupiny aplikačních serverů ne na úrovní webové administrační konzoly WildFly, ale již na úrovni JBoss Management API. Uživatel by tak mohl provádět nasazování politik na skupiny serverů vlastním skriptem bez potřeby procházení jednotlivých serverů skupiny na úrovni tohoto skriptu.
+
+Rozsáhlejším možným rozšířením implementovaného systému by pak mohl být zadávání bezpečnostních politik, již ne ve formě textu v syntaxi typické pro bezpečnostní politiky uložené v textových souborech, ale prostřednictvím uživatelského rozhraní.
+To by mohlo umožnit zadávat bezpečnostní politiku po jednotlivých oprávněních a za pomoci omezených nabídek, tedy s mnohem menším rizikem zadání neplatné politiky oproti implementovanému řešení, kde se uživatel dozvídá o neplatnosti zadané politiky až při jejím uložení.
 
