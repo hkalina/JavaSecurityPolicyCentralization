@@ -44,7 +44,7 @@ Je tak přímo uplatnitelné ve stávajících aplikacích aplikačního serveru
 
 Protože se tato práce zabývá bezpečností, což je pojem, který lze v~různých souvislostech chápat zcela odlišně. Je nanejvýš vhodné nejprve specifikovat co termínem bezpečnosti míníme a z~jakého pohledu se jí budeme zabývat.
 
-Scott Oaks definuje ve své knize Java Security bezpečnost jako souhrn následujících kritérií: \cite[1.1]{oaks}
+Scott Oaks definuje ve své knize Java Security bezpečnost jako souhrn následujících kritérií: \cite{oaks}
 
 \begin{itemize}
   \item {\bf Bezpečí vůči zákeřnému software} -- programy by neměly být schopny poškodit prostředí hostitelského počítače.
@@ -124,10 +124,10 @@ Jak již bylo uvedeno v~kapitole \ref{securityManager}, správce bezpečnosti je
 na který JVM, při požadavku na Java API (Application Programming Interface -- rozhraní pro programování aplikací), deleguje rozhodnutí o~povolení nebo nepovolení operace nad zdrojem.
 
 Jakmile se tedy uživatelská aplikace pokusí provést potenciálně nebezpečnou operaci (například se pokusí ukončit JVM voláním {\tt System.exit(0)}),
-Java API se dotáže správce bezpečnosti na oprávněnost této operace tím, že zavolá jeho, k~tomu určenou, metodu (v~tomto případě {\tt checkExit(0)}). \cite[4.1.1]{oaks}
+Java API se dotáže správce bezpečnosti na oprávněnost této operace tím, že zavolá jeho, k~tomu určenou, metodu (v~tomto případě {\tt checkExit(0)}). \cite{oaks}
 
 Správce bezpečnosti pak na základě parametrů tohoto volání rozhodne o~tom, zda operaci zakáže a vyvolá k~tomu určenou výjimku {\tt SecurityException}.
-Není-li žádná výjimka vyvolána, považuje se operace za povolenou a je provedena. \cite[4.1.1]{oaks}
+Není-li žádná výjimka vyvolána, považuje se operace za povolenou a je provedena. \cite{oaks}
 
 Bezpečnostní politiku tak můžeme definovat vytvořením vlastní podtřídy třídy {\tt Security Manager}, kde přepíšeme metody rozhodující o~povolení
 operací, jejichž oprávněnost chceme stanovit.
@@ -240,7 +240,7 @@ Jen ten totiž může původ třídy znát, protože právě on získání její
 
 Systémový zavaděč tříd je zavaděč používaný pro načítání tříd samotného Java API a zavaděčů uživatelských tříd.
 Je napsán převážně v~nativním kódu a je součástí JVM. K~načítání tříd tedy využívá nativní metody pro přístup k~souborovému systému operačního systému.
-Třídy načítá ze souborů, jejíž adresu odvozuje z~názvu třídy, balíčku a proměnné prostředí {\tt CLASSPATH}. \cite[3.2.1]{oaks}
+Třídy načítá ze souborů, jejíž adresu odvozuje z~názvu třídy, balíčku a proměnné prostředí {\tt CLASSPATH}. \cite{oaks}
 
 Je-li tedy JVM spuštěna příkazem uvedeným v~ukázce kódu \ref{javaClasspath}, bude spuštěna třídní metoda {\tt main()} třídy {\tt Test}
 ze souboru {\tt /srv/classes/my/program/Test.class}.
@@ -254,7 +254,7 @@ java -classpath /srv/classes my.program.Test
 Systémový zavaděč je používán k~načítání jen nejzákladnějších tříd, zejména tříd Java API a dalších tříd potřebných k~provozu jiných zavaděčů tříd.
 Ostatní třídy z~{\tt CLASSPATH} jsou pak načítány jinými zavaděči, typicky zavaděčem tříd z~URL, jež bude popsán dále, v~kapitole \ref{URLClassLoader}.
 
-O~třídách načtených systémovým zavaděčem se často mluví jako o~třídách bez zavaděče, protože jejich objekt {\tt Class} má referenci na zavaděč nastavenu na {\tt null}. \cite[3.2.1]{oaks} Zároveň je rovna {\tt null} také ochranná doména takto načtených tříd. Třídy načtené systémovým zavaděčem tak nemají svá oprávnění omezena. \cite[5.4]{oaks}
+O~třídách načtených systémovým zavaděčem se často mluví jako o~třídách bez zavaděče, protože jejich objekt {\tt Class} má referenci na zavaděč nastavenu na {\tt null}. \cite{oaks} Zároveň je rovna {\tt null} také ochranná doména takto načtených tříd. Třídy načtené systémovým zavaděčem tak nemají svá oprávnění omezena. \cite{oaks}
 
 %-----------------------------------------------------------------------------
 \subsection{Zavaděč tříd z~URL} \label{URLClassLoader}
@@ -263,7 +263,7 @@ O~třídách načtených systémovým zavaděčem se často mluví jako o~tříd
 Zavaděč tříd z~URL ({\tt URLClassLoader}) hledá třídy na URL adresách předaných jeho konstruktoru. Je jedním z~nejpoužívanějších zavaděčů tříd v~Javě,
 protože je implicitním zavaděčem používaným k~načítání tříd z~adres určených proměnnou {\tt CLASSPATH}.
 
-Dokáže třídy načítat nejen z~adresářů, ale i z~JAR archivů, je-li jako adresa uvedena adresa JAR archivu. \cite[3.2.5]{oaks}
+Dokáže třídy načítat nejen z~adresářů, ale i z~JAR archivů, je-li jako adresa uvedena adresa JAR archivu. \cite{oaks}
 
 Zavaděč tříd z~URL je, tak jako většina zavaděčů, jedním z~bezpečných zavaděčů ({\tt SecureClassLoader}).
 To znamená, že nastavuje ochrannou doménu třídám, které načítá.
@@ -280,15 +280,15 @@ jehož klíčem je objekt zdroje kódu a hodnotou objekt ochranné domény.
 
 Systém řízení přístupu (access controller) je mechanismus využívající ochranné domény tříd na zásobníku volání k~rozhodnutí, zda operaci požadovanou programem povolit či nikoliv.
 
-Na oprávněnost volajícího kódu provést vybranou akci se jej může dotazovat uživatelský kód a veškeré rozhodování na něj zároveň deleguje standardní správce bezpečnosti v~Javě verze 2 a novějších. \cite[5]{oaks}
+Na oprávněnost volajícího kódu provést vybranou akci se jej může dotazovat uživatelský kód a veškeré rozhodování na něj zároveň deleguje standardní správce bezpečnosti v~Javě verze 2 a novějších. \cite{oaks}
 
-Systém řízení přístupu tedy, stejně jako správce bezpečnosti, umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zde však již nejsou jen zdroje samotné JVM. Uživatelské programy mohou systém řízení přístupu využívat také k~omezení přístupu k~vlastním zdrojům, které dále poskytují. \cite[5]{oaks}
+Systém řízení přístupu tedy, stejně jako správce bezpečnosti, umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zde však již nejsou jen zdroje samotné JVM. Uživatelské programy mohou systém řízení přístupu využívat také k~omezení přístupu k~vlastním zdrojům, které dále poskytují. \cite{oaks}
 
 Máme-li tedy například knihovnu zprostředkovávající přístup k~databázi v~souboru po záznamech, při použití oprávnění jen na úrovni Java API by bylo možné programu přidělovat oprávnění jen k~celému souboru najednou. Jednotlivé záznamy databáze v~souboru je však možné považovat za samostatné zdroje knihovny. Knihovna pak může využít systém řízení přístupu k~jejich ochraně.
 
 Systém řízení přístupu je schopný pravidla bezpečnostní politiky načítat z~objektů bezpečnostní politiky.
 Implicitní implementace objektu bezpečnostní politiky pak pravidla bezpečnostní politiky načítá z~textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky.
-Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení bezpečnostní politiky poupravit textový soubor bezpečnostní politiky. \cite[5]{oaks}
+Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení bezpečnostní politiky poupravit textový soubor bezpečnostní politiky. \cite{oaks}
 
 Systém řízení přístupu rozhoduje o~povolení potenciálně nežádoucí operace na základě oprávnění třídy, jejíž metoda tuto operaci vyvolala i oprávnění tříd,
 jenž vyvolaly provádění této metody.
@@ -303,9 +303,9 @@ Na legálnost operace se systému řízení přístupu může dotazovat samotná
 \subsection{Implementace a použití systému řízení přístupu}\label{implementaceAC}
 %-----------------------------------------------------------------------------
 
-Systém řízení přístupu je implementován třídou {\tt AccessController}. Voláním jeho statických metod na něj standardní správce bezpečnosti deleguje rozhodnutí o~povolení provedení potenciálně nežádoucí operace uživatelským programem. Samotnou kontrolu provádí jeho metoda {\tt checkPermission(Permission)}, která v~případě neoprávněnosti požadavku na provedení operace vyvolá výjimku {\tt AccessControlException}. Jejím vstupem je objekt třídy {\tt Permission}, který reprezentuje oprávnění, jehož vlastnictví je testováno. \cite[5.5]{oaks}\cite[6]{oaks}
+Systém řízení přístupu je implementován třídou {\tt AccessController}. Voláním jeho statických metod na něj standardní správce bezpečnosti deleguje rozhodnutí o~povolení provedení potenciálně nežádoucí operace uživatelským programem. Samotnou kontrolu provádí jeho metoda {\tt checkPermission(Permission)}, která v~případě neoprávněnosti požadavku na provedení operace vyvolá výjimku {\tt AccessControlException}. Jejím vstupem je objekt třídy {\tt Permission}, který reprezentuje oprávnění, jehož vlastnictví je testováno. \cite{oaks}
 
-Ukázka kódu \ref{pouzitiAccessControlleru} ukazuje způsob, jakým se může kód dotázat systému řízení přístupu, zdali má zadané oprávnění. \cite[5.5]{oaks}
+Ukázka kódu \ref{pouzitiAccessControlleru} ukazuje způsob, jakým se může kód dotázat systému řízení přístupu, zdali má zadané oprávnění. \cite{oaks}
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Příklad položení dotazu systému řízení přístupu, label=pouzitiAccessControlleru]
@@ -431,9 +431,9 @@ Hodnota vrácená z~privilegovaného bloku je nakonec vrácena také metodou {\t
 Tato kapitola popisuje implementaci bezpečnostních politik za pomoci souborů bezpečnostní politiky.
 
 Soubor bezpečnostní politiky se skládá z~deklarací původů tříd a jim přidělovaných oprávnění.
-Původ třídy je zde stanoven na základě podpisu JAR archivu, z~kterého byla třída získána (direktiva {\tt signedBy}), URL kořene systému balíčků tříd (packages), ze kterého byla třída získána (direktiva {\tt codeBase}) nebo obou těchto kritérií najednou. \cite[5.3.1]{oaks}
+Původ třídy je zde stanoven na základě podpisu JAR archivu, z~kterého byla třída získána (direktiva {\tt signedBy}), URL kořene systému balíčků tříd (packages), ze kterého byla třída získána (direktiva {\tt codeBase}) nebo obou těchto kritérií najednou. \cite{oaks}
 
-Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je ukázána v~ukázce kódu \ref{syntaxeSouboruBP}. \cite[5.3.1]{oaks}\cite{refPolicyFiles}
+Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je ukázána v~ukázce kódu \ref{syntaxeSouboruBP}. \cite{oaks}\cite{refPolicyFiles}
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Syntaxe souboru bezpečnostní politiky, label=syntaxeSouboruBP]
@@ -531,14 +531,14 @@ policy.url.3=file:/my-policies/my.policy
 \end{lstlisting}
 \end{figure}
 
-Příklady nastavení konfiguračních proměnných v~tomto souboru jsou uvedeny v~ukázce kódu \ref{javasecurityexample}, která je rozšířením příkladu z~knihy pana Oakse. \cite[5.3.1]{oaks}
+Příklady nastavení konfiguračních proměnných v~tomto souboru jsou uvedeny v~ukázce kódu \ref{javasecurityexample}, která je rozšířením příkladu z~knihy pana Oakse. \cite{oaks}
 
 Nastavenou třídou bezpečnostní politiky je zde třída {\tt PolicyFile} a jako soubory bezpečnostní politiky jsou použity
 soubory {\tt \$\{java.home\}/lib/security/java.policy}, {\tt \$\{user{\linebreak}.home\}/.java.policy} a {\tt /my-policies/my.policy} v~uvedeném pořadí.
 
 Implicitně jsou používány právě první dvě uvedená umístění -- {\tt \$\{java.home\}/lib/secu{\linebreak}rity/java.policy} pro celý systém a {\tt \$\{user.home\}/.java.policy} jako jeho rozšíření pro jednotlivé uživatele. Poslední umístění je přidáno pro demonstraci, jak je možné přidat další umístění. \cite{refSecurity}
 
-Bezpečnostní politiku je dále možné rozšířit při startu JVM o~další soubor bezpečnostní politiky. Stačí nastavit konfigurační proměnnou {\tt java.security.policy} při startu JVM: \cite[5.3.1]{oaks}
+Bezpečnostní politiku je dále možné rozšířit při startu JVM o~další soubor bezpečnostní politiky. Stačí nastavit konfigurační proměnnou {\tt java.security.policy} při startu JVM: \cite{oaks}
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Spuštění JVM s~vlastním souborem bezpečnostní politiky, label=nastaveniBP]
@@ -546,7 +546,7 @@ java -Djava.security.policy=dalsi_soubor_politiky.policy ProgramABC
 \end{lstlisting}
 \end{figure}
 
-V~tomto případě bude uvedený soubor bezpečnostní politiky použit zároveň s~výše uvedeným standardním souborem bezpečnostní politiky. Chceme-li standardní soubory bezpečnostní politiky určené souborem {\tt java.security} zcela nahradit, stačí namísto jednoho rovnítka v~definici konfigurační proměnné použít rovnítka dvě: \cite[5.3.1]{oaks}
+V~tomto případě bude uvedený soubor bezpečnostní politiky použit zároveň s~výše uvedeným standardním souborem bezpečnostní politiky. Chceme-li standardní soubory bezpečnostní politiky určené souborem {\tt java.security} zcela nahradit, stačí namísto jednoho rovnítka v~definici konfigurační proměnné použít rovnítka dvě: \cite{oaks}
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Spuštění JVM jen s~vlastním souborem bezpečnostní politiky, label=nastaveniBP2]
@@ -1223,7 +1223,7 @@ Ačkoli jen samotné používání bezpečnostní politiky ve WildFly bylo v~dob
 byl v~rámci této bakalářské práce nejen nalezen způsob jak bezpečnostní politiky ve WildFly používat, ale také vytvořen nový způsob, umožňující také její výměnu za běhu aplikačního serveru bez potřeby jeho restartu nebo znovunačtení.
 
 Dosaženo toho bylo za pomoci vytvořené záplaty (patch) WildFly (viz kapitola \ref{upravaZavadeceWildFly}), která byla zároveň předána
-k~začlenění do hlavní vývojové větve. \cite{jbossModulesPullRequest}
+k~začlenění do hlavní vývojové větve. \cite{jmPullRequest}
 Po vyřešení samotného používání a výměny bezpečnostních politik v~prostředí aplikačního serveru WildFly bylo vytvořeno rozšíření aplikačního serveru.
 To umožňuje provádět výměnu používané politiky a zapínat/vypínat správce bezpečnosti v~návaznosti na změnu konfigurace pro příslušný server
 v~konfiguračním stromu WildFly.
