@@ -714,13 +714,15 @@ Funkce poskytované aplikačním serverem aplikacím i jeho správcům je možn�
 Typickým obsahem rozšíření je subsystém. Subsystémy jsou konfigurovány pro jednotlivé konfigurační profily, tedy pro všechny servery používající daný profil.
 
 Pro potřeby této práce důležité zmínit hlavně to, že rozšíření může vytvářet vlastní typy uzlů konfiguračního stromu.
-Těmto uzlům pak může definovat vlastnosti, které mohou mít a uzlům i vlastnostem následně přidělovat třídy ošetřující operace nad nimi.
+Těmto uzlům může definovat vlastnosti, které mohou mít.
+Uzlům i vlastnostem pak mohou přidělovat třídy ošetřující operace nad nimi.
 \cite{WildFlyExtending}
 
-Je tak například možné definovat typ uzlu, který při svém vytvoření nebo smazání spustí pro tento účel definovanou proceduru.
-Obdobně mohou být procedury spouštěny také při nastavení hodnoty nebo nastavení nedefinované hodnoty konfigurační vlastnosti tohoto uzlu.
+Je tak například možné definovat typ uzlu, který při svém vytvoření nebo smazání spustí speciální metodu pro tento účel vytvořeného objektu.
+Metody podobných objektů mohou být spouštěny také při nastavení hodnoty nebo nastavení nedefinované hodnoty konfigurační vlastnosti tohoto uzlu.
 
-V~podstatě nic co běží v~rámci WildFly, ať již součásti WildFly nebo uživatelské aplikace, neběží celou dobu běhu aplikačního serveru, ale pouze si zaregistruje události, na které později, až se vyskytnou, reaguje -- říkáme že vše co běží v~rámci WildFly je služba. \cite{jboss7slideShare}
+V~podstatě nic co běží v~rámci WildFly, ať již součásti WildFly nebo uživatelské aplikace, neběží celou dobu běhu aplikačního serveru.
+Pouze si zaregistrují události, na které později, až se vyskytnou, reagují -- říkáme že vše co běží v~rámci WildFly je služba. \cite{jboss7slideShare}
 
 Běžnějším příkladem registrované události, než jakou je úprava konfiguračního uzlu, je příchod HTTP požadavku se specifikovanou URL.
 Takové události jsou typicky registrovány Servlety v~rámci své definice v~konfiguračním souboru {\tt web.xml} své aplikace.
@@ -742,10 +744,13 @@ Konkrétně využívá jeho variantu běžící nad protokolem HTTP, která dota
 
 Tato podkapitola se zabývá problémem používání správce bezpečnosti a bezpečnostních politik v~prostředí JBoss/WildFly.
 
-Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v~Javě -- nastavením patřičných konfiguračních vlastností (popsaných v~kapitolách \ref{securityManager} a \ref{nastaveniPolitiky}) při startu JVM za pomoci příslušných parametrů příkazu {\tt java}.
+Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v~Javě -- nastavením patřičných konfiguračních vlastností (popsaných v~kapitolách \ref{securityManager} a \ref{nastaveniPolitiky}) při startu JVM za pomoci k~tomu určeného parametru {\tt -D} příkazu {\tt java}.
 
 Ve spouštěcím skriptu WildFly ({\tt standalone.sh} / {\tt domain.sh} / {\tt standalone.bat} / {\tt domain.bat}) je pro potřeby přidávání vlastních parametrů příkazu {\tt java} používána proměnná {\tt JAVA\_OPTS}.
-Připojením potřebných parametrů na konec hodnoty této proměnné bychom tedy měli dosáhnout použití správce bezpečnosti a stanovené bezpečnostní politiky ve všech JVM aplikačního serveru. Každý řádek ukázky kódu \ref{wildflySeSMcode} tedy přidá na konec proměnné {\tt \$JAVA\_OPTS} jeden parametru příkazu {\tt java}. \cite{jbossSecurityManager}
+Připojením potřebných parametrů na konec hodnoty této proměnné bychom tedy měli dosáhnout použití správce bezpečnosti a stanovené bezpečnostní politiky ve všech JVM aplikačního serveru.
+Kód který by k~tomu do spouštěcího skriptu musel být přidán ukazuje (pro {\tt *.sh} variantu) ukázka kódu \ref{wildflySeSMcode}.
+Každý její řádek přidá na konec proměnné {\tt \$JAVA\_OPTS} jeden parametr příkazu {\tt java} potřebný ke spouštění serveru s~bezpečnostní politikou.
+\cite{jbossSecurityManager}
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Doplnění spouštěcího skriptu o~použití správce bezpečnosti, label=wildflySeSMcode]
@@ -769,7 +774,7 @@ grant {
 
 Zopakujeme-li experiment, zjistíme že s~takto nastavenou bezpečnostní politikou se aplikační server bez problémů spustil a bez problému funguje.
 Podrobnějším zkoumáním však zjistíme, že na uživatelské aplikace se tato benevolentní bezpečnostní politika neuplatňuje.
-Zatímco zapnutí správce bezpečnosti možnosti uživatelských aplikací skutečně omezilo, nastavení vše povolujících bezpečnostních politik uživatelským
+Zatímco zapnutí správce bezpečnosti tedy možnosti uživatelských aplikací skutečně omezilo, nastavení vše povolujících bezpečnostních politik uživatelským
 aplikacím žádné z~odebraných schopností nenavrátilo.
 
 %-----------------------------------------------------------------------------
@@ -782,27 +787,27 @@ Zavaděč tříd se podařilo jako viníka odhalit postupným krokováním progr
 To potvrdilo, že objekty bezpečnostní politiky produkují správná oprávnění.
 Zároveň ale ukázalo, že do ochranných domén tříd jsou ukládány oprávnění jiná.
 Jak vyplývá z~popisu cesty oprávnění ze souborů bezpečnostních politik do ochranných domén v~kapitole \ref{celkovyPohled},
-jediným mezičlánkem, který mohl s~oprávněními v~této době manipulovat je právě zavaděč tříd.
+jediným mezičlánkem, který tedy mohl s~oprávněními v~této době manipulovat, je právě zavaděč tříd.
 
-Toto zjištění se analýzou zdrojového kódu zavaděče tříd modulů potvrdilo -- tento zavaděč oprávnění poskytovaná objektem bezpečnostní politiky implicitně ignoruje.
+Tento předpoklad pohled do zdrojového kódu zavaděče tříd modulů potvrdil -- tento zavaděč oprávnění poskytovaná objektem bezpečnostní politiky implicitně ignoruje.
 Namísto toho třídám do ochranných domén ukládá oprávnění určená specifikací Java EE. \cite{javaEEspec}
-(Ta jsou případě uživatelských aplikací upravitelná souborem {\tt permission.xml}.)
+(Ta jsou v~případě uživatelských aplikací upravitelná souborem {\tt permission.xml}.)
 
-Nastavením konfigurační proměnné Javy {\tt jboss.modules.policy-permissions} na hodnotu {\tt true} je však možné toto chování změnit.
-Bude-li tato konfigurační proměnná takto nastavena, bude tento zavaděč do ochranných domén ukládat jak oprávnění určená specifikací Java EE, tak i oprávnění z~objektů bezpečnostní politiky.
-Množina oprávnění třídy pak bude odpovídat sjednocení těchto dvou množin oprávnění.
+Zároveň však byla nalezena konfigurační proměnná (property), která toto chování umož-{\linebreak}ňuje změnit.
+Bude-li konfigurační proměnná {\tt jboss.modules.policy-permissions} nastavena na hodnotu {\tt true}, bude zavaděč tříd modulů do ochranných domén ukládat jak oprávnění určená specifikací Java EE, tak i oprávnění z~objektů bezpečnostní politiky.
+Množina efektivních oprávnění třídy pak bude odpovídat sjednocení těchto dvou množin oprávnění.
 \cite{sourceModuleClassLoader}
 
+Ukázka kódu \ref{jbossOpts} ukazuje všechny definice konfiguračních proměnných, které musí být do spouštěcího skriptu aplikačního serveru WildFly přidány,
+aby byl server a aplikace které v~něm běží omezeny oprávněními stanovenými uvedeným souborem bezpečnostní politiky (v~příkladu {\tt directory/wildfly.policy}).
+
 \begin{figure}[tbh]
-\begin{lstlisting}[caption=Úprava spouštěcího skriptu pro spuštění se souborem bezpečnostní politiky, label=jbossOpts]
+\begin{lstlisting}[caption=Úprava spouštěcího skriptu pro spuštění s~bezpečnostní politikou, label=jbossOpts]
 JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-permissions=true"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.manager"
 JAVA_OPTS="$JAVA_OPTS -Djava.security.policy==directory/wildfly.policy"
 \end{lstlisting}
 \end{figure}
-
-Ukázka kódu \ref{jbossOpts} ukazuje všechny definice konfiguračních proměnných, které je nutné přidat do spouštěcího skriptu aplikačního serveru WildFly,
-aby byl spuštěn s~oprávněními stanovenými soubory bezpečnostní politiky.
 
 %-----------------------------------------------------------------------------
 \subsection{Úpravy zavaděče tříd modulů WildFly} \label{upravaZavadeceWildFly}
@@ -810,14 +815,14 @@ aby byl spuštěn s~oprávněními stanovenými soubory bezpečnostní politiky.
 
 Tato podkapitola popisuje úpravy zavaděče tříd modulů WildFly, které bylo nutné provést, aby bylo možné vyměňovat bezpečnostní politiky za běhu aplikačního serveru.
 
-Jakékoli snahy o~výměnu bezpečnostní politiky za běhu aplikačního serveru se doposud jevily jako marné. Oprávnění totiž byly nastavována jako statická,
-jsou tedy z~objektu bezpečnostní politiky načítána pouze při načítání třídy. Změny bezpečnostní politiky se tak projeví pouze na nově načítaných třídách.
+Jakékoli snahy o~výměnu bezpečnostní politiky za běhu aplikačního serveru se doposud jevily jako marné. Oprávnění totiž byly nastavována jako statická.
+Jsou tedy z~objektu bezpečnostní politiky načítána pouze při načítání třídy. Změny bezpečnostní politiky se tak projevovaly pouze na nově načítaných třídách.
 
-Protože je naším cílem výměna bezpečnostní politiky za běhu aplikačního serveru, je tento stav nedostačující.
+Protože je cílem výměna bezpečnostní politiky za běhu aplikačního serveru, je tento stav nedostačující.
 Aby byla možná změna bezpečnostní politiky za běhu aplikačního serveru, je nezbytné, aby byla oprávnění používána jako dynamická, jak je popsáno v~kapitole \ref{staticPerm}.
-V~rámci této práce byla tedy vytvořena záplata zavaděče tříd modulů WildFly, která umožňuje používání dynamických oprávnění.
+V~rámci této práce byla tedy vytvořena záplata zavaděče tříd modulů WildFly, která umožňuje používání dynamických oprávnění ve WildFly.
 
-\begin{figure}[tbh]
+\begin{figure}[b!]
 \begin{lstlisting}[caption=Hlavní část záplaty umožňující nastavit používání dynamických oprávnění, label=refreshable]
 +  if (POLICY_REFRESHABLE) {
 +      protectionDomain = new ProtectionDomain(codeSource, permissions,
@@ -830,29 +835,26 @@ V~rámci této práce byla tedy vytvořena záplata zavaděče tříd modulů Wi
 Zatímco řešení popsané v~předchozí kapitole ukládalo do ochranných domén množinu oprávnění,
 která byla sjednocením oprávnění udělených dle specifikace Java EE a oprávnění z~objektu bezpečnostní politiky,
 v~této variantě jsou do ochranné domény ukládány opět jen oprávnění udělená dle specifikace Java EE.
-
 Při vytváření této ochranné domény je ale použit konstruktor se všemi čtyřmi parametry, čímž je tato doména označena jako používající dynamická oprávnění.
 Při každém dotazu na oprávnění k~provedení potenciálně nežádoucí operace tak je tento dotaz předán objektu bezpečnostní politiky.
-
 Efektivní oprávnění třídy pak jsou sjednocením dynamických oprávnění z~objektu bezpečnostní politiky a statických oprávnění přidělených dle specifikace Java EE při načítání třídy.
 
-Použití této nové varianty bylo přitom záměrně omezeno -- byla vytvořena nová konfigurační vlastnost {\tt jboss.modules.policy-refreshable},
-jejíž hodnota určuje, zda má být tato nová varianta použita. Je-li její hodnota {\tt true}, bude použita,
-jinak budou oprávnění ve WildFly fungovat tak jako doposud.
-
-Toto omezení bylo do záplaty vloženo záměrně proto, aby bylo možné začlenění této úpravy do vývojové větve WildFly, o~což bylo také požádáno \cite{jmPullRequest}.
+Použití této nové varianty bylo přitom záměrně omezeno, aby bylo možné začlenění této úpravy do vývojové větve WildFly.
+Byla vytvořena nová konfigurační vlastnost {\tt jboss.modul es.policy-refreshable}, jejíž hodnota určuje, zda-li mají být dynamická oprávnění použita.
+Je-li její hodnota {\tt true}, budou použita dynamická oprávnění, jinak budou používána statická oprávnění jako doposud.
+O~začlenění této záplaty do vývojové větve bylo požádáno \cite{jmPullRequest}.
 
 %-----------------------------------------------------------------------------
 \subsection{Výměna bezpečnostní politiky za běhu} \label{zmenaZaBehu}
 %-----------------------------------------------------------------------------
 
-Tato podkapitola popisuje postup, který je nutné použít, aby bylo možné aplikace nebo rozšíření WildFly provést výměnu bezpečnostní politiky.
+Tato podkapitola popisuje postup, který je nutné použít, aby bylo možné z~aplikace nebo z~rozšíření WildFly provést výměnu bezpečnostní politiky.
 
-Jak již bylo popsáno v~kapitole \ref{nastaveniPolitiky}, pro výměnu jedné bezpečnostní politiky za druhou je nutné pozměnit hodnotu konfigurační proměnné
+Jak již bylo popsáno v~kapitole \ref{nastaveniPolitiky}, pro výměnu bezpečnostní politiky je nutné pozměnit hodnotu konfigurační proměnné
 {\tt java.security.policy} a vyžádat od objektu bezpečnostní politiky znovunačtení souboru bezpečnostní politiky.
-V~prostředí WildFly však bohužel nestačí zavolat metodu {\tt refresh()} aktuálně používaného objektu bezpečnostní politiky -- tímto objektem je totiž instance třídy {org.jboss.security.jacc.DelegatingPolicy}. Tento objekt sice všechny volání metody {\tt implies()} nesouvisející s~JACC (Java Authorization Contract for Containers) deleguje na původní objekt bezpečnostní politiky, metodu {\tt refresh()} na něj však nedeleguje.
+V~prostředí WildFly však, přestože již je zajištěno používání dynamických oprávnění (viz kapitola \ref{upravaZavadeceWildFly}), bohužel nestačí zavolat metodu {\tt refresh()} aktuálně používaného objektu bezpečnostní politiky. Tímto objektem je totiž instance třídy {org.jboss.security.jacc.DelegatingPolicy}. Tento objekt sice všechny volání metody {\tt implies()} nesouvisející s~JACC (Java Authorization Contract for Containers) deleguje na původní objekt bezpečnostní politiky, metodu {\tt refresh()} na něj však nedeleguje.
 
-Toto chování bylo nahlášeno jako chyba implementace třídy {\tt DelegatingPolicy}. \cite{issueDelegating} Není totiž logické aby objekt delegoval dotazy na legálnost operace ale nepropouštěl požadavky na znovunačtení politiky, rozhodující o~legálnosti těchto operací.
+Toto chování jsem nahlásil jako chybu implementace třídy {\tt DelegatingPolicy}, neboť jsem přesvědčen, že takové počínání je nelogické. Deleguje-li třída dotazování, měla by delegovat také žádost o~znovunačtení dat, na základě kterých jsou tato rozhodnutí prováděna. \cite{issueDelegating}
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Znovunačtení bezpečnostní politiky při nastavené {\tt DelegatingPolicy}, label=refreshDelegating]
@@ -864,9 +866,9 @@ Toto chování bylo nahlášeno jako chyba implementace třídy {\tt DelegatingP
 \end{lstlisting}
 \end{figure}
 
-Pro potřeby této bakalářské práce však bylo znovunačtení bezpečnostní politiky prozatím provedeno za pomoci reflexe, jak je ukázáno v~ukázce kódu \ref{refreshDelegating}.
-Reflexí je zde získána hodnota atributu {\tt delegate} aktuálně používaného objektu bezpečnostní politiky.
-Touto hodnotou je další objekt bezpečnostní politiky. Zavolání jeho metody {\tt refresh()} již postačuje k~dosažení znovunačtení bezpečnostní politiky ve WildFly.
+Pro potřeby této bakalářské práce však bylo znovunačtení bezpečnostní politiky prozatím zajištěno za pomoci reflexe, jak je ukázáno v~ukázce kódu \ref{refreshDelegating}.
+Reflexí je zde získána hodnota atributu {\tt delegate} aktuálně používaného objektu bezpečnostní politiky, který je třídy {\tt DelegatingPolicy}.
+Hodnotou {\tt delegate} je další objekt bezpečnostní politiky, zavolání jehož metody {\tt refresh()} již postačuje k~dosažení znovunačtení bezpečnostní politiky ve WildFly.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Návrh systému} \label{navrh}
@@ -1041,28 +1043,6 @@ Z~této kostry byl vytvořen subsystém, jehož jedinou funkcí bylo rozšířen
   \caption{Diagram tříd prototypu}
   \label{tridy1}
 \end{figure}
-
-\iffalse
-\begin{figure}[tbh]
-\begin{lstlisting}[caption=Konstruktor třídy {\tt ServerDefinition} definující konfigurační uzel serveru, label=registraceUzluServer]
-    private ServerDefinition() {
-        super(JsmPolicyExtension.SERVER_PATH,
-              JsmPolicyExtension.getResourceDescriptionResolver("server"),
-              ServerAdd.INSTANCE,
-              ServerRemove.INSTANCE);
-    }
-\end{lstlisting}
-\end{figure}
-
-\begin{figure}[tbh]
-\begin{lstlisting}[caption=Registrace konfigurační vlastnosti {\tt policy} uzlu {\tt server=*}, label=registraceAtributu]
-    public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-            resourceRegistration.registerReadWriteAttribute(POLICY,
-                           null, ServerWriteAttribute.INSTANCE);
-    }
-\end{lstlisting}
-\end{figure}
-\fi
 
 Byla tedy vytvořena třída definující rozšíření, {\tt JsmPolicyExtension}.
 Její vnitřní třídou byla třída, zajišťující načítání a ukládání podstromu konfiguračního stromu patřící subsystému, {\tt SubsystemParser}.
