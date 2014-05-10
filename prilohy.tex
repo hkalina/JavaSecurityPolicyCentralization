@@ -154,13 +154,13 @@ grant codeBase "vfs:/content/JsmPolicyTestingAgent.war/-" {
 \begin{figure}[ht]
   \centering
   \includegraphics[width=10cm]{fig/test-passwd}
-  \caption{Výstup testovací aplikace pro bezpečnostní politiku {\tt passwd-only}}
+  \caption{Výstup testovací aplikace pro bezpečnostní politiku {\tt passwd-only} -- testovací aplikace může číst obsah souboru {\tt /etc/passwd}, ale ne obsah souboru {\tt /etc/group}}
   \label{testPasswd}
 \end{figure}
 \begin{figure}[ht]
   \centering
   \includegraphics[width=10cm]{fig/test-group}
-  \caption{Výstup testovací aplikace pro bezpečnostní politiku {\tt group-only}}
+  \caption{Výstup testovací aplikace pro bezpečnostní politiku {\tt group-only} -- testovací aplikace může číst obsah souboru {\tt /etc/group}, ale ne obsah souboru {\tt /etc/passwd}}
   \label{testGroup}
 \end{figure}
 
