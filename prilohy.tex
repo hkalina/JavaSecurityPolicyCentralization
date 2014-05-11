@@ -116,10 +116,9 @@ Uvedený postup předpokládá operační systém Linux s nainstalovaným běhov
   \item Vytvořte novou bezpečnostní politiku pro otestování:
   \begin{enumerate}
     \item V nabídce subsystému {\bf JSM Policy} vyberte stránku {\bf Policies}.
-    \item Klikněte na tlačítko {\bf Add}, do pole {\bf Policy name} uveďte jako název vytvářené politiky {\tt passwd-only}.
-    \item V seznamu dostupných politik ({\bf Available JSM Policies}) označte vytvořenou politiku ({\tt passwd-only}).
-    \item Ve spodní části stránky klikněte na odkaz {\bf Edit}.
-    \item Do pole {\bf File content} vyplňte požadovanou bezpečnostní politiku v syntaxi obvyklé pro soubory bezpečnostní politiky Javy. Například tedy:
+    \item Klikněte na tlačítko {\bf Add}, do pole {\bf Policy name} uveďte jako název vytvářené politiky {\tt passwd-only} a potvrďte tlačítkem {\bf Save}.
+    \item V seznamu dostupných politik ({\bf Available JSM Policies}) označte vytvořenou politiku ({\tt passwd-only}) a ve spodní části stránky klikněte na odkaz {\bf Edit}.
+    \item Do pole {\bf File content} ve spodní části stránky vyplňte požadovanou bezpečnostní politiku v syntaxi obvyklé pro soubory bezpečnostní politiky Javy. Například tedy:
     \begin{lstlisting}
 grant codeBase "vfs:/content/JsmPolicyTestingAgent.war/-" {
     permission java.io.FilePermission "/etc/passwd","read";
@@ -129,7 +128,7 @@ grant codeBase "vfs:/content/JsmPolicyTestingAgent.war/-" {
     \item Úpravu bezpečnostní politiky dokončete tlačítkem {\bf Save}.
   \end{enumerate}
   
-  \item Aby bylo možné testovat také výměnu bezpečnostní politiky, vytvořte stejným postupem také druhou bezpečnostní politiku. Jako její název ({\bf Policy name}) uveďte například {\tt group-only} a její obsah {\tt File content} nastavte na následující:
+  \item Aby bylo možné testovat také výměnu bezpečnostní politiky, vytvořte stejným postupem také druhou bezpečnostní politiku. Jako její název ({\bf Policy name}) uveďte {\tt group-only} a její obsah ({\tt File content}) vyplňte:
   \begin{lstlisting}
 grant codeBase "vfs:/content/JsmPolicyTestingAgent.war/-" {
     permission java.io.FilePermission "/etc/group","read";
@@ -137,9 +136,9 @@ grant codeBase "vfs:/content/JsmPolicyTestingAgent.war/-" {
   \end{lstlisting}
   \item Zajistěte, aby byla na aplikačním serveru nasazena testovací aplikace. V případě předpřipravené instalace je tento krok možné přeskočit. Byly-li na tomto serveru již spoušteny integrační testy, je tento krok rovněž možné přeskočit.
   \begin{enumerate}
-    \item Nakopírujte do zapisovatelného adresáře adresář {\tt agent} repozitáře {\tt jsm-policy-test}, který můžete získat ze stejně pojmenovaného adresáře na přiloženém CD nebo z GitHub:
+    \item Nakopírujte do zapisovatelného adresáře adresář {\tt agent} z {\tt jsm-policy-test}, repozitáře který můžete získat ze stejně pojmenovaného adresáře na přiloženém CD nebo z GitHub:
       \newline\url{https://github.com/honza889/jsm-policy-test}
-    \item Běží-li vaše instalace na jiném serveru nebo používáte-li jiné skupiny serverů než implicitní, pozměňte patřičné údaje v souboru {\tt agent/pom.xml}.
+    \item Běží-li vaše instalace na jiném počítači než lokálním, nebo používáte-li jiné názvy skupin serverů než jsou ve WildFly implicitní, nastavte potřebné údaje v souboru {\tt pom.xml}.
     \item Proveďte kompilaci a nasazení testovací aplikace spuštěním následujícího příkazu v adresáři {\tt agent}:
       \newline{\tt mvn install wildfly:deploy}
     \item Skončí-li operace zprávou {\tt BUILD SUCCESS}, byla aplikace úspěšně nasazena.
@@ -150,12 +149,12 @@ grant codeBase "vfs:/content/JsmPolicyTestingAgent.war/-" {
     \item Otevřete stránku testovací aplikace otevřením následující webové adresy:
       \newline\url{http://localhost:8080/JsmPolicyTestingAgent/}\newline
       Uvedený port (8080) implicitně odpovídá serveru {\tt server-one} ze skupiny {\tt main- server-group}. Pro jiný server nebo jinou konfiguraci je nutné číslo portu patřičně poupravit.
-    \item Souběžně v nabídce subsystému {\bf JSM Policy} vyberte stránku {\bf Servers}.
-    \item Klikněte na ikonu šipky na řádku skupiny server, na kterém chceme systém vyzkoušet, pro {\tt server-one} na řádku skupiny {\tt main-server-group}.
+    \item V nabídce subsystému {\bf JSM Policy} vyberte stránku {\bf Servers}.
+    \item Klikněte na ikonu šipky na řádku skupiny serveru, na kterém chceme nastavení politiky vyzkoušet -- pro {\tt server-one} klikněte na ikonu u {\tt main-server-group}.
     \item V zobrazeném seznamu serverů rozkliknuté skupiny změňte hodnotu v omezené nabídce testovacího serveru ({\tt server-one}) na {\tt passwd-only}.
-    \item Vraťte se ke stránce testovací aplikace a všimněte si řádků {\tt /etc/passwd} a {\tt /etc/group}, které ukazují, zda má testovací aplikace možnost číst dané soubory. Pokud ano, je zobrazen jejich první řádek, jako důkaz, že program soubor skutečně číst může. V opačném případě řádek obsahuje popis výjimky, jež při pokusu o čtení z daného souboru nastala.
-    \item Rozklikněte opět skupinu s testovacím serverem a změňte hodnotu v jeho omezené nabídce na {\tt group-only}.
-    \item Vraťte se opět ke stránce testovací aplikace a všimněte si, jakým způsobem se uvedené řádky změnili -- měli byste si všimnout, že zatímco v prvním případě mohla testovací aplikace číst soubor {\tt /etc/passwd}, ale {\tt /etc/group} ne (viz obrázek \ref{testPasswd}), v druhém případě tomu bylo přesně naopak (viz obrázek \ref{testGroup}).
+    \item Vraťte se ke stránce testovací aplikace a všimněte si řádků {\tt /etc/passwd} a {\tt /etc/group}, které ukazují, zda má testovací aplikace možnost číst dané soubory. Pokud ano, je zobrazen zeleně jejich první řádek, jako důkaz, že program soubor skutečně číst může. V opačném případě řádek obsahuje červeně popis výjimky, jež při pokusu o čtení z daného souboru nastala.
+    \item Stejným způsobem jako v předminulém bodu nastavte bezpečnostní politiku testovacího serveru na {\tt group-only}.
+    \item Vraťte se opět ke stránce testovací aplikace, znovu ji načtěte (např. stiskem klávesy F5) a všimněte si, jakým způsobem se uvedené řádky změnili -- měli byste si všimnout, že zatímco v prvním případě mohla testovací aplikace číst soubor {\tt /etc/passwd}, ale {\tt /etc/group} ne (viz obrázek \ref{testPasswd}), v druhém případě tomu bylo přesně naopak (viz obrázek \ref{testGroup}).
   \end{enumerate}
 \end{enumerate}
 
