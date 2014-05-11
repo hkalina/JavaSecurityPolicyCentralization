@@ -984,11 +984,11 @@ Toto webové rozhraní by tedy mělo umožňovat následující:
 Jelikož je samotné jádro řešení implementováno jako subsystém WildFly, jako logické řešení se nabízí implementovat uživatelské rozhraní tohoto subsystému jako rozšíření webové konzoly WildFly.
 Toto rozhraní bylo navrženo jako tři nové konfigurační obrazovky webové konzoly WildFly:
 
-\begin{enumerate}
+\begin{itemize}
   \item Obrazovka {\bf Servers} (Servery) umožňuje zvolit, které bezpečnostní politiky mají být nasazeny na jednotlivých serverech a skupinách domény. Nastavením prázdné (None/{\tt null}) bezpečnostní politiky navíc umožňuje používání bezpečnostní politiky na serveru nebo skupině vypnout.
   \item Obrazovka {\bf Policies} (Politiky) umožňuje vytvářet, upravovat a odstraňovat samotné bezpečnostní politiky. Ty pak mohou být jednotlivým serverům přidělovány na obrazovce {\bf Servers}.
   \item Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy) umožňuje zobrazit bezpečnostní politiku nasazenou na vybraném serveru -- její název a obsah.
-\end{enumerate}
+\end{itemize}
 
 \begin{figure}[ht]
   \centering
@@ -1105,7 +1105,7 @@ Zároveň byla definována také třída {\tt Removepolicy} ošetřující opera
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Klíčová část metody {\tt setPolicyFile()} třídy {\tt PolicyManager}, label=setPolicyFile]
-public void setPolicyFile(String fileContent) throws OperationFailedException {
+public void setPolicyFile(String fileContent) {
  if (fileContent == null) {
   setPolicy(null);
  } else {
@@ -1130,6 +1130,25 @@ Dočasný soubor je jako soubor politiky nastaven metodou {\tt setPolicy()} pops
 V~opačném případě, kdy je obsah bezpečnostní politiky roven {\tt null}, je rovněž volána metoda {\tt setPolicy()}, ale s~parametrem {\tt null}, čímž je používání bezpečnostní politiky a správce bezpečnosti vypnuto.
 
 Jak je tedy vidět, používání souborů bezpečnostních politik uložených v~konfiguračním stromu WildFly tak je ve své podstatě triviální.
+
+%=============================================================================
+\section{Webové uživatelské rozhraní}
+%=============================================================================
+
+Webové uživatelské rozhraní umožňující správu implementovaného subsystému bylo implementováno tak, jak bylo navrženo v kapitole \ref{navrhGUI}.
+Je implementováno jako záplata administrační konzoly WildFly, do které přidává konfigurační obrazovky popsané v kapitole \ref{navrhGUI}.
+
+Obrazovka {\bf Policies} (Politiky), umožňující spravovat bezpečnostní politiky nasaditelné na server domény, byla vytvořena jednoduchou úpravou existující konfigurační obrazovky WildFly, {\bf Mail}.
+Tato obrazovka umožňovala spravovat uzly subsystému {\tt mail}. Jednoduchou úpravou tak byla vytvořena konfigurační obrazovku pro správu uzlů politiky.
+
+Jedinou komplikací zde byla grafická komponenta textového pole, {\tt TextAreaItem}. Ta neumožňovala uložit text obsahující znak nového řádku nebo uvozovek. Tento problém byl vyřešen za pomoci vlastní podtřídy této komponenty, která před tyto znaky vkládala znak zpětného lomítka. Stejná úprava byla souběžně předána k začlenění a byla začleněna do vývojové větve administrační konzoly WildFly. \cite{textareaPullRequest}
+
+Obrazovka {\bf Servers} (Servery), umožňující nasazovat bezpečností politiky na jednotlivé servery a jejich skupiny, vznikla úpravou konfigurační obrazovky {\bf Runtime / JNDI View}. Ta byla vybrána pro způsob zobrazení stromové struktury, který se podobal grafickému návrhu plánované konfigurační obrazovky.
+Byla přitom vytvořena grafická komponenta {\tt JsmNodeCell} představující položku této stromové struktury.
+Tato komponenta umožňuje položku stromové struktury zobrazit jako kombinaci popisku s názvem serveru/skupiny, a omezené nabídky, umožňující vybírat politiku z politik dostupných v subsystému.
+Na změnu hodnoty této omezené nabídky je pak navázáno samotné nasazení zvolené bezpečnostní politiky.
+
+Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy), umožňující sledovat, jaká bezpečnostní politika je právě nasazena na zvoleném serveru, je velice jednoduchá. Obsahuje pouze dvě textová pole -- pole zobrazující název nasazené politiky a pole zobrazující obsah této politiky. Jejich obsah je načten při zobrazení obrazovky a změně výběru serveru. Pro uživatele jsou jen pro čtení.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému} \label{testovani}
@@ -1217,5 +1236,5 @@ Možným vylepšením implementovaného řešení do budoucna by mohlo být umo�
 Rozsáhlejším možným rozšířením implementovaného systému by pak mohl být zadávání bezpečnostních politik, již ne ve formě textu v~syntaxi typické pro bezpečnostní politiky uložené v~textových souborech, ale prostřednictvím uživatelského rozhraní.
 To by mohlo umožnit zadávat bezpečnostní politiku po jednotlivých oprávněních a za pomoci omezených nabídek, tedy s~mnohem menším rizikem zadání neplatné politiky oproti implementovanému řešení, kde se uživatel dozvídá o~neplatnosti zadané politiky až při jejím uložení.
 
-%Byly splněny všechny cíle stanovené zadáním práce. Úvahu, nakolik výsledky této práce prospějí budoucímu vývoji aplikačního serveru WildFly, ponechám na čtenáři.
+Byly splněny všechny cíle stanovené zadáním práce. Úvahu, nakolik výsledky této práce prospějí budoucímu vývoji aplikačního serveru WildFly, ponechám na čtenáři.
 
