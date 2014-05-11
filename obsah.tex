@@ -820,9 +820,9 @@ Jsou tedy z~objektu bezpečnostní politiky načítána pouze při načítání 
 
 Protože je cílem výměna bezpečnostní politiky za běhu aplikačního serveru, je tento stav nedostačující.
 Aby byla možná změna bezpečnostní politiky za běhu aplikačního serveru, je nezbytné, aby byla oprávnění používána jako dynamická, jak je popsáno v~kapitole \ref{staticPerm}.
-V~rámci této práce byla tedy vytvořena záplata zavaděče tříd modulů WildFly, která umožňuje používání dynamických oprávnění ve WildFly.
+V~rámci této práce byla tedy vytvořena záplata zavaděče tříd modulů WildFly, která umožňuje používání dynamických oprávnění ve WildFly. Ukázána je v ukázce kódu \ref{refreshable}.
 
-\begin{figure}[b!]
+\begin{figure}[t!]
 \begin{lstlisting}[caption=Hlavní část záplaty umožňující nastavit používání dynamických oprávnění, label=refreshable]
 +  if (POLICY_REFRESHABLE) {
 +      protectionDomain = new ProtectionDomain(codeSource, permissions,
@@ -856,7 +856,7 @@ V~prostředí WildFly však, přestože již je zajištěno používání dynami
 
 Toto chování jsem nahlásil jako chybu implementace třídy {\tt DelegatingPolicy}, neboť jsem přesvědčen, že takové počínání je nelogické. Deleguje-li třída dotazování, měla by delegovat také žádost o~znovunačtení dat, na základě kterých jsou tato rozhodnutí prováděna. \cite{issueDelegating}
 
-\begin{figure}[tbh]
+\begin{figure}[b!]
 \begin{lstlisting}[caption=Znovunačtení bezpečnostní politiky při nastavené {\tt DelegatingPolicy}, label=refreshDelegating]
     Class<?> delegatingPolicy = Class.forName("org.jboss.security.jacc.DelegatingPolicy");
     Field f = delegatingPolicy.getDeclaredField("delegate");
@@ -990,18 +990,17 @@ Toto rozhraní bylo navrženo jako tři nové konfigurační obrazovky webové k
   \item Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy) umožňuje zobrazit bezpečnostní politiku nasazenou na vybraném serveru -- její název a obsah.
 \end{itemize}
 
-\begin{figure}[ht]
+\begin{figure}
+
   \centering
   \includegraphics[width=14cm]{fig/mockup}
-  \caption{Grafický návrh uživatelského rozhraní plánovaného rozšíření WildFly.}
+  \caption{Grafický návrh uživatelského rozhraní plánovaného rozšíření WildFly \newline}
   \label{navrhGui}
-\end{figure}
 
-\begin{figure}[ht]
-  \centering
   \includegraphics[width=14cm]{fig/jsmpolicy-servers}
-  \caption{Výsledná podoba webového uživatelského rozhraní.}
+  \caption{Výsledná podoba webového uživatelského rozhraní}
   \label{vysledneGui}
+
 \end{figure}
 
 Grafický návrh první uvedené konfigurační obrazovky, umožňující zvolit, které bezpečnostní politiky mají být nasazeny na jednotlivých serverech a skupinách, je vyobrazen na obrázku \ref{navrhGui}. Zároveň je pro srovnání na obrázku \ref{vysledneGui} ukázán snímek obrazovky ukazující výslednou podobu této konfigurační obrazovky, jak byla později implementována.
