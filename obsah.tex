@@ -1135,17 +1135,17 @@ Jak je tedy vidět, používání souborů bezpečnostních politik uložených 
 \section{Webové uživatelské rozhraní}
 %=============================================================================
 
-Webové uživatelské rozhraní umožňující správu implementovaného subsystému bylo implementováno tak, jak bylo navrženo v kapitole \ref{navrhGUI}.
-Je implementováno jako záplata administrační konzoly WildFly, do které přidává konfigurační obrazovky popsané v kapitole \ref{navrhGUI}.
+Webové uživatelské rozhraní umožňující správu implementovaného subsystému bylo implementováno tak, jak bylo navrženo v~kapitole \ref{navrhGUI}.
+Je implementováno jako záplata administrační konzoly WildFly, do které přidává konfigurační obrazovky popsané v~kapitole \ref{navrhGUI}.
 
 Obrazovka {\bf Policies} (Politiky), umožňující spravovat bezpečnostní politiky nasaditelné na server domény, byla vytvořena jednoduchou úpravou existující konfigurační obrazovky WildFly, {\bf Mail}.
 Tato obrazovka umožňovala spravovat uzly subsystému {\tt mail}. Jednoduchou úpravou tak byla vytvořena konfigurační obrazovku pro správu uzlů politiky.
 
-Jedinou komplikací zde byla grafická komponenta textového pole, {\tt TextAreaItem}. Ta neumožňovala uložit text obsahující znak nového řádku nebo uvozovek. Tento problém byl vyřešen za pomoci vlastní podtřídy této komponenty, která před tyto znaky vkládala znak zpětného lomítka. Stejná úprava byla souběžně předána k začlenění a byla začleněna do vývojové větve administrační konzoly WildFly. \cite{textareaPullRequest}
+Jedinou komplikací zde byla grafická komponenta textového pole, {\tt TextAreaItem}. Ta neumožňovala uložit text obsahující znak nového řádku nebo uvozovek. Tento problém byl vyřešen za pomoci vlastní podtřídy této komponenty, která před tyto znaky vkládala znak zpětného lomítka. Stejná úprava byla souběžně předána k~začlenění a byla začleněna do vývojové větve administrační konzoly WildFly. \cite{textareaPullRequest}
 
 Obrazovka {\bf Servers} (Servery), umožňující nasazovat bezpečností politiky na jednotlivé servery a jejich skupiny, vznikla úpravou konfigurační obrazovky {\bf Runtime / JNDI View}. Ta byla vybrána pro způsob zobrazení stromové struktury, který se podobal grafickému návrhu plánované konfigurační obrazovky.
 Byla přitom vytvořena grafická komponenta {\tt JsmNodeCell} představující položku této stromové struktury.
-Tato komponenta umožňuje položku stromové struktury zobrazit jako kombinaci popisku s názvem serveru/skupiny, a omezené nabídky, umožňující vybírat politiku z politik dostupných v subsystému.
+Tato komponenta umožňuje položku stromové struktury zobrazit jako kombinaci popisku s~názvem serveru/skupiny, a omezené nabídky, umožňující vybírat politiku z~politik dostupných v~subsystému.
 Na změnu hodnoty této omezené nabídky je pak navázáno samotné nasazení zvolené bezpečnostní politiky.
 
 Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy), umožňující sledovat, jaká bezpečnostní politika je právě nasazena na zvoleném serveru, je velice jednoduchá. Obsahuje pouze dvě textová pole -- pole zobrazující název nasazené politiky a pole zobrazující obsah této politiky. Jejich obsah je načten při zobrazení obrazovky a změně výběru serveru. Pro uživatele jsou jen pro čtení.
@@ -1163,14 +1163,11 @@ Protože cílem této bakalářské práce nebylo jen vytvoření systému umož
 Cílem implementace řešení bylo umožnění nasazování bezpečnostní politik na servery v~doméně aplikačních serverů WildFly.
 Implementované řešení by mělo být schopné nasadit bezpečnostní politiku na specifikovaný server na základě požadavku skrze JBoss Management API.
 Testování by se tak jednoznačně mělo soustředit právě na schopnost systému nastavit na základě požadavku na stanoveném serveru stanovenou politiku.
-
 Testování této klíčové vlastnosti je možné provádět jedině v~rámci testu integračního, tedy testu testujícího systém jako celek.
 Jednotkové testování v~této oblasti sice rovněž může odhalit některé chyby, s~hledáním klíčových chyb, vyplývajících z~manipulací s~bezpečnostními politikami pod WildFly, však pomoci nemůže.
 
-Integrační test pak bude založen na testování schopnosti uživatelské aplikace přistoupit k~souboru, k~němuž je přístup omezen bezpečnostní politikou a na vyměňování bezpečnostní politiky skrze testovaný subsystém v~průběhu testu.
-
-Vzhledem k~tomu že nejsložitější možnou situací, která může v~rámci jednoho serveru nastat je výměna jedné bezpečnostní politiky za druhou,
-k~úplnému otestování implementovaného řešení postačují dva testovací soubory a dvě testovací bezpečnostní politiky.
+Integrační test bude založen na testování schopnosti uživatelské aplikace přistoupit k~souboru, k~němuž je přístup omezen bezpečnostní politikou a na vyměňování bezpečnostní politiky skrze testovaný subsystém v~průběhu testu.
+Vzhledem k~tomu že nejsložitější možnou situací, která může v~rámci jednoho serveru nastat je výměna jedné bezpečnostní politiky za druhou, k~úplnému otestování implementovaného řešení postačují dva testovací soubory a dvě testovací bezpečnostní politiky.
 První bezpečnostní politika přitom bude přidělovat oprávnění přístupu pouze k~prvnímu souboru a druhá pouze k~druhému.
 
 %=============================================================================
@@ -1207,7 +1204,6 @@ Byly-li na různé servery souběžně nasazovány dvě různé politiky, vzáje
 %=============================================================================
 
 Testování prokázalo, že implementovaný subsystém dokáže bez problémů nastavovat bezpečnostní politiky serverů domény, aniž by se přitom bezpečnostní politiky nasazené na různých serverech domény vzájemně ovlivňovaly.
-
 Implementované řešení tedy dosáhlo cílů, které byly při jeho návrhu stanoveny.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
