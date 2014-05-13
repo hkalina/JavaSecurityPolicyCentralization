@@ -59,7 +59,7 @@ Scott Oaks definuje ve své knize Java Security bezpečnost jako souhrn následu
 
 V~souvislosti s~víceuživatelskými prostředími se pak pojem bezpečnosti vyskytuje ještě v~další rovině, kdy nejde o~bezpečí systému před běžící aplikací, ale o~způsob jakým může naopak program ověřit, kdo je jeho uživatelem a zdali má právo po něm žádat vykonání operace, o~jejíž vykonání žádá. Touto stránkou bezpečnosti se však tato práce zabývat nebude.
 
-Tato práce se zabývá bezpečností ve smyslu prvních tří bodů uvedeného výčtu (zvýrazněny tučně). Bude se tedy zabývat způsobem ochrany prostředí hostitelského počítače před jeho poškozením nebo neoprávněným sledováním ze strany běžících programů. Právě oprávnění programu pak souvisí s~autentizací. Autentizací se myslí ověřování autorství programu. Právě od toho, kdo je autorem programu, se totiž mohou oprávnění programu často odvozovat.
+Tato práce se zabývá bezpečností ve smyslu prvních tří bodů uvedeného výčtu (zvýrazněny tučně). Bude se tedy zabývat způsobem ochrany prostředí hostitelského počítače před jeho poškozením nebo neoprávněným sledováním ze strany běžících programů. Právě oprávnění programu pak souvisí s~autentizací. Autentizací se zde myslí ověřování autorství programu. Právě od toho, kdo je autorem programu, se totiž mohou oprávnění programu často odvozovat.
 
 %=============================================================================
 \section{Java}
@@ -70,11 +70,11 @@ Bajtkód (bytecode) bývá zpravidla interpretován virtuálním strojem Javy (J
 \cite{jvmIntro}
 
 JVM je abstraktní výpočetní stroj. Podobně jako reálné výpočetní stroje má svoji instrukční sadu a paměť, se kterou může manipulovat, ale na rozdíl od nich pro něj neexistuje jeho fyzická implementace, pouze emulovaná implementace softwarová.
-To znamená, že její kód není prováděn nativně hardwarem. Je interpretován speciálním programem, interpretem, který je sám zkompilovaný do nativního kódu dané platformy a prováděn jejím hardwarem.
+To znamená, že jeho kód není prováděn nativně hardwarem. Je interpretován speciálním programem, interpretem, který je sám zkompilovaný do nativního kódu dané platformy a prováděn jejím hardwarem.
 To mimo nezávislosti na platformě přináší také vyšší stupeň abstrakce.
 \cite{jvmIntro}
 
-Protože programy v~JVM mohou k~fyzickým zdrojům počítače (např. k~souborům nebo k~síti) přistupovat jen skrze JVM, zablokování takového přístupu ze strany JVM není nikterak složité - JVM stačí odmítnout takový požadavek a interpretovaný program nemá možnost JVM obejít.
+Jeho efekt je také bezpečnostní -- protože programy v~JVM mohou k~fyzickým zdrojům počítače (např. k~souborům nebo k~síti) přistupovat jen skrze JVM, zablokování takového přístupu ze strany JVM není nikterak složité -- JVM stačí odmítnout takový požadavek a interpretovaný program nemá možnost JVM obejít.
 
 %=============================================================================
 \section{Správce bezpečnosti v~Javě} \label{securityManager}
@@ -121,8 +121,8 @@ V~této podkapitole je ukázán způsob stanovení bezpečnostní politiky vytvo
 Jak již bylo uvedeno v~kapitole~\ref{securityManager}, správce bezpečnosti je objekt (pod)třídy {\tt java.lang.SecurityManager},
 na který JVM, při požadavku na Java API (Application Programming Interface -- rozhraní pro programování aplikací), deleguje rozhodnutí o~povolení nebo nepovolení operace nad zdrojem.
 
-Jakmile se tedy uživatelská aplikace pokusí provést potenciálně nebezpečnou operaci (například se pokusí ukončit JVM voláním {\tt System.exit(0)}),
-Java API se dotáže správce bezpečnosti na oprávněnost této operace tím, že zavolá jeho, k~tomu určenou, metodu (v~tomto případě {\tt checkExit(0)}).~\cite{oaks}
+Jakmile se tedy uživatelská aplikace pokusí provést potenciálně nežádoucí operaci (například se pokusí ukončit JVM voláním {\tt System.exit(0)}),
+Java API se dotáže správce bezpečnosti na oprávněnost této operace tím, že zavolá jeho k~tomu určenou metodu (v~tomto případě {\tt checkExit(0)}).~\cite{oaks}
 
 Správce bezpečnosti pak na základě parametrů tohoto volání rozhodne o~tom, zda operaci zakáže a vyvolá k~tomu určenou výjimku {\tt SecurityException}.
 Není-li žádná výjimka vyvolána, považuje se operace za povolenou a je provedena.~\cite{oaks}
@@ -185,7 +185,7 @@ Neumožňuje navíc jednoduchým způsobem přidělovat oprávnění v~závislos
 
 Než se dostaneme k~v~současnosti využívanému způsobu stanovování bezpečnostní politiky, pozastavíme se nad tématem zavádění tříd.
 Ačkoli se na první pohled může zdát, že toto téma s~bezpečností příliš nesouvisí, opak je pravdou.
-Jen a pouze zavaděč tříd (classloader), který třídu do paměti zavádí, totiž může určit původ třídy, od kterého se oprávnění kódu této třídy zpravidla odvozuje.
+Jen a pouze zavaděč tříd (classloader), který třídu do paměti zavádí, totiž může určit původ třídy, od kterého se oprávnění kódu zpravidla odvozuje.
 
 Zavaděč je objekt odpovědný za načítání tříd a rozhraní v~Javě. Na základně binárního názvu třídy (binary name of class)~\cite{binaryNameOfClass}, tedy označení třídy používaného v~bajtkódu (např. {\tt java.lang.String} nebo {\tt java.security.KeyStore\$Builder\$FileBuilder\$1}), se tuto třídu pokusí vyhledat a načíst do paměti.~\cite{refClassLoader}
 
@@ -262,7 +262,6 @@ Dokáže třídy načítat nejen z~adresářů, ale i z~JAR archivů, je-li jako
 
 Zavaděč tříd z~URL je, tak jako většina zavaděčů, jedním z~bezpečných zavaděčů ({\tt SecureClassLoader}).
 To znamená, že nastavuje ochrannou doménu třídám, které načítá.
-
 Třídy pocházející ze stejného zdroje (s~odpovídajícím {\tt CodeSource}) patří do stejné ochranné domény a mají tak stejná statická oprávnění.
 (viz kapitola~\ref{staticPerm})
 Navrácení vždy stejného objektu ochranné domény přitom zavaděč zajišťuje pomocí asociativního pole {\tt SecureClassLoader.pdcache},
@@ -274,16 +273,15 @@ jehož klíčem je objekt zdroje kódu a hodnotou objekt ochranné domény.
 %=============================================================================
 
 Systém řízení přístupu (access controller) je mechanismus využívající ochranné domény tříd na zásobníku volání k~rozhodnutí, zda operaci požadovanou programem povolit či nikoliv.
-
 Na oprávněnost volajícího kódu provést vybranou akci se jej může dotazovat uživatelský kód a veškeré rozhodování na něj zároveň deleguje standardní správce bezpečnosti v~Javě verze 2 a novějších.~\cite{oaks}
 
 Systém řízení přístupu tedy, stejně jako správce bezpečnosti, umožňuje omezit, zdali může být operace nad zdrojem provedena nebo ne. Zdroji zde však již nejsou jen zdroje samotné JVM. Uživatelské programy mohou systém řízení přístupu využívat také k~omezení přístupu k~vlastním zdrojům, které dále poskytují.~\cite{oaks}
 
 Máme-li tedy například knihovnu zprostředkovávající přístup k~databázi v~souboru po záznamech, při použití oprávnění jen na úrovni Java API by bylo možné programu přidělovat oprávnění jen k~celému souboru najednou. Jednotlivé záznamy databáze v~souboru je však možné považovat za samostatné zdroje knihovny. Knihovna pak může využít systém řízení přístupu k~jejich ochraně.
 
-Systém řízení přístupu je schopný pravidla bezpečnostní politiky načítat z~objektů bezpečnostní politiky.
-Implicitní implementace objektu bezpečnostní politiky pak pravidla bezpečnostní politiky načítá z~textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky.
-Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení bezpečnostní politiky poupravit textový soubor bezpečnostní politiky.~\cite{oaks}
+Systém řízení přístupu je schopný pravidla politiky načítat z~objektů bezpečnostní politiky.
+Implicitní implementace objektu politiky pak pravidla politiky načítá z~textového konfiguračního souboru -- tzv. souboru bezpečnostní politiky.
+Vzniká tak mnohem snazší způsob stanovení bezpečnostní politiky -- namísto tvorby vlastní třídy správce bezpečnosti stačí pro stanovení politiky poupravit textový soubor bezpečnostní politiky.~\cite{oaks}
 
 Systém řízení přístupu rozhoduje o~povolení potenciálně nežádoucí operace na základě oprávnění třídy, jejíž metoda tuto operaci vyvolala i oprávnění tříd,
 jenž vyvolaly provádění této metody.
@@ -298,12 +296,10 @@ Na legálnost operace se systému řízení přístupu může dotazovat samotná
 \subsection{Implementace a použití systému řízení přístupu}\label{implementaceAC}
 %-----------------------------------------------------------------------------
 
-Systém řízení přístupu je implementován třídou {\tt AccessController}. Voláním jeho statických metod na něj standardní správce bezpečnosti deleguje rozhodnutí o~povolení provedení potenciálně nežádoucí operace uživatelským programem. Samotnou kontrolu provádí jeho metoda {\tt checkPermission(Permission)}, která v~případě neoprávněnosti požadavku na provedení operace vyvolá výjimku {\tt AccessControlException}. Jejím vstupem je objekt třídy {\tt Permission}, který reprezentuje oprávnění, jehož vlastnictví je testováno.~\cite{oaks}
-
-Ukázka kódu~\ref{pouzitiAccessControlleru} ukazuje způsob, jakým se může kód dotázat systému řízení přístupu, zdali má zadané oprávnění.~\cite{oaks}
+Systém řízení přístupu je implementován třídou {\tt AccessController}. Voláním jeho statických metod na něj standardní správce bezpečnosti deleguje rozhodnutí o~povolení provedení potenciálně nežádoucí operace uživatelským programem. Samotnou kontrolu provádí jeho metoda {\tt checkPermission(Permission)}, která v~případě neoprávněnosti požadavku na provedení operace vyvolá výjimku {\tt AccessControlException}. Vstupem metody je objekt třídy {\tt Permission}, který reprezentuje oprávnění, jehož vlastnictví je testováno.~\cite{oaks}
 
 \begin{figure}[b!]
-\begin{lstlisting}[caption=Příklad položení dotazu systému řízení přístupu, label=pouzitiAccessControlleru]
+\begin{lstlisting}[caption=Příklad položení dotazu systému řízení přístupu~\cite{oaks}, label=pouzitiAccessControlleru]
 try {
     // ma tento program opravneni pripojit se na lokalni port 80?
     AccessController.checkPermission(
@@ -316,8 +312,9 @@ try {
 \end{lstlisting}
 \end{figure}
 
-Dotaz je položen voláním metody {\tt AccessController.checkPermission()}, přičemž je jako parametr připojen objekt požadovaného oprávnění.
-Má-li kód toto oprávnění, provádění pokračuje a na standardní výstup tak vypsáno, že operace byla povolena.
+Ukázka kódu~\ref{pouzitiAccessControlleru} ukazuje způsob, jakým se může kód dotázat systému řízení přístupu, zdali má zadané oprávnění.
+Dotaz je položen voláním metody {\tt AccessController.checkPer mission()}, přičemž je jako parametr připojen objekt testovaného oprávnění.
+Má-li kód toto oprávnění, provádění pokračuje a na standardní výstup je tak vypsáno, že operace byla povolena.
 V~opačném případě je vyvolána výjimka {\tt AccessControlException}, která je v~této ukázce odchycena a na standardní výstup je v~takovém případě vypsáno, že operace byla zamítnuta.
 
 %-----------------------------------------------------------------------------
@@ -326,7 +323,8 @@ V~opačném případě je vyvolána výjimka {\tt AccessControlException}, kter�
 
 Třídy oprávnění představují typ zdroje, ke kterému lze přidělovat oprávnění. Musí být podtřídami třídy {\tt Permission}, ale pro jednodušší implementaci jsou často odvozovány od její podtřídy {\tt BasicPermission}.
 
-Aby bylo možné třídu oprávnění použít, musí být definován její konstruktor. Jeho parametry musejí odpovídat parametrům v~souboru bezpečnostní politiky. Musí být také veřejně přístupný -- opatřený specifikátorem přístupu {\tt public}.
+Aby bylo možné třídu oprávnění použít, musí být definován její konstruktor, který musí být veřejně přístupný -- opatřený specifikátorem přístupu {\tt public}.
+Jeho parametrům pak musejí odpovídat definice oprávnění v~souboru bezpečnostní politiky.
 
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 \subsubsection{Příklad třídy oprávnění} \label{zaznamPerm}
@@ -348,15 +346,14 @@ public class ZaznamPermission extends java.security.BasicPermission {
 \subsection{Privilegované bloky kódu}\label{privilegovaneBloky}
 %-----------------------------------------------------------------------------
 
-Vraťme se nyní k~našemu příkladu s~knihovnou pro přístup k~databázi v~souboru, kde chceme různým programům přidělovat oprávnění k~jednotlivým databázovým záznamům jako k~samostatným zdrojům systému, ale zároveň jim nechceme povolit přístup ke zbytku databázového souboru.
+Vraťme se nyní k~našemu příkladu s~knihovnou pro přístup k~databázi v~souboru. Různým programům chceme přidělovat oprávnění k~jednotlivým databázovým záznamům jako k~samostatným zdrojům systému, ale zároveň jim nechceme povolit přístup ke zbytku databázového souboru.
 
-Ze způsobu fungování systému řízení přístupu, jak jsme si jej zatím popsali, totiž vyplývá, že aby mohla knihovna zprostředkovávající přístup k~databázi přistupovat k~databázovému souboru, musí mít oprávnění pracovat s~tímto souborem jak samotná databázová knihovna, tak i každá třída podílející se na jejím volání.
+Ze způsobu fungování systému řízení přístupu, jak jsme si jej zatím popsali vyplývá, že aby mohla knihovna zprostředkovávající přístup k~databázi přistupovat k~databázovému souboru, musí mít oprávnění pracovat s~tímto souborem jak samotná databázová knihovna, tak i každá třída podílející se na jejím volání.
 
-Tento stav je samozřejmě nepřípustný, protože oprávnění na úrovni uživatelského kódu by tímto ztratila význam. Pokud by uživatelský kód neměl oprávnění přímo přistupovat k~databázovému souboru, nemohla by mu přístup k~němu zprostředkovat ani tato knihovna. Pokud by naopak uživatelský kód oprávnění k~databázovému souboru dostal, mohl by naopak obejít kód knihovny zajišťující kontrolu oprávnění k~jednotlivým záznamům a přistupovat tak k~datům v~celé databázi libovolně bez ohledu na oprávnění k~jednotlivým záznamům.
+Tento stav je samozřejmě nepřípustný, protože oprávnění na úrovni uživatelského kódu by tímto ztratila význam. Pokud by uživatelský kód neměl oprávnění přímo přistupovat k~databázovému souboru, nemohla by mu přístup k~němu zprostředkovat ani tato knihovna. Pokud by naopak uživatelský kód oprávnění k~databázovému souboru dostal, mohl by obejít kód knihovny zajišťující kontrolu oprávnění k~jednotlivým záznamům a přistupovat tak k~datům v~celé databázi libovolně bez ohledu na oprávnění k~jednotlivým záznamům.
 
 Právě tento problém řeší privilegované bloky kódu. Kód v~privilegovaném bloku je spuštěn se samostatným zásobníkem volání. Při ověřování oprávnění při přístupu k~jakémukoli zdroji tak ověřování skončí u~třídy s~tímto blokem.~\cite{refAccessController}
-
-Část kódu knihovny, jež vložíme do privilegovaného bloku, bude tedy spuštěna s~oprávněními této knihovny bez ohledu na oprávnění kódu, jež metodu knihovny zavolal.
+Část kódu knihovny, jež vložíme do privilegovaného bloku, bude tedy spuštěna s~oprávněními této knihovny, bez ohledu na oprávnění kódu jež metodu knihovny zavolal.
 
 \pagebreak
 %,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -368,7 +365,7 @@ Právě tento problém řeší privilegované bloky kódu. Kód v~privilegované
 class DatabazeVSouboru {
  public void provedOperaciNadDatabazi(){
   // Zde bude kod omezen opravnenimi volajici tridy
-  String s~= AccessController.doPrivileged(new PrivilegedAction<String>(){
+  String s = AccessController.doPrivileged(new PrivilegedAction<String>(){
    public String run(){
     // Zde bude kod spusten nezavisle na opravnenich volajici tridy
     return "privileged";
@@ -393,19 +390,19 @@ Má-li tedy být výstupem privilegovaně spuštěného kódu primitivní datov�
 \subsubsection{Příklad s~knihovnou pro přístup k~databázi}\label{databazeVsouboru}
 %'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-\begin{figure}[tbh]
+\begin{figure}[b]
 \begin{lstlisting}[caption=Demonstrační knihovna pro přístup k~databázi, label=pouzitiBloku]
 class DatabazeVSouboru {
-  public Zaznam nactiZaznam(String klic){
-    // volajici kod musi mit opravneni k~nacteni zaznamu
-    AccessController.checkPermission(new ZaznamPermission(klic,"nacteni"));
-    
-    return AccessController.doPrivileged(new PrivilegedAction<Zaznam>() {
-      public Zaznam run() {
-        // provedeni operace nad samotnymi daty (s~opravnenimi knihovny)
-      }
-    });
-  }
+ public Zaznam nactiZaznam(String klic){
+  // volajici kod musi mit opravneni k nacteni zaznamu
+  AccessController.checkPermission(new ZaznamPermission(klic,"nacteni"));
+  
+  return AccessController.doPrivileged(new PrivilegedAction<Zaznam>() {
+   public Zaznam run() {
+    // provedeni operace nad samotnymi daty (s opravnenimi knihovny)
+   }
+  });
+ }
 }
 \end{lstlisting}
 \end{figure}
@@ -413,7 +410,7 @@ class DatabazeVSouboru {
 Ukázka kódu~\ref{pouzitiBloku} ukazuje možnou implementaci knihovny pro přístup k~databázi navržené v~kapitole~\ref{privilegovaneBloky}.
 Kód jež nemá oprávnění pro přístup k~souboru zde volá metodu {\tt nactiZaznam()}.
 Tato metoda nejprve (na 4. řádku) voláním {\tt checkPermission()} zkontroluje, zdali má tento kód oprávnění pro přístup k~danému záznamu.
-Pokud by oprávnění neměl, bylo by vykonávání metody již nyní přerušeno výjimkou systému řízení přístupu ({\tt java.security.AccessContr olException}).
+Pokud by oprávnění neměl, bylo by vykonávání metody již nyní přerušeno výjimkou systému řízení přístupu ({\tt java.security.AccessControlException}).
 Následně uvnitř privilegovaného bloku (na 8. řádku) provede načtení záznamu z~databázového souboru.
 Protože toto bude provedeno v~rámci privilegovaného bloku, nezabrání tomuto čtení absence oprávnění ke čtení databázového souboru kódu, jež volal metodu {\tt nactiZaznam()}.
 Hodnota vrácená z~privilegovaného bloku je nakonec vrácena také metodou {\tt nactiZaznam()} (na 6. řádku).
@@ -422,15 +419,15 @@ Hodnota vrácená z~privilegovaného bloku je nakonec vrácena také metodou {\t
 \subsection{Soubory bezpečnostní politiky} \label{souboryBP}
 %-----------------------------------------------------------------------------
 
-Tato kapitola popisuje implementaci bezpečnostních politik za pomoci souborů bezpečnostní politiky.
+Tato kapitola popisuje implementaci bezpečnostních politik za pomoci souborů bezpečnostních politik.
 
 Soubor bezpečnostní politiky se skládá z~deklarací původů tříd a jim přidělovaných oprávnění.
 Původ třídy je zde stanoven na základě podpisu JAR archivu, z~kterého byla třída získána (direktiva {\tt signedBy}), URL kořene systému balíčků tříd (packages), ze kterého byla třída získána (direktiva {\tt codeBase}) nebo obou těchto kritérií najednou.~\cite{oaks}
 
-Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je ukázána v~ukázce kódu~\ref{syntaxeSouboruBP}.~\cite{oaks}\cite{refPolicyFiles}
+Syntaxe souboru bezpečnostní politiky, používané standardní implementací bezpečnostní politiky {\tt PolicyFile}, je ukázána v~ukázce kódu~\ref{syntaxeSouboruBP}.
 
 \begin{figure}[tbh]
-\begin{lstlisting}[caption=Syntaxe souboru bezpečnostní politiky, label=syntaxeSouboruBP]
+\begin{lstlisting}[caption=Syntaxe souboru bezpečnostní politiky~\cite{oaks}\cite{refPolicyFiles}, label=syntaxeSouboruBP]
 grant signedBy "autor", codeBase "/koren", principal Trida "jmeno@realm" {
     permission TridaOpravneni "parametry","konstruktoru";
     ...
@@ -441,8 +438,8 @@ grant signedBy "autor", codeBase "/koren", principal Trida "jmeno@realm" {
 Jak je vidět, oprávnění jsou přidělována kombinacím podepsaného autora ({\tt signedBy}), kořene systému balíčků ({\tt codeBase}) a identifikátoru uživatele nebo role ({\tt principal}).
 Samotná oprávnění pak jsou definována názvem třídy oprávnění a parametry jeho konstruktoru oddělenými čárkami.
 
-Jestliže třída v~době načítání souboru bezpečnostní politiky není dostupná, je oprávnění uloženo do dočasného objektu speciální třídy {\tt java.security.UnresolvedPermission}.
-Stane-li se tato třída později dostupnou, je dočasný objekt nahrazen instancí této třídy při kontrole tohoto oprávnění systémem řízení přístupu.~\cite{refUnresolvedPermission}
+Jestliže třída oprávnění v~době načítání souboru bezpečnostní politiky není dostupná, je oprávnění uloženo do dočasného objektu speciální třídy {\tt java.security.UnresolvedPermi ssion}.
+Stane-li se tato třída později dostupnou, je dočasný objekt nahrazen instancí této třídy při dotazu na toto oprávnění.~\cite{refUnresolvedPermission}
 
 \begin{figure}[ht]
   \centering
@@ -506,13 +503,11 @@ Tato kapitola popisuje nastavení implicitní třídy a souborů bezpečnostní 
 stanovit bezpečnostní politiku aplikovanou implicitně na všechny programy v~Javě běžící na daném počítači.
 
 Používaná třída a soubory bezpečnostní politiky jsou určeny globálně, pro celé běhové prostředí Javy (JRE -- Java Runtime Environment),
-v~konfiguračním souboru {\tt java.security} umístěném v~podadresáři {\tt lib/security} adresáře JRE.~\cite{refPolicyFiles}
+v~konfiguračním souboru {\tt java.securi ty} umístěném v~podadresáři {\tt lib/security} adresáře JRE.~\cite{refPolicyFiles}
 
-Třída bezpečnostní politiky je určena svým celým jménem (např. {\tt sun.security.provider{\linebreak}.PolicyFile}) v~konfigurační proměnné {\tt policy.provider}.~\cite{refPolicyFiles}
-
-Soubory bezpečnostní politiky jsou určeny svou absolutní adresou, uvedenou včetně protokolu (pro lokální soubory {\tt file:}),
-v~konfiguračních proměnných {\tt policy.url.n}, kde {\tt n} je pořadové číslo souboru.~\cite{refPolicyFiles}
-
+Třída bezpečnostní politiky je určena svým celým jménem (např. {\tt sun.security.provid er.PolicyFile}) v~konfigurační proměnné {\tt policy.provider}.
+Soubory bezpečnostní politiky jsou zde určeny svou absolutní adresou, uvedenou včetně protokolu (pro lokální soubory {\tt file:}),
+v~konfiguračních proměnných {\tt policy.url.n}, kde {\tt n} je pořadové číslo souboru.
 Načítání souborů bezpečnostní politiky začíná od {\tt policy.url.1} a postupně se {\tt n} inkrementuje a načítají se jednotlivé soubory bezpečnostní politiky,
 dokud {\tt policy.url.n} existuje.~\cite{refPolicyFiles}
 
@@ -556,9 +551,8 @@ System.setProperty("java.security.policy", "jiny_soubor_politky.policy");
 \end{lstlisting}
 \end{figure}
 
-Jak již bylo zmíněno v~kapitole~\ref{souboryBP}, nové načtení bezpečnostní politiky ze souborů bezpečnostní politiky je možné provést
-skrze metodu {\tt refresh()} objektu bezpečnostní politiky.
-Změnu bezpečnostní politiky tak je možné nechat projevit jejím zavoláním, jak ukazuje ukázka kódu \ref{refreshBP}.
+Jak již bylo zmíněno v~kapitole~\ref{souboryBP}, nové načtení politiky ze souborů politiky je možné provést skrze metodu {\tt refresh()} objektu politiky.
+Změnu politiky tak je možné nechat projevit zavoláním této metody, jak ukazuje ukázka kódu \ref{refreshBP}.
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Znovunačtení souboru bezpečnostní politiky, label=refreshBP]
@@ -568,7 +562,7 @@ Policy.getPolicy().refresh();
 
 Problémem je, že tato metoda je označena jako nedoporučovaná (deprecated), protože je implementačně závislá.~\cite{refPolicy}
 Zatímco u~třídy bezpečnostní politiky {\tt PolicyFile} správně způsobí projevení změn v~souboru bezpečnostní politiky, u~jiných implementací bezpečnostní politiky může být implementována jako prázdná operace.
-Tato práce se proto bude dále zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy}, {\tt sun.security.provider.PolicyFile}, a na ní postavených nebo na ni delegujících implementacích.
+Tato práce se proto bude dále zabývat jen bezpečnostními politikami poskytovanými standardní implementací třídy {\tt Policy}, {\tt sun.security.provider.PolicyFile}, a na ní postavenými nebo na ni delegujícími implementacemi.
 
 %-----------------------------------------------------------------------------
 \subsection{Statická a dynamická oprávnění ochranných domén} \label{staticPerm}
@@ -576,7 +570,6 @@ Tato práce se proto bude dále zabývat jen bezpečnostními politikami poskyto
 
 Oprávnění ochranných domén ({\tt ProtectionDomain}) popsaných v~kapitole~\ref{codeSourceAprotectionDomains} jsou ukládány přímo v~objektech těchto ochranných domén,
 konkrétně v~atributu {\tt permissions}.~\cite{sourceProtectionDomain}
-
 Protože jsou tato oprávnění do ochranné domény ukládány při jejím vytváření, tedy při zavádění třídy a následně nemohou být změněna, označujeme je jako statická.
 
 Ochranné domény však souběžně mohou používat ještě oprávnění dynamická. Není-li ochranná doména označena jako používající výhradně statická oprávnění,
@@ -586,7 +579,7 @@ Jsou-li dynamická oprávnění použita, efektivní oprávnění uplatňovaná 
 \cite{sourceProtectionDomain}
 
 V~současnosti jsou obvykle preferována oprávnění dynamická, jež poskytují vyšší variabilitu tím, že je možné bezpečnostní politiku vyměňovat za běhu
-programu -- změny v~ní se projeví jakmile začne být uplatňována metodou {\tt implies()} objektu bezpečnostní politiky, tedy zpravidla po volání metody
+programu -- změny v~ní se projeví, jakmile začne být uplatňována metodou {\tt implies()} objektu bezpečnostní politiky, tedy zpravidla po volání metody
 {\tt refresh()} používaného objektu bezpečnostní politiky.
 
 Dynamická oprávnění jsou používána na všechny třídy zaváděné zavaděčem tříd z~URL (viz kapitola~\ref{URLClassLoader}) a jsou tedy využívána ve většině programů v~Javě.
@@ -597,7 +590,7 @@ uživatele, který jej spouští, k~provedení požadované operace. V~obou př�
 
 Statická oprávnění byla v~Javě donedávna implementována jen v~zájmu zachování kompatibility s~verzemi Javy staršími než Java 2 SE 1.4.~\cite{sourceProtectionDomain}
 V~současnosti se však statická oprávnění opět začaly používat a to za účelem optimalizace.
-Získáváním oprávnění třídy z~objektu bezpečnostní politiky pouze při zavádění třídy a ne při každém požadavku o~ověření oprávněnosti k~provedení operace je totiž možné proces ověřování oprávněnosti urychlit.
+Získáváním oprávnění třídy z~objektu bezpečnostní politiky pouze při zavádění třídy a ne při každém požadavku na ověření oprávněnosti k~provedení operace je totiž možné proces ověřování oprávněnosti urychlit.
 
 %=============================================================================
 \section{Celkový pohled na bezpečnost v~Javě} \label{celkovyPohled}
@@ -655,12 +648,12 @@ Ostatní hostitelé domény se k~němu pak registrují a je na ně aplikována d
 
 Doménová konfigurace je uložena v~konfigurační souboru domény, {\tt domain.xml}, uložené právě na doménovém řadiči.
 Tento soubor obsahuje konfiguraci skupin serverů a profilů serverů.
-Konfigurace profilů pak zahrnuje také konfiguraci subsystémů používaných na serverech domény používajících daný profil.
+Konfigurace profilů pak zahrnuje také konfiguraci subsystémů používaných na serverech domény, které používají daný profil.
 \cite{jbossDomainSetup}
 
 Každý hostitel má zároveň vlastní konfigurační soubor {\tt host.xml}.
 Tento soubor určuje název hostitele, zda-li je tento hostitel doménovým řadičem a, pokud není, také adresu doménového řadiče.
-Zde jsou definovány servery, které na daném hostiteli poběží, porty, na kterých budou poskytovat své služby, a skupiny, do kterých budou patřit.
+Zde jsou definovány servery, které na daném hostiteli poběží, porty, na kterých budou poskytovat své služby, a skupiny do kterých budou patřit.
 \cite{jbossDomainSetup}
 
 Distribuovanosti prostředí je docíleno nasazováním aplikací (deployment) na celé skupiny serverů najednou.
@@ -707,18 +700,18 @@ Na tuto množinu operací je možné se serveru dotázat.
 Funkce poskytované aplikačním serverem aplikacím i jeho správcům je možné různými způsoby rozšiřovat za pomoci rozšíření.
 Typickým obsahem rozšíření je subsystém. Subsystémy jsou konfigurovány pro jednotlivé konfigurační profily, tedy pro všechny servery používající daný profil.
 
-Pro potřeby této práce důležité zmínit hlavně to, že rozšíření může vytvářet vlastní typy uzlů konfiguračního stromu.
+Pro potřeby této práce je důležité přijmout hlavně to, že rozšíření může vytvářet vlastní typy uzlů konfiguračního stromu.
 Těmto uzlům může definovat vlastnosti, které mohou mít.
-Uzlům i vlastnostem pak mohou přidělovat třídy ošetřující operace nad nimi.
+Uzlům i vlastnostem pak lze přidělovat třídy ošetřující operace nad nimi.
 \cite{WildFlyExtending}
 
 Je tak například možné definovat typ uzlu, který při svém vytvoření nebo smazání spustí speciální metodu pro tento účel vytvořeného objektu.
 Metody podobných objektů mohou být spouštěny také při nastavení hodnoty nebo nastavení nedefinované hodnoty konfigurační vlastnosti tohoto uzlu.
 
 V~podstatě nic co běží v~rámci WildFly, ať již součásti WildFly nebo uživatelské aplikace, neběží celou dobu běhu aplikačního serveru.
-Pouze si zaregistrují události, na které později, až se vyskytnou, reagují -- říkáme že vše co běží v~rámci WildFly je služba.~\cite{jboss7slideShare}
+Pouze si zaregistrují události, na které později, až se vyskytnou, reagují -- říkáme, že vše co běží v~rámci WildFly je služba.~\cite{jboss7slideShare}
 
-Běžnějším příkladem registrované události, než jakou je úprava konfiguračního uzlu, je příchod HTTP požadavku se specifikovanou URL.
+Běžnějším příkladem registrované události, než jakou je úprava konfiguračního uzlu, je příchod HTTP požadavku se specifickou URL.
 Takové události jsou typicky registrovány Servlety v~rámci své definice v~konfiguračním souboru {\tt web.xml} své aplikace.
 \cite{jboss7slideShare}
 
@@ -736,7 +729,7 @@ Konkrétně využívá jeho variantu běžící nad protokolem HTTP, která dota
 \section{Běh WildFly se správcem bezpečnosti} \label{wildflySeSM}
 %=============================================================================
 
-Tato podkapitola se zabývá problémem používání správce bezpečnosti a bezpečnostních politik v~prostředí JBoss/WildFly.
+Tato podkapitola se zabývá problémem používání správce bezpečnosti a bezpečnostních politik v~prostředí WildFly.
 
 Na první pohled se může zdát, že nakonfigurovat použití správce bezpečnosti na aplikační server WildFly je možné stejně jako na jakoukoli jinou aplikaci v~Javě -- nastavením patřičných konfiguračních vlastností (popsaných v~kapitolách~\ref{securityManager} a~\ref{nastaveniPolitiky}) při startu JVM za pomoci k~tomu určeného parametru {\tt -D} příkazu {\tt java}.
 
@@ -781,7 +774,7 @@ Zavaděč tříd se podařilo jako viníka odhalit postupným krokováním progr
 To potvrdilo, že objekty bezpečnostní politiky produkují správná oprávnění.
 Zároveň ale ukázalo, že do ochranných domén tříd jsou ukládány oprávnění jiná.
 Jak vyplývá z~popisu cesty oprávnění ze souborů bezpečnostních politik do ochranných domén v~kapitole~\ref{celkovyPohled},
-jediným mezičlánkem, který tedy mohl s~oprávněními v~této době manipulovat, je právě zavaděč tříd.
+jediným mezičlánkem, který mohl s~oprávněními v~této době manipulovat, je právě zavaděč tříd.
 
 Tento předpoklad pohled do zdrojového kódu zavaděče tříd modulů potvrdil -- tento zavaděč oprávnění poskytovaná objektem bezpečnostní politiky implicitně ignoruje.
 Namísto toho třídám do ochranných domén ukládá oprávnění určená specifikací Java EE.~\cite{javaEEspec}
@@ -789,8 +782,7 @@ Namísto toho třídám do ochranných domén ukládá oprávnění určená spe
 
 Zároveň však byla nalezena konfigurační proměnná (property), která toto chování umož-{\linebreak}ňuje změnit.
 Bude-li konfigurační proměnná {\tt jboss.modules.policy-permissions} nastavena na hodnotu {\tt true}, bude zavaděč tříd modulů do ochranných domén ukládat jak oprávnění určená specifikací Java EE, tak i oprávnění z~objektů bezpečnostní politiky.
-Množina efektivních oprávnění třídy pak bude odpovídat sjednocení těchto dvou množin oprávnění.
-\cite{sourceModuleClassLoader}
+Množina efektivních oprávnění třídy pak bude odpovídat sjednocení těchto dvou množin oprávnění.~\cite{sourceModuleClassLoader}
 
 Ukázka kódu~\ref{jbossOpts} ukazuje všechny definice konfiguračních proměnných, které musí být do spouštěcího skriptu aplikačního serveru WildFly přidány,
 aby byl server a aplikace které v~něm běží omezeny oprávněními stanovenými uvedeným souborem bezpečnostní politiky (v~příkladu {\tt directory/wildfly.policy}).
@@ -844,8 +836,8 @@ O~začlenění této záplaty do vývojové větve bylo požádáno~\cite{jmPull
 
 Tato podkapitola popisuje postup, který je nutné použít, aby bylo možné z~aplikace nebo z~rozšíření WildFly provést výměnu bezpečnostní politiky.
 
-Jak již bylo popsáno v~kapitole~\ref{nastaveniPolitiky}, pro výměnu bezpečnostní politiky je nutné pozměnit hodnotu konfigurační proměnné
-{\tt java.security.policy} a vyžádat od objektu bezpečnostní politiky znovunačtení souboru bezpečnostní politiky.
+Jak již bylo popsáno v~kapitole~\ref{nastaveniPolitiky}, pro výměnu politiky je nutné pozměnit hodnotu konfigurační proměnné
+{\tt java.security.policy} a vyžádat od objektu politiky znovunačtení souboru bezpečnostní politiky.
 V~prostředí WildFly však, přestože již je zajištěno používání dynamických oprávnění (viz kapitola~\ref{upravaZavadeceWildFly}), bohužel nestačí zavolat metodu {\tt refresh()} aktuálně používaného objektu bezpečnostní politiky. Tímto objektem je totiž instance třídy {\tt org.jboss.security.jacc.DelegatingPolicy}. Tento objekt sice všechny volání metody {\tt implies()} nesouvisející s~JACC (Java Authorization Contract for Containers) deleguje na původní objekt bezpečnostní politiky, metodu {\tt refresh()} na něj však nedeleguje.
 
 Toto chování jsem nahlásil jako chybu implementace třídy {\tt DelegatingPolicy}. Deleguje-li třída dotazování, měla by dle mého přesvědčení delegovat také žádost o~znovunačtení dat, na základě kterých jsou tato rozhodnutí prováděna.~\cite{issueDelegating}
@@ -877,7 +869,7 @@ V~této kapitole je navržen způsob implementace systému pro centralizovanou s
 Tato práce řeší problém, jakým způsobem používat bezpečnostní politiky Javy v~distribuovaných prostředích aplikačních serverů WildFly.
 Tato prostředí jsou typicky tvořena skupinou několika (nebo i mnoha) aplikační serverů seskupených do domény WildFly.
 
-Pravděpodobně nejjednodušším možným řešením, jak bezpečnostní politiky na tyto domény serverů nasazovat, je použít stejné řešení, jaké bylo v~kapitole~\ref{wildflySeSM} použito pro nasazení politiky na samostatný server.
+Pravděpodobně nejprimitivnějším možným řešením, jak bezpečnostní politiky na tyto domény serverů nasazovat, je použít stejné řešení, jaké bylo v~kapitole~\ref{wildflySeSM} použito pro nasazení politiky na samostatný server.
 
 Tento způsob je ale poměrně pracný, neboť pro každou změnu bezpečnostní politiky vyžaduje zkopírování tohoto souboru na jednotlivé servery nebo úpravu jeho adresy ve spouštěcího skriptu WildFly. Následně je navíc nutné server WildFly restartovat.
 
@@ -904,7 +896,7 @@ Možnosti řešení problému popsaného v~kapitole~\ref{specifikaceProblemu} js
   \item Zajistit přenos souborů bezpečnostní politiky samostatným programem nebo rozšířením WildFly.
 \end{itemize}
 
-Všechny varianty jsou podrobněji popsány v~následujících podkapitolách.
+Obě varianty jsou podrobněji popsány v~následujících podkapitolách.
 
 %-----------------------------------------------------------------------------
 \subsection{Společné umístění souboru bezpečnostní politiky} \label{reseniSpolecne}
@@ -923,7 +915,7 @@ Namísto výměny adresy souboru bezpečnostní politiky na straně serveru by t
 Problémem, který přetrvává, je ale způsob, jak zajistit znovunačtení souboru bezpečnostní politiky a zajistit tak nové načtení bezpečnostní politiky.
 To může zajistit jen aplikace běžící v~rámci JVM jednotlivých serverů nebo restart celého aplikačního serveru.
 
-Chceme-li tedy zajistit výměnu bezpečnostní politiky bez potřeby restartu aplikačního serveru, je možné vytvořit program,
+Chceme-li tedy zajistit výměnu bezpečnostní politiky bez potřeby restartu aplikačního serveru, je nutné vytvořit program,
 který bude nasazen na všech serverech domény a bude naslouchat požadavkům na znovunačtení bezpečnostní politiky.
 Tento program je možné implementovat ve formě Java EE aplikace nebo ve formě rozšíření aplikačního serveru WildFly.
 V~tomto případě však ke druhé, složitější, variantě není žádný racionální důvod.
@@ -936,18 +928,18 @@ V~předchozí variantě byl program nasazený na serverech domény využíván j
 Tato varianta počítá s~jeho využitím také k~nastavení a přenosu samotného souboru bezpečnostní politiky.
 Soubor bezpečnostní politiky by přitom stačilo na server, na který má být nasazen, uložit až těsně před tím, než by měl být nastaven.
 K~jeho uložení by přitom postačoval dočasný soubor, který by následně, po vyvolání znovunačtení bezpečnostní politiky, mohl být bezpečně smazán.
-Soubor bezpečnostní politiky totiž musí na serveru existovat jen po, kdy je jeho obsah načítán,
-k~čemuž v~tomto případě bude probíhat jen v~souvislosti se znovunačítáním bezpečnostní politiky.
+Soubor bezpečnostní politiky totiž musí na serveru existovat jen po dobu, kdy je jeho obsah načítán,
+k~čemuž v~tomto případě bude docházet jen v~souvislosti se znovunačítáním bezpečnostní politiky.
 
-Byla by-li tato aplikace implementována jako rozšíření aplikačního serveru WildFly, jakým je například subsystém,
+Byla-li by tato aplikace implementována jako rozšíření aplikačního serveru WildFly, jakým je například subsystém,
 mohla by k~ukládání a distribuci souborů bezpečnostních politik využívat konfigurační strom WildFly.
 Nebylo by tak třeba žádného speciálního úložiště souborů bezpečnostní politiky -- soubory bezpečnostní politiky
-by tak byly uloženy společně s~konfigurací většiny součástí WildFly v~konfiguračním souboru domény.
+by tak byly uloženy společně s~konfigurací většiny součástí WildFly v~konfiguračním stromu domény.
 (O~konfiguračních souborech WildFly více v~kapitole~\ref{uvodWildFly}.)
 
 Tím, že by soubory bezpečnostní politiky byly uloženy v~konfiguračním stromě WildFly by navíc bylo možné provádět znovunačítání
 bezpečnostní politiky v~reakci na událost změny používané bezpečnostní politiky.
-Na změnu hodnoty v~konfiguračním stromu WildFly je totiž při její definici možné provést navázání akce. (viz kapitola~\ref{rozsireniWildFly})
+Na změnu hodnoty v~konfiguračním stromu WildFly je totiž při její definici možné navázat akci. (viz kapitola~\ref{rozsireniWildFly})
 
 %=============================================================================
 \section{Výběr řešení} \label{vyberReseni}
@@ -981,7 +973,7 @@ Toto rozhraní bylo navrženo jako tři nové konfigurační obrazovky webové k
 \begin{itemize}
   \item Obrazovka {\bf Servers} (Servery) umožňuje zvolit, které bezpečnostní politiky mají být nasazeny na jednotlivých serverech a skupinách domény. Nastavením prázdné (None/{\tt null}) bezpečnostní politiky navíc umožňuje používání bezpečnostní politiky na serveru nebo skupině vypnout.
   \item Obrazovka {\bf Policies} (Politiky) umožňuje vytvářet, upravovat a odstraňovat samotné bezpečnostní politiky. Ty pak mohou být jednotlivým serverům přidělovány na obrazovce {\bf Servers}.
-  \item Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy) umožňuje zobrazit bezpečnostní politiku nasazenou na vybraném serveru -- její název a obsah.
+  \item Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy) umožňuje sledovat politiky nasazené na jednotlivých serverech -- jejich název a obsah.
 \end{itemize}
 
 \begin{figure}[t!]
@@ -1001,18 +993,18 @@ Grafický návrh první uvedené konfigurační obrazovky, umožňující zvolit
 
 Jako způsob výběru bezpečnostní politiky serveru i skupiny byla zvolena omezená nabídka. Tato nabídka umožňuje výběr jedné bezpečnostní politiky ze seznamu politik vytvořených prostřednictvím druhé konfigurační obrazovky. Umožňuje zároveň vypnout používání bezpečnostní politiky výběrem speciální hodnoty {\bf none} (žádná). Další speciální hodnota {\bf ambiguous} (neurčitá) má signalizovat, že servery skupiny používají různé bezpečnostní politiky.
 
-Celou konfigurační obrazovku mimo nadpisu tvoří seznam skupin v~doméně. Každou položku tohoto seznamu přitom tvoří tlačítko pro zobrazení seznamu serverů obsažených v~této skupině, název skupiny, výše popsaná nabídka pro výběr politiky pro celou skupinu najednou a tlačítko pro uložení změny výběru.
+Celou konfigurační obrazovku mimo nadpisu tvoří seznam skupin v~doméně. Každou položku tohoto seznamu přitom tvoří ikona pro zobrazení seznamu serverů obsažených v~této skupině, název skupiny, výše popsaná nabídka pro výběr politiky pro celou skupinu najednou a tlačítko pro uložení změny výběru.
 
-Použitím tlačítka pro zobrazení seznamu serverů skupiny je pod položkou skupiny zobrazen server serverů této skupiny podobný seznamu serverů. Jeho položky jsou tvořeny názvem serveru, nabídkou pro výběr politiky a tlačítkem pro uložení změny.
+Použitím ikony je pod položkou skupiny zobrazen seznam serverů této skupiny podobný seznamu skupiny. Jeho položky jsou tvořeny názvem serveru, nabídkou pro výběr politiky a tlačítkem pro uložení změny.
 
 Na obrázku~\ref{vysledneGui} je navíc vidět také základní ovládací prvky webové konzoly WildFly, které jsou v~návrhu vyobrazeny jen schématicky.
 V~levé části obrazovky se nachází menu subsystémů -- umožňuje navigaci mezi konfiguračními obrazovkami jednotlivých subsystémů WildFly ve zvoleném profilu.
-Vrchní menu zobrazuje informace o~systému, přihlášeném uživateli a umožňuje navigovat mezi jednotlivými části WildFly konzoly.
+Vrchní menu zobrazuje informace o~systému, přihlášeném uživateli a umožňuje navigovat mezi jednotlivými částmi WildFly konzoly.
 
 Odkaz na konfigurační obrazovky {\bf Servers} a {\bf Policies} se nachází v~části {\bf Configuration} (Konfigurace), je-li přepnuta na profil, v~kterém je nainstalován implementovaný subsystém. Konfigurační obrazovka {\bf JSM Policy}, umožňující sledovat politiky nasazené na jednotlivých serverech, je v~části {\bf Runtime} (Za běhu).
 
 Webová konzola umožňuje také rozdělit jednu konfigurační obrazovku na více panelů. (Příklad panelu je na obrázku~\ref{navrhGui} popsán jako {\bf Policies}.)
-Této možnosti však v~tomto rozšíření webové konzoly není využito.
+Možnosti rozdělení konfigurační obrazovky na více panelů v~tomto rozšíření webové konzoly není využíváno.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Popis implementace systému} \label{implementace}
@@ -1150,7 +1142,7 @@ Jediná komplikace souvisela s~grafickou komponentou textového pole, {\tt TextA
 
 Obrazovka {\bf Servers} (Servery), umožňuje nasazovat bezpečností politiky na jednotlivé servery a jejich skupiny. Vznikla úpravou konfigurační obrazovky {\bf Runtime / JNDI View}. Ta byla vybrána kvůli stromové struktuře, kterou dokázala zobrazit. Ta byla základním předpokladem pro naplnění grafického návrhu plánované konfigurační obrazovky.
 
-Hlavní třídou konfigurační obrazovky je {\tt ServersPresenter}. Vykreslení konfigurační obrazovky je zajištěno třídou {\tt ServersView}, která do obsahu generované obrazovky vkládá komponentu {\tt com.google.gwt.user.cellview.client.CellTree} z~knihovny GWT. Tato komponenta zajišťuje samotné zobrazení stromové struktury.
+Hlavní třídou konfigurační obrazovky je {\tt ServersPresenter}. Vykreslení konfigurační obrazovky je zajištěno třídou {\tt ServersView}, která do obsahu generované obrazovky vkládá komponentu {\tt com.google.gwt. user.cellview.client.CellTree} z~knihovny GWT. Tato komponenta zajišťuje samotné zobrazení stromové struktury.
 Její datový model je definován třídou {\tt ServersTreeViewModel}, která komponentě {\tt CellTree} zpřístupňuje informace o~skupinách a serverech domény ve formě seznamu uzlů {\tt Node}.
 
 Vykreslení jednotlivých uzlů zajišťuje grafická komponenta {\tt NodeCell}, jež implementuje rozhraní {\tt AbstractInputCell}. To je nezbytné k~tomu, aby mohla být použita k~vykreslování položek {\tt CellTree}.
@@ -1165,7 +1157,7 @@ Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy) umožňuje sled
 
 Hlavní třídou konfigurační obrazovky je {\tt DetailPresenter}. Ta zajišťuje získání informace o~aktuálně nasazené politice na zvoleném serveru z~konfiguračního stromu WildFly. Vykreslení konfigurační obrazovky zajišťuje třída {\tt DetailView}. Grafická komponenta konfigurační obrazovky se skládá z~komponenty {\tt TextBox}, textového pole používaného k~zobrazení názvu nasazené politiky, a z~komponenty {\tt TextArea}, textového pole používaného k~zobrazení obsahu nasazené politiky.
 
-Zatímco předchozí konfigurační obrazovky jsou rozšířeními administrační konzoly typu {\tt SubsystemExtension}, díky čemuž je-lze najít v~pod záložkou {\bf Configuration}, obrazovka sledování je rozšířením typu {\tt RuntimeExtension}. Zobrazuje se proto pod záložkou {\bf Runtime}, v~níž jsou nastavení specifická pro jednotlivé servery domény. Na tento globální výběr serveru je potom navázán také výběr sledovaného serveru domény.
+Zatímco předchozí konfigurační obrazovky jsou rozšířeními administrační konzoly typu {\tt SubsystemExtension}, díky čemuž je-lze najít v~pod záložkou {\bf Configuration} v podmenu příslušného subsystému, obrazovka sledování je rozšířením typu {\tt RuntimeExtension}. Zobrazuje se proto pod záložkou {\bf Runtime}, v~níž jsou nastavení specifická pro jednotlivé servery domény. Na tento globální výběr serveru je potom navázán také výběr sledovaného serveru domény.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému} \label{testovani}

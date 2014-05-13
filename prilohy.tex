@@ -1,12 +1,12 @@
 \chapter{Obsah CD}
 
-Adresáře zdrojových kódu jsou na CD přiloženy ve formě prostých adresářů a zároveň ve formě stejně pojmenovaných archivů {\tt *.tar.gz}. Tyto archivy pro zjednodušení nejsou v~seznamu níže znovu uváděny.
+Adresáře zdrojových kódů jsou na CD přiloženy ve formě prostých adresářů a zároveň ve formě stejně pojmenovaných archivů {\tt *.tar.gz}. Tyto archivy pro zjednodušení nejsou v~seznamu níže znovu uváděny.
 
 \begin{itemize}
   \item {\tt projekt.pdf} -- Technická zpráva ve formátu PDF
   \item {\tt projekt} -- Zdrojové soubory technické zprávy
 
-  \item {\tt wildfly-8.0.0.Final} -- Živé demo -- instalace WildFly s~nainstalovanými implementovanými rošířeními, použitelná pro předvedení bakalářské práce
+  \item {\tt wildfly-8.0.0.Final} -- Živé demo -- instalace WildFly s~nainstalovanými implementovanými rošířeními, použitelná pro předvedení bakalářské práce (použití v příloze \ref{prilohaPouzivani})
 
   \item {\tt jsm-policy-subsystem} -- Subsystém WildFly implementovaný jako hlavní součást této práce
   \item {\tt jsm-policy-console-hal} -- Rozšíření webové konzole WildFly umožňující správu výše uvedeného rozšíření (popsané v~kapitole \ref{navrhGUI})
@@ -111,7 +111,7 @@ Uvedený postup předpokládá operační systém Linux s~nainstalovaným běhov
 \begin{enumerate}
   
   \item Nainstalujte systém podle přílohy \ref{prilohaInstalace} nebo použijte předpřipravenou instalaci z~přiloženého CD -- nakopírujte do zapisovatelného umístění adresář {\tt wildfly-8.0.0.Final}.
-  \item Proveďte spuštění aplikačního serveru WildFly spuštěním spouštěcího skriptu {\tt bin/ domain.sh}.
+  \item Proveďte spuštění aplikačního serveru WildFly spuštěním spouštěcího skriptu {\tt bin/ domain.sh} v adresáři aplikačního serveru (novém umístění {\tt wildfly-8.0.0.Final}).
   \item Otevřete webové administrační rozhraní WildFly -- v~případě instalace WildFly z~přiloženého CD jej najdete na adrese \url{http://localhost:9990/} a přihlásit se můžete přihlašovacím jménem {\tt admin} s~heslem {\tt admin}.
   \item Otevřete část {\bf Configuration} a v~nabídce {\bf Profile} vyberte {\bf full}.
   
