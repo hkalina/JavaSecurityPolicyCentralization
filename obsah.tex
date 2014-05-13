@@ -1131,17 +1131,46 @@ Jak je tedy vidět, používání souborů bezpečnostních politik uložených 
 Webové uživatelské rozhraní umožňující správu implementovaného subsystému bylo implementováno tak, jak bylo navrženo v~kapitole~\ref{navrhGUI}.
 Je implementováno jako záplata administrační konzoly WildFly, do které přidává konfigurační obrazovky popsané v~kapitole~\ref{navrhGUI}.
 
+
 Obrazovka {\bf Policies} (Politiky), umožňující spravovat bezpečnostní politiky nasaditelné na server domény, byla vytvořena jednoduchou úpravou existující konfigurační obrazovky WildFly, {\bf Mail}.
-Tato obrazovka umožňovala spravovat uzly subsystému {\tt mail}. Jednoduchou úpravou tak byla vytvořena konfigurační obrazovku pro správu uzlů politiky.
+Tato obrazovka umožňovala spravovat uzly subsystému {\tt mail}.
+Jednoduchou úpravou tak byla vytvořena konfigurační obrazovku pro správu uzlů politiky.
+Tvořena je následujícími třídami:
+
+\begin{itemize}
+  \item {\tt PoliciesPresenter} -- Hlavní objekt součásti administrační konzoly WildFly propojující následující uvedené.
+  \item {\tt NewPolicyWizard} -- Průvodce pro vytvoření nové politiky. Jeho výstupem je objekt třídy {\tt Widget} představující okno průvodce.
+  \item {\tt PoliciesView} -- Objekt starající se o zobrazení samotné konfigurační obrazovky.
+  \item {\tt PolicyEditor} -- Třída editoru politik -- grafické komponenty tvořící většinu obsahu konfigurační obrazovky. Zahrnuje zobrazení seznamu politik i formulář pro úpravu vybrané položky tohoto seznamu.
+  \item {\tt PolicyEntity} -- Třída datového objektu představujícího uzel politiky.
+\end{itemize}
 
 Jedinou komplikací zde byla grafická komponenta textového pole, {\tt TextAreaItem}. Ta neumožňovala uložit text obsahující znak nového řádku nebo uvozovek. Tento problém byl vyřešen za pomoci vlastní podtřídy této komponenty, která před tyto znaky vkládala znak zpětného lomítka. Stejná úprava byla souběžně předána k~začlenění a byla začleněna do vývojové větve administrační konzoly WildFly.~\cite{textareaPullRequest}
 
+
 Obrazovka {\bf Servers} (Servery), umožňující nasazovat bezpečností politiky na jednotlivé servery a jejich skupiny, vznikla úpravou konfigurační obrazovky {\bf Runtime / JNDI View}. Ta byla vybrána pro způsob zobrazení stromové struktury, který se podobal grafickému návrhu plánované konfigurační obrazovky.
+
+\begin{itemize}
+  \item {\tt ServersPresenter} -- Hlavní objekt součásti administrační konzoly WildFly propojující následující uvedené.
+  \item {\tt Node} -- Datový objekt uzlu stromu domény. Představuje server nebo skupinu. V druhém případě obsahuje seznam poduzlů -- serverů této skupiny.
+  \item {\tt NodeCell} -- Grafická komponenta přestavující uzel stromu domény. Zobrazuje se jako popisek s názvem serveru/skupiny a omezená nabídka, umožňující vybírat politiku z~politik dostupných v~subsystému.
+  \item {\tt Policy} -- Datový objekt představující politiku -- možnou hodnotu omezené nabídky pro výběr politiky.
+  \item {\tt ServersView} -- Objekt zajišťující zobrazení konfigurační obrazovky. Většinu ji tvoří grafická komponenta GWT, {\tt CellTree}.
+  \item {\tt ServersTreeViewModel} -- Objekt představující datový model stromu domény. Implementuje rozhraní {\tt TreeViewModel}. Jeho výstupem je objekt {\tt DefaultNodeInfo} zapouzdřující komponentu vykreslující uzly stromu, {\tt NodeCell}, a zdroj dat vytvořený ze seznamu uzlů skupiny třídy {\tt JsmNode}.
+\end{itemize}
+
 Byla přitom vytvořena grafická komponenta {\tt JsmNodeCell} představující položku této stromové struktury.
 Tato komponenta umožňuje položku stromové struktury zobrazit jako kombinaci popisku s~názvem serveru/skupiny, a omezené nabídky, umožňující vybírat politiku z~politik dostupných v~subsystému.
 Na změnu hodnoty této omezené nabídky je pak navázáno samotné nasazení zvolené bezpečnostní politiky.
 
+
 Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy), umožňující sledovat, jaká bezpečnostní politika je právě nasazena na zvoleném serveru, je velice jednoduchá. Obsahuje pouze dvě textová pole -- pole zobrazující název nasazené politiky a pole zobrazující obsah této politiky. Jejich obsah je načten při zobrazení obrazovky a změně výběru serveru. Pro uživatele jsou jen pro čtení.
+
+\begin{itemize}
+  \item {\tt DetailPresenter} -- Hlavní objekt součásti administrační konzoly WildFly.
+  \item {\tt DetailView} -- Objekt zajišťující zobrazení konfigurační obrazovky.
+\end{itemize}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému} \label{testovani}
