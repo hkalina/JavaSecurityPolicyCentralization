@@ -1131,46 +1131,41 @@ Jak je tedy vidět, používání souborů bezpečnostních politik uložených 
 Webové uživatelské rozhraní umožňující správu implementovaného subsystému bylo implementováno tak, jak bylo navrženo v~kapitole~\ref{navrhGUI}.
 Je implementováno jako záplata administrační konzoly WildFly, do které přidává konfigurační obrazovky popsané v~kapitole~\ref{navrhGUI}.
 
+%-----------------------------------------------------------------------------
+\subsection{Konfigurační obrazovka bezpečnostních politik} \label{implGuiPolicies}
+%-----------------------------------------------------------------------------
 
-Obrazovka {\bf Policies} (Politiky), umožňující spravovat bezpečnostní politiky nasaditelné na server domény, byla vytvořena jednoduchou úpravou existující konfigurační obrazovky WildFly, {\bf Mail}.
+Obrazovka {\bf Policies} (Politiky), umožňující spravovat bezpečnostní politiky nasaditelné na servery domény, byla vytvořena jednoduchou úpravou existující konfigurační obrazovky WildFly, {\bf Mail}.
 Tato obrazovka umožňovala spravovat uzly subsystému {\tt mail}.
 Jednoduchou úpravou tak byla vytvořena konfigurační obrazovku pro správu uzlů politiky.
-Tvořena je následujícími třídami:
 
-\begin{itemize}
-  \item {\tt PoliciesPresenter} -- Hlavní objekt součásti administrační konzoly WildFly propojující následující uvedené.
-  \item {\tt NewPolicyWizard} -- Průvodce pro vytvoření nové politiky. Jeho výstupem je objekt třídy {\tt Widget} představující okno průvodce.
-  \item {\tt PoliciesView} -- Objekt starající se o zobrazení samotné konfigurační obrazovky.
-  \item {\tt PolicyEditor} -- Třída editoru politik -- grafické komponenty tvořící většinu obsahu konfigurační obrazovky. Zahrnuje zobrazení seznamu politik i formulář pro úpravu vybrané položky tohoto seznamu.
-  \item {\tt PolicyEntity} -- Třída datového objektu představujícího uzel politiky.
-\end{itemize}
+Hlavní třídou konfigurační obrazovky je {\tt PoliciesPresenter}. Tato třída zajišťuje komunikaci s~konfiguračním stromem. Formou vnitřní třídy zároveň definuje rozhraní třídy zobrazující konfigurační obrazovku, {\tt MyView}. Toto rozhraní implementuje třída {\tt PoliciesView}, která z~jednotlivých grafických komponent ({\tt Widget}) skládá grafickou komponentu celé obrazovky.
+Hlavní z~nich přitom je {\tt PolicyEditor}. Tato grafická komponenta zahrnuje seznam bezpečnostních politik i formulář pro úpravu vybrané položky tohoto seznamu. Jeho součástí je také tlačítko pro přidání nové bezpečnostní politiky, které zobrazuje okno průvodce vytvořením. To je implementováno třídou {\tt NewPolicyWizard}.
 
-Jedinou komplikací zde byla grafická komponenta textového pole, {\tt TextAreaItem}. Ta neumožňovala uložit text obsahující znak nového řádku nebo uvozovek. Tento problém byl vyřešen za pomoci vlastní podtřídy této komponenty, která před tyto znaky vkládala znak zpětného lomítka. Stejná úprava byla souběžně předána k~začlenění a byla začleněna do vývojové větve administrační konzoly WildFly.~\cite{textareaPullRequest}
+Jediná komplikace souvisela s~grafickou komponentou textového pole, {\tt TextAreaItem}. Neumožňovala uložit text obsahující znak nového řádku nebo uvozovek. Tento problém byl vyřešen vlastní podtřídou této komponenty, {\tt NewlinedTextAreaItem}, která před tyto znaky vkládala znak zpětného lomítka. Stejná úprava na samotné komponentě {\tt TextAreaItem} byla souběžně předána k~začlenění a začleněna~\cite{textareaPullRequest} do vývojové větve knihovny Ballroom, z~které pochází.
 
+%-----------------------------------------------------------------------------
+\subsection{Konfigurační obrazovka serverů domény} \label{implGuiServers}
+%-----------------------------------------------------------------------------
 
-Obrazovka {\bf Servers} (Servery), umožňující nasazovat bezpečností politiky na jednotlivé servery a jejich skupiny, vznikla úpravou konfigurační obrazovky {\bf Runtime / JNDI View}. Ta byla vybrána pro způsob zobrazení stromové struktury, který se podobal grafickému návrhu plánované konfigurační obrazovky.
+Obrazovka {\bf Servers} (Servery), umožňuje nasazovat bezpečností politiky na jednotlivé servery a jejich skupiny. Vznikla úpravou konfigurační obrazovky {\bf Runtime / JNDI View}. Ta byla vybrána kvůli stromové struktuře, kterou dokázala zobrazit. Ta byla základním předpokladem pro naplnění grafického návrhu plánované konfigurační obrazovky.
 
-\begin{itemize}
-  \item {\tt ServersPresenter} -- Hlavní objekt součásti administrační konzoly WildFly propojující následující uvedené.
-  \item {\tt Node} -- Datový objekt uzlu stromu domény. Představuje server nebo skupinu. V druhém případě obsahuje seznam poduzlů -- serverů této skupiny.
-  \item {\tt NodeCell} -- Grafická komponenta přestavující uzel stromu domény. Zobrazuje se jako popisek s názvem serveru/skupiny a omezená nabídka, umožňující vybírat politiku z~politik dostupných v~subsystému.
-  \item {\tt Policy} -- Datový objekt představující politiku -- možnou hodnotu omezené nabídky pro výběr politiky.
-  \item {\tt ServersView} -- Objekt zajišťující zobrazení konfigurační obrazovky. Většinu ji tvoří grafická komponenta GWT, {\tt CellTree}.
-  \item {\tt ServersTreeViewModel} -- Objekt představující datový model stromu domény. Implementuje rozhraní {\tt TreeViewModel}. Jeho výstupem je objekt {\tt DefaultNodeInfo} zapouzdřující komponentu vykreslující uzly stromu, {\tt NodeCell}, a zdroj dat vytvořený ze seznamu uzlů skupiny třídy {\tt JsmNode}.
-\end{itemize}
+Hlavní třídou konfigurační obrazovky je {\tt ServersPresenter}. Vykreslení konfigurační obrazovky je zajištěno třídou {\tt ServersView}, která do obsahu generované obrazovky vkládá komponentu {\tt com.google.gwt.user.cellview.client.CellTree} z~knihovny GWT. Tato komponenta zajišťuje samotné zobrazení stromové struktury.
+Její datový model je definován třídou {\tt ServersTreeViewModel}, která komponentě {\tt CellTree} zpřístupňuje informace o~skupinách a serverech domény ve formě seznamu uzlů {\tt Node}.
 
-Byla přitom vytvořena grafická komponenta {\tt JsmNodeCell} představující položku této stromové struktury.
-Tato komponenta umožňuje položku stromové struktury zobrazit jako kombinaci popisku s~názvem serveru/skupiny, a omezené nabídky, umožňující vybírat politiku z~politik dostupných v~subsystému.
-Na změnu hodnoty této omezené nabídky je pak navázáno samotné nasazení zvolené bezpečnostní politiky.
+Vykreslení jednotlivých uzlů zajišťuje grafická komponenta {\tt NodeCell}, jež implementuje rozhraní {\tt AbstractInputCell}. To je nezbytné k~tomu, aby mohla být použita k~vykreslování položek {\tt CellTree}.
+Uzel se vykresluje jako popisek s~názvem serveru/skupiny a jako omezená nabídka umožňující nastavit politiku výběrem z~politik dostupných v~subsystému.
+Na změnu hodnoty této omezené nabídky je potom navázáno samotné nasazení bezpečnostní politiky.
 
+%-----------------------------------------------------------------------------
+\subsection{Konfigurační obrazovka sledování nasazených politik} \label{implGuiServers}
+%-----------------------------------------------------------------------------
 
-Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy), umožňující sledovat, jaká bezpečnostní politika je právě nasazena na zvoleném serveru, je velice jednoduchá. Obsahuje pouze dvě textová pole -- pole zobrazující název nasazené politiky a pole zobrazující obsah této politiky. Jejich obsah je načten při zobrazení obrazovky a změně výběru serveru. Pro uživatele jsou jen pro čtení.
+Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy) umožňuje sledovat nasazené bezpečnostní politiky. Je velice jednoduchá -- zobrazuje pouze název a obsah politiky aktuálně nasazené na vybraném serveru.
 
-\begin{itemize}
-  \item {\tt DetailPresenter} -- Hlavní objekt součásti administrační konzoly WildFly.
-  \item {\tt DetailView} -- Objekt zajišťující zobrazení konfigurační obrazovky.
-\end{itemize}
+Hlavní třídou konfigurační obrazovky je {\tt DetailPresenter}. Ta zajišťuje získání informace o~aktuálně nasazené politice na zvoleném serveru z~konfiguračního stromu WildFly. Vykreslení konfigurační obrazovky zajišťuje třída {\tt DetailView}. Grafická komponenta konfigurační obrazovky se skládá z~komponenty {\tt TextBox}, textového pole používaného k~zobrazení názvu nasazené politiky, a z~komponenty {\tt TextArea}, textového pole používaného k~zobrazení obsahu nasazené politiky.
 
+Zatímco předchozí konfigurační obrazovky jsou rozšířeními administrační konzoly typu {\tt SubsystemExtension}, díky čemuž je-lze najít v~pod záložkou {\bf Configuration}, obrazovka sledování je rozšířením typu {\tt RuntimeExtension}. Zobrazuje se proto pod záložkou {\bf Runtime}, v~níž jsou nastavení specifická pro jednotlivé servery domény. Na tento globální výběr serveru je potom navázán také výběr sledovaného serveru domény.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému} \label{testovani}
