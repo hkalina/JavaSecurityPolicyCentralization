@@ -1,18 +1,16 @@
 \chapter{Obsah CD}
 
-Adresáře zdrojových kódů jsou na CD přiloženy ve formě prostých adresářů a zároveň ve formě stejně pojmenovaných archivů {\tt *.tar.gz}. Tyto archivy pro zjednodušení nejsou v~seznamu níže znovu uváděny.
-
 \begin{itemize}
   \item {\tt projekt.pdf} -- Technická zpráva ve formátu PDF
-  \item {\tt projekt} -- Zdrojové soubory technické zprávy
+  \item {\tt projekt.tar.gz} -- Zdrojové soubory technické zprávy
 
-  \item {\tt wildfly-8.0.0.Final} -- Živé demo -- instalace WildFly s~nainstalovanými implementovanými rošířeními, použitelná pro předvedení bakalářské práce (použití v příloze \ref{prilohaPouzivani})
+  \item {\tt wildfly-8.0.0.Final.tar.gz} -- Živé demo -- instalace WildFly s~nainstalovanými implementovanými rošířeními, použitelná pro předvedení bakalářské práce (použití v příloze \ref{prilohaPouzivani})
 
-  \item {\tt jsm-policy-subsystem} -- Subsystém WildFly implementovaný jako hlavní součást této práce
-  \item {\tt jsm-policy-console-hal} -- Rozšíření webové konzole WildFly umožňující správu výše uvedeného rozšíření (popsané v~kapitole \ref{navrhGUI})
-  \item {\tt jsm-policy-test} -- Repozitář integračních testů popsaných v~kapitole \ref{testovani}
+  \item {\tt jsm-policy-subsystem.tar.gz} -- Subsystém WildFly implementovaný jako hlavní součást této práce
+  \item {\tt jsm-policy-console-hal.tar.gz} -- Rozšíření webové konzole WildFly umožňující správu výše uvedeného rozšíření (popsané v~kapitole \ref{navrhGUI})
+  \item {\tt jsm-policy-test.tar.gz} -- Repozitář integračních testů popsaných v~kapitole \ref{testovani}
 
-  \item {\tt jboss-modules} -- Záplata popsaná v~kapitole \ref{upravaZavadeceWildFly} v~odpovídajícím Git repozitáři
+  \item {\tt jboss-modules.tar.gz} -- Záplata popsaná v~kapitole \ref{upravaZavadeceWildFly} v~odpovídajícím Git repozitáři
 \end{itemize}
 
 
@@ -25,7 +23,7 @@ Uvedený postup předpokládá operační systém Linux s~nainstalovaným běhov
   
   \item Proveďte instalaci záplaty {\tt jboss-modules}: (Její účel je popsán v~kapitole \ref{zmenaZaBehu})
   \begin{enumerate}
-    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jboss-modules}. Získat jej můžete ze stejně pojmenovaného adresáře na přiloženém CD nebo z~GitHub:
+    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jboss-modules}. Získat jej můžete z archivu {\tt jboss-modules.tar.gz} na přiloženém CD nebo z~GitHub:
       \newline\url{https://github.com/honza889/jboss-modules}
     \item Proveďte kompilaci za pomoci nástroje Maven -- v~adresáři {\tt jboss-modules} spusťte: {\tt mvn install}
     \item Výsledným archivem ({\tt target/jboss-modules-*-SNAPSHOT.jar}) nahraďte archiv {\tt jboss-modules.jar} v~adresáři WildFly.
@@ -38,7 +36,7 @@ JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
   
   \item Proveďte instalaci rozšíření WildFly {\tt jsm-policy-subsystem}:
   \begin{enumerate}
-    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-subsystem}. Získat jej můžete opět z~přiloženého CD nebo z~GitHub:
+    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-subsystem}. Získat jej můžete z archivu {\tt jsm-policy-subsystem.tar.gz} na~přiloženém CD nebo z~GitHub:
       \newline\url{https://github.com/honza889/jsm-policy-subsystem}
     \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
     \item Výsledný adresář {\tt target/module/org} nahrajte do adresáře {\tt modules/system/la\linebreak yers/base/} v~adresáři WildFly.
@@ -57,7 +55,7 @@ JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
   
   \item Proveďte instalaci rozšíření webové konzoly WildFly {\tt jsm-policy-console-hal}:
   \begin{enumerate}
-    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-console-hal}. Získat jej můžete z~přiloženého CD nebo z~GitHub:
+    \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-console-hal}. Získat jej můžete z archivu {\tt jsm-policy-console-hal.tar.gz} na~přiloženém CD nebo z~GitHub:
       \newline\url{https://github.com/honza889/jsm-policy-console-hal}
     \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
     \item Výsledný archiv ({\tt build/app/target/jboss-as-console-*-resources.jar}) nahrajte do adresáře {\tt modules/system/layers/base/org/jboss/as/console/main} v~adresáři WildFly.
@@ -94,7 +92,7 @@ JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
 Jestliže jste úspěšně dokončili instalaci rozšíření aplikačního, můžete provést instalaci a spuštění integračních testů popsaných v~kapitole \ref{testovani}.
 
 \begin{enumerate}
-  \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-test}. Získat jej můžete z~přiloženého CD nebo z~GitHub:
+  \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-test}. Získat jej můžete z archivu {\tt jsm-policy-test.tar.gz} na~přiloženém CD nebo z~GitHub:
     \newline\url{https://github.com/honza889/jsm-policy-test}
   \item Ujistěte se že testovací servery testovací domény WildFly s~nainstalovanými rozšířeními jsou spuštěné. Integrační test využívá dvou testovacích serverů.
   \item Upravte v~konfiguračním souboru nástroje Maven {\tt agent/pom.xml} údaje nezbytné pro přihlášení k~testovací doméně.
@@ -110,7 +108,7 @@ Uvedený postup předpokládá operační systém Linux s~nainstalovaným běhov
 
 \begin{enumerate}
   
-  \item Nainstalujte systém podle přílohy \ref{prilohaInstalace} nebo použijte předpřipravenou instalaci z~přiloženého CD -- nakopírujte do zapisovatelného umístění adresář {\tt wildfly-8.0.0.Final}.
+  \item Nainstalujte systém podle přílohy \ref{prilohaInstalace} nebo použijte předpřipravenou instalaci z~přiloženého CD -- nakopírujte do zapisovatelného umístění adresář {\tt wildfly-8.0.0.Final} z archivu {\tt wildfly-8.0.0.Final.tar.gz} na přiloženém CD.
   \item Proveďte spuštění aplikačního serveru WildFly spuštěním spouštěcího skriptu {\tt bin/ domain.sh} v adresáři aplikačního serveru (novém umístění {\tt wildfly-8.0.0.Final}).
   \item Otevřete webové administrační rozhraní WildFly -- v~případě instalace WildFly z~přiloženého CD jej najdete na adrese \url{http://localhost:9990/} a přihlásit se můžete přihlašovacím jménem {\tt admin} s~heslem {\tt admin}.
   \item Otevřete část {\bf Configuration} a v~nabídce {\bf Profile} vyberte {\bf full}.
