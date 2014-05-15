@@ -26,8 +26,8 @@ Uvedený postup předpokládá operační systém Linux s~nainstalovaným běhov
     \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jboss-modules}. Získat jej můžete z archivu {\tt jboss-modules.tar.gz} na přiloženém CD nebo z~GitHub:
       \newline\url{https://github.com/honza889/jboss-modules}
     \item Proveďte kompilaci za pomoci nástroje Maven -- v~adresáři {\tt jboss-modules} spusťte: {\tt mvn install}
-    \item Výsledným archivem ({\tt target/jboss-modules-*-SNAPSHOT.jar}) nahraďte archiv {\tt jboss-modules.jar} v~adresáři WildFly.
-    \item Na začátek spouštěcího skriptu, kterým budete WildFly spouštět, (např. {\tt bin/dom ain.sh}) přidejte:
+    \item Výsledným archivem ({\tt target/jboss-modules-*-SNAPSHOT.jar}) nahraďte archiv {\tt jboss-modules.jar} v~adresáři WildFly.\footnote{\label{slave}Proveďte na všech hostitelích domény}
+    \item Na začátek spouštěcího skriptu, kterým budete WildFly spouštět, (např. {\tt bin/dom ain.sh}) přidejte:\footnotemark[\getrefnumber{slave}]
       \begin{lstlisting}
 JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
       \end{lstlisting}
@@ -39,18 +39,21 @@ JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
     \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-subsystem}. Získat jej můžete z archivu {\tt jsm-policy-subsystem.tar.gz} na~přiloženém CD nebo z~GitHub:
       \newline\url{https://github.com/honza889/jsm-policy-subsystem}
     \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
-    \item Výsledný adresář {\tt target/module/org} nahrajte do adresáře {\tt modules/system/la\linebreak yers/base/} v~adresáři WildFly.
-    \item Spusťe konzolu WildFly, {\tt bin/jboss-cli.sh} a následujícím příkazem nainstalujte a přidejte subsystém. Pro {\bf standalone} režim:
+    \item Výsledný adresář {\tt target/module/org} nahrajte do adresáře {\tt modules/system/la\linebreak yers/base/} v~adresáři WildFly.\footnotemark[\getrefnumber{slave}]
+    \item Spusťe konzolu WildFly příkazem {\tt bin/jboss-cli.sh} a následujícími příkazy v~ní nainstalujte a přidejte subsystém.\footnote{\label{master}Proveďte jen na doménovém řadiči (master)}
+    \begin{enumerate}
+     \item Provozujete-li WildFly v režimu {\bf standalone}, použijte:
       \begin{lstlisting}
 /extension=org.picketbox.jsmpolicy.subsystem:add
 /subsystem=jsmpolicy:add
       \end{lstlisting}
-      Pro profil {\tt full} v~režimu {\tt domain}:
+     \item Pro režim {\bf domain} a profil {\bf full} použijte:
       \begin{lstlisting}
 /extension=org.picketbox.jsmpolicy.subsystem:add
 /profile=full/subsystem=jsmpolicy:add
       \end{lstlisting}
-    \item Jestliže se oba příkazy zdaří, subsystém {\tt jsmpolicy} byl úspěšně nainstalován a přidán do profilu. (V~příkladu pro {\tt domain} režim do profilu {\tt full}.)
+    \end{enumerate}
+    \item Jestliže příkazy skončí úspěšně, rozšíření se subsystémem i samotný subsystém {\bf jsmpolicy} byly úspěšně nainstalovány.
   \end{enumerate}
   
   \item Proveďte instalaci rozšíření webové konzoly WildFly {\tt jsm-policy-console-hal}:
@@ -58,9 +61,9 @@ JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
     \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-console-hal}. Získat jej můžete z archivu {\tt jsm-policy-console-hal.tar.gz} na~přiloženém CD nebo z~GitHub:
       \newline\url{https://github.com/honza889/jsm-policy-console-hal}
     \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
-    \item Výsledný archiv ({\tt build/app/target/jboss-as-console-*-resources.jar}) nahrajte do adresáře {\tt modules/system/layers/base/org/jboss/as/console/main} v~adresáři WildFly.
-    \item Upravte soubor {\tt module.xml}, aby atribut {\tt path} elementu {\tt resource-root} odpovídal názvu souboru zkopírovaném v~minulém kroku.
-    \item Proveďte restart aplikačního serveru WildFly a následně znovunačtěte webovou stránku s~webovou konzolou WildFly. (Např. stisknutím klávesy F5 nebo Ctrl+F5 ve webovém prohlížeči.)
+    \item Výsledný archiv ({\tt build/app/target/jboss-as-console-*-resources.jar}) nahrajte do adresáře {\tt modules/system/layers/base/org/jboss/as/console/main} v~adresáři WildFly.\footnotemark[\getrefnumber{slave}]
+    \item Upravte soubor {\tt module.xml}, aby atribut {\tt path} elementu {\tt resource-root} odpovídal názvu souboru zkopírovaném v~minulém kroku.\footnotemark[\getrefnumber{slave}]
+    \item Proveďte restart aplikačního serveru WildFly\footnotemark[\getrefnumber{slave}] a následně znovunačtěte webovou stránku s~webovou konzolou WildFly. (Např. stisknutím klávesy F5 nebo Ctrl+F5 ve webovém prohlížeči.)
     \item Jestliže se ve webové administrační konzole v~nabídce subsystémů ({\bf Subsystems}) ukáže nová položka {\bf JSM Policy}, bylo toto rozšíření úspěšně nainstalováno.
   \end{enumerate}
   
@@ -71,11 +74,12 @@ JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
 \begin{enumerate}
     \item V~nabídce subsystémů ve webové konzoli se nezobrazuje subsystém JSM Policy.
     \begin{enumerate}
-        \item Ve webové konzole je vybraný profil, v~kterém není nainstalován subsystém {\tt jsmpolicy} (dle bodu 3 postupu). (V~případě režimu {\bf standalone}: Není nainstalován subsystém {\tt jsmpolicy}.)
+        \item Ve webové konzole je vybraný profil, v~kterém není nainstalován subsystém {\bf jsmpolicy} (dle bodu 3 postupu). (V~případě režimu {\bf standalone}: Není nainstalován subsystém {\bf jsmpolicy}.)
         \item Zkompilované rozšíření webové konzoly nebylo (dle bodu 4c postupu) nakopírováno do správného adresáře.
         \item V~tomto adresáři nebyl upraven soubor {\tt module.xml} tak, aby odkazoval na soubor nakopírovaného rozšíření. (dle bodu 4d)
         \item Webová stránka s~webovou konzolí WildFly nebyla znovunačtena nebo server WildFly restartován (dle bodu 4e postupu).
     \end{enumerate}
+    \pagebreak
     \item Nedaří se vytvořit bezpečnostní politiku.
     \begin{enumerate}
         \item Bezpečnostní politika se zadaným názvem (Policy name) již existuje.
@@ -104,7 +108,7 @@ Jestliže jste úspěšně dokončili instalaci rozšíření aplikačního, mů
 
 \chapter{Postup spuštění a používání}\label{prilohaPouzivani}
 
-Uvedený postup předpokládá operační systém Linux s~nainstalovaným běhovým prostředím Javy. Testován byl na distribuci Ubuntu 13.10 s~běhovým prostředím Javy OpenJDK 7.
+Uvedený postup předpokládá operační systém Linux s~nainstalovaným běhovým prostředím Javy. Testován byl na distribuci Ubuntu 13.10 s~běhovým prostředím Javy OpenJDK 7. Postup používání je pro domény s více hostiteli shodný.
 
 \begin{enumerate}
   
@@ -158,21 +162,14 @@ grant codeBase "vfs:/content/JsmPolicyTestingAgent.war/-" {
   \end{enumerate}
 \end{enumerate}
 
-\begin{figure}[ht]
+\vspace{10 mm}
+\begin{figure}[h]
   \centering
-  \includegraphics[width=10cm]{fig/test-passwd}
-  \caption{Výstup testovací aplikace pro bezpečnostní politiku {\tt passwd-only} -- testovací aplikace může číst obsah souboru {\tt /etc/passwd}, ale ne obsah souboru {\tt /etc/group}}
+  \includegraphics[width=9cm]{fig/test-passwd}
+  \caption{Výstup testovací aplikace pro bezpečnostní politiku {\tt passwd-only} -- testovací aplikace může číst obsah souboru {\tt /etc/passwd}, ale ne obsah souboru {\tt /etc/group}\newline}
   \label{testPasswd}
-\end{figure}
-\begin{figure}[ht]
-  \centering
-  \includegraphics[width=10cm]{fig/test-group}
+  \includegraphics[width=9cm]{fig/test-group}
   \caption{Výstup testovací aplikace pro bezpečnostní politiku {\tt group-only} -- testovací aplikace může číst obsah souboru {\tt /etc/group}, ale ne obsah souboru {\tt /etc/passwd}}
   \label{testGroup}
 \end{figure}
-
-%\chapter{Manual}
-%\chapter{Konfigrační soubor}
-%\chapter{RelaxNG Schéma konfiguračního soboru}
-%\chapter{Plakat}
 
