@@ -214,8 +214,8 @@ nebo anotací ({\tt java.lang.annotation.Annotation}).~\cite{sourceClass}
 Zdroj kódu ({\tt java.security.CodeSource}) je souhrnem informací určujících původ třídy:~\cite{sourceCodeSource}
 
 \begin{itemize}
-  \item {\tt location}: URL adresa, ze které byla třída načtena.
-  \item {\tt signers[]} / {\tt certs[]}: Pole podepsaných autorů kódu nebo pole jejich certifikátů. Tyto dvě informace jsou vzájemně odvoditelné. Pro vytvoření objektu zdroje kódu postačuje jedna z~nich a druhá z~ní může být v~případě potřeby kdykoli odvozena.
+  \item {\tt location}: adresa v jednotném formátu (URL -- Uniform Resource Locator), ze které byla třída načtena.
+  \item {\tt signers[]} / {\tt certs[]}: Pole podepsaných autorů kódu nebo pole jejich certifikátů. Tyto dvě informace jsou vzájemně odvoditelné. Pro vytvoření objektu zdroje kódu postačuje jedna z~nich a druhá je z~ní v~případě potřeby odvozena.
 \end{itemize}
 
 Ochranná doména ({\tt java.security.ProtectionDomain}) je objektem spojujícím objekt třídy ({\tt Class}) se zdrojem kódu ({\tt CodeSource}) a oprávněními ({\tt Permission}). Konkrétně se skládá z~následujících informací:~\cite{sourceProtectionDomain}
@@ -527,7 +527,7 @@ soubory {\tt \$\{java.home\}/lib/security/java.policy}, {\tt \$\{user{\linebreak
 
 Implicitně jsou používány právě první dvě uvedená umístění -- {\tt \$\{java.home\}/lib/secu{\linebreak}rity/java.policy} pro celý systém a {\tt \$\{user.home\}/.java.policy} jako jeho rozšíření pro jednotlivé uživatele. Poslední umístění je přidáno pro demonstraci, jak je možné přidat další umístění.~\cite{refSecurity}
 
-Bezpečnostní politiku je dále možné rozšířit při startu JVM o~další soubor bezpečnostní politiky. Stačí nastavit konfigurační proměnnou {\tt java.security.policy} při startu JVM~\cite{oaks}, jak je ukázáno v~ukázce kódu \ref{nastaveniBP}.
+Bezpečnostní politiku je dále možné rozšířit při startu JVM o~další soubor bezpečnostní politiky. Stačí nastavit konfigurační proměnnou {\tt java.security.policy} při startu JVM~\cite{oaks}, jak je ukázáno v~ukázce kódu~\ref{nastaveniBP}.
 
 \begin{figure}[b]
 \begin{lstlisting}[caption=Spuštění JVM s~vlastním souborem bezpečnostní politiky, label=nastaveniBP]
@@ -535,7 +535,7 @@ java -Djava.security.policy=dalsi_soubor_politiky.policy ProgramABC
 \end{lstlisting}
 \end{figure}
 
-V~tomto případě bude uvedený soubor bezpečnostní politiky použit zároveň s~výše uvedeným standardním souborem bezpečnostní politiky. Chceme-li standardní soubory bezpečnostní politiky určené souborem {\tt java.security} zcela nahradit, stačí namísto jednoho rovnítka v~definici konfigurační proměnné použít rovnítka dvě, jak je ukázáno v~ukázce kódu \ref{nastaveniBP2}.~\cite{oaks}
+V~tomto případě bude uvedený soubor bezpečnostní politiky použit zároveň s~výše uvedeným standardním souborem bezpečnostní politiky. Chceme-li standardní soubory bezpečnostní politiky určené souborem {\tt java.security} zcela nahradit, stačí namísto jednoho rovnítka v~definici konfigurační proměnné použít rovnítka dvě, jak je ukázáno v~ukázce kódu~\ref{nastaveniBP2}.~\cite{oaks}
 
 \begin{figure}[t]
 \begin{lstlisting}[caption=Spuštění JVM jen s~vlastním souborem bezpečnostní politiky, label=nastaveniBP2]
@@ -552,7 +552,7 @@ System.setProperty("java.security.policy", "jiny_soubor_politky.policy");
 \end{figure}
 
 Jak již bylo zmíněno v~kapitole~\ref{souboryBP}, nové načtení politiky ze souborů politiky je možné provést skrze metodu {\tt refresh()} objektu politiky.
-Změnu politiky tak je možné nechat projevit zavoláním této metody, jak ukazuje ukázka kódu \ref{refreshBP}.
+Změnu politiky tak je možné nechat projevit zavoláním této metody, jak ukazuje ukázka kódu~\ref{refreshBP}.
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Znovunačtení souboru bezpečnostní politiky, label=refreshBP]
@@ -582,9 +582,8 @@ V~současnosti jsou obvykle preferována oprávnění dynamická, jež poskytuj�
 programu -- změny v~ní se projeví, jakmile začne být uplatňována metodou {\tt implies()} objektu bezpečnostní politiky, tedy zpravidla po volání metody
 {\tt refresh()} používaného objektu bezpečnostní politiky.
 
-Dynamická oprávnění jsou používána na všechny třídy zaváděné zavaděčem tříd z~URL (viz kapitola~\ref{URLClassLoader}) a jsou tedy využívána ve většině programů v~Javě.
-\cite{sourceURLClassLoader}
-Umožňují navíc přidělovat oprávnění nejen na základě zdroje kódu, ale také na základě rolí uživatele spouštějícího daný kód. Tato dvě kritéria se však
+Dynamická oprávnění jsou používána na všechny třídy zaváděné zavaděčem tříd z~URL (viz kapitola~\ref{URLClassLoader}) a jsou tedy využívána ve většině programů v~Javě.~\cite{sourceURLClassLoader}
+Umožňují navíc přidělovat oprávnění nejen na základě zdroje kódu, ale také na základě rolí ({\tt principal}) uživatele spouštějícího daný kód. Tato dvě kritéria se však
 obvykle používají pouze samostatně -- buď systém řízení přístupu ověřuje oprávnění kódu provést požadovanou operaci, nebo uživatelský kód ověřuje oprávnění
 uživatele, který jej spouští, k~provedení požadované operace. V~obou případech se však stále jedná o~dynamická oprávnění.
 
@@ -1025,8 +1024,7 @@ Teprve následně byla implementována konečná verze řešení, jež do konfig
   \label{tridy1}
 \end{figure}
 
-Prototyp subsystému byl založen na kostře subsystému z~Maven repozitáře, podle dokumentace WildFly 8, věnující se právě vytváření rozšíření WildFly.~\cite{WildFlyExtending}
-
+Prototyp subsystému byl založen na kostře subsystému z~Maven repozitáře, podle dokumentace WildFly 8 věnující se právě vytváření rozšíření WildFly.~\cite{WildFlyExtending}
 Z~této kostry byl vytvořen subsystém, jehož jedinou funkcí bylo rozšíření konfiguračního stromu o~uzel subsystému ({\tt subsystem=jsmpolicy}) a jeho uzly {\tt server=*}, uchovávající informaci o~URL adrese souboru bezpečnostní politiky, jež má být použita na serveru daného jména. Diagram tříd celého prototypu ukazuje obrázek~\ref{tridy1}.
 
 Byla tedy vytvořena třída definující rozšíření, {\tt JsmPolicyExtension}.
@@ -1035,11 +1033,11 @@ Uzel {\tt subsystem=jsmpolicy} byl definován třídou {\tt SubsystemDefin ition
 Oba uzly byly zaregistrovány jako součásti rozšíření {\tt JsmPolicyExtension}.
 
 V~rámci konstruktoru třídy definující server bylo provedeno navázání akcí vytvoření serveru a odstranění serveru na třídy ošetřující tyto akce -- {\tt ServerAdd} a {\tt ServerRemove}.
-V~rámci k~tomu určené metodě {\tt registerAttributes()} třídy definující uzel serveru byla zaregistrována konfigurační vlastnost {\tt policy}.
+V~rámci metody {\tt registerAttributes()} třídy definující uzel serveru byla zaregistrována konfigurační vlastnost {\tt policy}.
 Zápis do této konfigurační vlastnosti byl ošetřen třídou {\tt ServerWriteAttribute}.
 Těmito třídami bylo na operace nad uzly serveru a jejich vlastnostmi navázána akce nastavení dané bezpečnostní politiky.
 Ta byla realizována třídní metodou {\tt setPolicy()} třídy {\tt PolicyManager}, zodpovídající za veškeré nastavování bezpečnostní politiky.
-Bezpečnostní politika tak byla na server odpovídajícího názvu nasazována při vytvoření uzlu tohoto serveru, při změně obsahu jeho vlastnosti stanovující URL adresu k~souboru bezpečnostní politiky, a odebírána při odstranění tohoto uzlu.
+Bezpečnostní politika tak byla na server nasazována při vytvoření odpovídajícího uzlu serveru, při změně obsahu jeho vlastnosti stanovující URL souboru bezpečnostní politiky, a odebírána při odstranění tohoto uzlu.
 
 \begin{figure}[t]
 \begin{lstlisting}[caption=Metoda {\tt PolicyManager.setPolicy()} zajišťující nasazení souboru bezpečnostní politiky, label=setPolicyMethod]
