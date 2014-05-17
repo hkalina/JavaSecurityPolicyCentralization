@@ -15,9 +15,9 @@ v~rámci serveru sdíleného mezi více provozovateli aplikací, po zabránění
 zabezpečení jedné z~aplikací běžících na serveru sdíleného více aplikacemi.
 
 Pro podobné účely se obvykle využívají oprávnění na úrovni operačního systému.
-Ty však, ať už se jedná o~jednoduchá unixová oprávnění, podrobnější NTFS oprávnění, či ještě podrobnější oprávnění systému SELinux,
+Ty však, ať už se jedná o~jednoduchá unixová oprávnění, podrobnější NTFS (New Technology File System) oprávnění, či ještě podrobnější oprávnění systému SELinux (Security Enhanced Linux),
 nejsou schopny rozlišit jednotlivé aplikace běžící v~rámci jediného procesu.
-Takovým procesem, v~rámci něhož může běžet více aplikací, je například aplikačního server WildFly.
+Takovým procesem, v~rámci něhož může běžet více aplikací, je například proces aplikačního serveru WildFly.
 
 Tento problém je možné vyřešit na úrovni virtuálního stroje Javy, uvnitř kterého aplikační server běží, za pomoci tzv. správce bezpečnosti (Security Manager)
 a bezpečnostních politik (Security Policy). Ty umožňují omezovat oprávnění kódu jednotlivých tříd v~Javě.
@@ -869,8 +869,7 @@ Tato práce řeší problém, jakým způsobem používat bezpečnostní politik
 Tato prostředí jsou typicky tvořena skupinou několika (nebo i mnoha) aplikační serverů seskupených do domény WildFly.
 
 Pravděpodobně nejprimitivnějším možným řešením, jak bezpečnostní politiky na tyto domény serverů nasazovat, je použít stejné řešení, jaké bylo v~kapitole~\ref{wildflySeSM} použito pro nasazení politiky na samostatný server.
-
-Tento způsob je ale poměrně pracný, neboť pro každou změnu bezpečnostní politiky vyžaduje zkopírování tohoto souboru na jednotlivé servery nebo úpravu jeho adresy ve spouštěcího skriptu WildFly. Následně je navíc nutné server WildFly restartovat.
+Tento způsob je ale poměrně pracný, neboť pro každou změnu bezpečnostní politiky vyžaduje zkopírování tohoto souboru na jednotlivé servery nebo úpravu jeho adresy ve spouštěcím skriptu WildFly. Následně je navíc nutné server WildFly restartovat.
 
 Cílem této práce proto je, implementovat řešení pro správu bezpečnostních politik, splňující následující požadavky:
 
@@ -934,7 +933,7 @@ Byla-li by tato aplikace implementována jako rozšíření aplikačního server
 mohla by k~ukládání a distribuci souborů bezpečnostních politik využívat konfigurační strom WildFly.
 Nebylo by tak třeba žádného speciálního úložiště souborů bezpečnostní politiky -- soubory bezpečnostní politiky
 by tak byly uloženy společně s~konfigurací většiny součástí WildFly v~konfiguračním stromu domény.
-(O~konfiguračních souborech WildFly více v~kapitole~\ref{uvodWildFly}.)
+(O~konfiguračním stromu WildFly více v~kapitole~\ref{uvodWildFly}.)
 
 Tím, že by soubory bezpečnostní politiky byly uloženy v~konfiguračním stromě WildFly by navíc bylo možné provádět znovunačítání
 bezpečnostní politiky v~reakci na událost změny používané bezpečnostní politiky.
@@ -994,7 +993,7 @@ Jako způsob výběru bezpečnostní politiky serveru i skupiny byla zvolena ome
 
 Celou konfigurační obrazovku mimo nadpisu tvoří seznam skupin v~doméně. Každou položku tohoto seznamu přitom tvoří ikona pro zobrazení seznamu serverů obsažených v~této skupině, název skupiny, výše popsaná nabídka pro výběr politiky pro celou skupinu najednou a tlačítko pro uložení změny výběru.
 
-Použitím ikony je pod položkou skupiny zobrazen seznam serverů této skupiny podobný seznamu skupiny. Jeho položky jsou tvořeny názvem serveru, nabídkou pro výběr politiky a tlačítkem pro uložení změny.
+Použitím ikony je pod položkou skupiny zobrazen seznam serverů této skupiny podobný seznamu skupin. Jeho položky jsou tvořeny názvem serveru, nabídkou pro výběr politiky a tlačítkem pro uložení změny.
 
 Na obrázku~\ref{vysledneGui} je navíc vidět také základní ovládací prvky webové konzoly WildFly, které jsou v~návrhu vyobrazeny jen schématicky.
 V~levé části obrazovky se nachází menu subsystémů -- umožňuje navigaci mezi konfiguračními obrazovkami jednotlivých subsystémů WildFly ve zvoleném profilu.
@@ -1058,8 +1057,8 @@ Je-li jako parametr předána hodnota  {\tt null}, je správce bezpečnosti vypn
 Je-li jako parametr předán platný řetězec, je použit jako URL adresa souboru bezpečnostní politiky -- je uložen do konfigurační proměnné {\tt java.security.policy}, je vyžádáno znovunačtení bezpečnostní politiky a jako správce bezpečnosti je nastaven standardní správce bezpečnosti Javy.
 
 Samotné znovunačtení politiky přitom nemůže být provedeno pouhým voláním metody {\tt refresh()} používaného objektu bezpečnostní politiky.
-Protože je jako jako objekt bezpečnostní politiky využíváno {\tt DelegatingPolicy}, je nutné toto metodu volat nad jeho privátní vlastností {\tt delegate},
-jak je již popsáno v~kapitole~\ref{zmenaZaBehu}. Metoda {\tt refreshDelegatingPoli cy()} zde svojí funkčností odpovídá ukázce kódu~\ref{refreshDelegating}.
+Protože je jako objekt bezpečnostní politiky využíváno {\tt DelegatingPolicy}, je nutné tuto metodu volat nad jeho privátní vlastností {\tt delegate},
+jak je již popsáno v~kapitole~\ref{zmenaZaBehu}. Metoda {\tt refreshDelegatingPolicy()} zde svojí funkčností odpovídá ukázce kódu~\ref{refreshDelegating}.
 
 Subsystém v~této verzi žádným způsobem nezajišťoval distribuci souborů bezpečnostní politiky -- soubor musel být skrze uvedenou URL adresu přístupný ze serveru, na kterém měla být politika nasazena. V~opačném případě se nasazení bezpečnostní politiky nezdařilo.
 
@@ -1084,7 +1083,7 @@ Nadále tak nestačilo provádět nasazení bezpečnostní politiky při změně
 Nasazování bezpečnostní politiky je řešeno analogicky jako v~případě akce navázané na změnu vlastnosti serveru -- třídou {\tt PolicyWriteAttribute} ošetřující zápis do konfigurační vlastnosti {\tt file}.
 Při definici této konfigurační vlastnosti byl navíc definován také objekt validátoru -- objektu zajišťujícího kontrolu ukládané hodnoty konfigurační vlastnosti {\tt file}. Není-li hodnota platným souborem bezpečnostní politiky, je uložení odmítnuto. Tato kontrola je prováděna za pomoci třídní metody {\tt validatePolicyFile()} třídy {\tt PolicyManager}.
 Aby bylo možné stejnou kontrolu provádět také při vytváření nového uzlu bezpečnostní politiky, musela být vytvořena třída {\tt PolicyAdd} ošetřující vytváření těchto uzlů.
-Zároveň byla definována také třída {\tt Removepolicy} ošetřující operaci odstranění uzlu bezpečnostní politiky. Ta znemožňuje odstranění uzlu bezpečnostní politiky, která je aktuálně používána alespoň jedním serverem. (Existuje-li uzel serveru, jehož vlastnost {\tt policy} obsahuje název odstraňovaného uzlu {\tt policy=*}, není odstranění provedeno.)
+Zároveň byla definována také třída {\tt PolicyRemove} ošetřující operaci odstranění uzlu bezpečnostní politiky. Ta znemožňuje odstranění uzlu bezpečnostní politiky, která je aktuálně používána alespoň jedním serverem. (Existuje-li uzel serveru, jehož vlastnost {\tt policy} obsahuje název odstraňovaného uzlu {\tt policy=*}, není odstranění provedeno.)
 
 \begin{figure}[tbh]
 \begin{lstlisting}[caption=Klíčová část metody {\tt setPolicyFile()} třídy {\tt PolicyManager}, label=setPolicyFile]
@@ -1108,7 +1107,7 @@ public void setPolicyFile(String fileContent) {
 Samotné nasazování bezpečnostní politiky zajišťuje metoda {\tt setPolicyFile()}. Její hlavní část zachycuje ukázka kódu~\ref{setPolicyFile}.
 Jak je vidět, k~samotnému nasazení bezpečnostní politiky využívá metodu {\tt setPolicy()} popsanou v~kapitole~\ref{prototyp}.
 Jejím vstupem však není adresa souboru bezpečnostní politiky, ale jeho obsah. Není-li roven {\tt null},
-je vytvořen dočasný soubor {\tt jsm-*.policy} a obsah souboru bezpečnostní politiky ({\tt fileContent}) uložen do něj.
+je vytvořen dočasný soubor {\tt jsm-*.policy} a obsah souboru bezpečnostní politiky ({\tt fileContent}) je uložen do něj.
 Dočasný soubor je jako soubor politiky nastaven metodou {\tt setPolicy()} popsanou v~kapitole~\ref{prototyp} a smazán.
 V~opačném případě, kdy je obsah bezpečnostní politiky roven {\tt null}, je rovněž volána metoda {\tt setPolicy()}, ale s~parametrem {\tt null}, čímž je používání bezpečnostní politiky a správce bezpečnosti vypnuto.
 
@@ -1127,7 +1126,7 @@ Je implementováno jako záplata administrační konzoly WildFly, do které při
 
 Obrazovka {\bf Policies} (Politiky), umožňující spravovat bezpečnostní politiky nasaditelné na servery domény, byla vytvořena jednoduchou úpravou existující konfigurační obrazovky WildFly, {\bf Mail}.
 Tato obrazovka umožňovala spravovat uzly subsystému {\tt mail}.
-Jednoduchou úpravou tak byla vytvořena konfigurační obrazovku pro správu uzlů politiky.
+Jednoduchou úpravou tak byla vytvořena konfigurační obrazovka pro správu uzlů politiky.
 
 Hlavní třídou konfigurační obrazovky je {\tt PoliciesPresenter}. Tato třída zajišťuje komunikaci s~konfiguračním stromem. Formou vnitřní třídy zároveň definuje rozhraní třídy zobrazující konfigurační obrazovku, {\tt MyView}. Toto rozhraní implementuje třída {\tt PoliciesView}, která z~jednotlivých grafických komponent ({\tt Widget}) skládá grafickou komponentu celé obrazovky.
 Hlavní z~nich přitom je {\tt PolicyEditor}. Tato grafická komponenta zahrnuje seznam bezpečnostních politik i formulář pro úpravu vybrané položky tohoto seznamu. Jeho součástí je také tlačítko pro přidání nové bezpečnostní politiky, které zobrazuje okno průvodce vytvořením. To je implementováno třídou {\tt NewPolicyWizard}.
@@ -1140,7 +1139,7 @@ Jediná komplikace souvisela s~grafickou komponentou textového pole, {\tt TextA
 
 Obrazovka {\bf Servers} (Servery), umožňuje nasazovat bezpečností politiky na jednotlivé servery a jejich skupiny. Vznikla úpravou konfigurační obrazovky {\bf Runtime / JNDI View}. Ta byla vybrána kvůli stromové struktuře, kterou dokázala zobrazit. Ta byla základním předpokladem pro naplnění grafického návrhu plánované konfigurační obrazovky.
 
-Hlavní třídou konfigurační obrazovky je {\tt ServersPresenter}. Vykreslení konfigurační obrazovky je zajištěno třídou {\tt ServersView}, která do obsahu generované obrazovky vkládá komponentu {\tt com.google.gwt. user.cellview.client.CellTree} z~knihovny GWT. Tato komponenta zajišťuje samotné zobrazení stromové struktury.
+Hlavní třídou konfigurační obrazovky je {\tt ServersPresenter}. Vykreslení konfigurační obrazovky je zajištěno třídou {\tt ServersView}, která do obsahu generované obrazovky vkládá komponentu {\tt com.google.gwt.user.cellview.client.CellTree} z~knihovny GWT. Tato komponenta zajišťuje samotné zobrazení stromové struktury.
 Její datový model je definován třídou {\tt ServersTreeViewModel}, která komponentě {\tt CellTree} zpřístupňuje informace o~skupinách a serverech domény ve formě seznamu uzlů {\tt Node}.
 
 Vykreslení jednotlivých uzlů zajišťuje grafická komponenta {\tt NodeCell}, jež implementuje rozhraní {\tt AbstractInputCell}. To je nezbytné k~tomu, aby mohla být použita k~vykreslování položek {\tt CellTree}.
@@ -1155,7 +1154,7 @@ Obrazovka {\bf JSM Policy} (Politika správce bezpečnosti Javy) umožňuje sled
 
 Hlavní třídou konfigurační obrazovky je {\tt DetailPresenter}. Ta zajišťuje získání informace o~aktuálně nasazené politice na zvoleném serveru z~konfiguračního stromu WildFly. Vykreslení konfigurační obrazovky zajišťuje třída {\tt DetailView}. Grafická komponenta konfigurační obrazovky se skládá z~komponenty {\tt TextBox}, textového pole používaného k~zobrazení názvu nasazené politiky, a z~komponenty {\tt TextArea}, textového pole používaného k~zobrazení obsahu nasazené politiky.
 
-Zatímco předchozí konfigurační obrazovky jsou rozšířeními administrační konzoly typu {\tt SubsystemExtension}, díky čemuž je-lze najít v~pod záložkou {\bf Configuration} v podmenu příslušného subsystému, obrazovka sledování je rozšířením typu {\tt RuntimeExtension}. Zobrazuje se proto pod záložkou {\bf Runtime}, v~níž jsou nastavení specifická pro jednotlivé servery domény. Na tento globální výběr serveru je potom navázán také výběr sledovaného serveru domény.
+Zatímco předchozí konfigurační obrazovky jsou rozšířeními administrační konzoly typu {\tt SubsystemExtension}, díky čemuž je lze najít pod záložkou {\bf Configuration} v podmenu příslušného subsystému, obrazovka sledování je rozšířením typu {\tt RuntimeExtension}. Zobrazuje se proto pod záložkou {\bf Runtime}, v~níž jsou nastavení specifická pro jednotlivé servery domény. Na tento globální výběr serveru je potom navázán také výběr sledovaného serveru domény.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Testování systému} \label{testovani}
@@ -1167,7 +1166,7 @@ Protože cílem této bakalářské práce nebylo jen vytvoření systému umož
 \section{Analýza} % na co testy delat
 %=============================================================================
 
-Cílem implementace řešení bylo umožnění nasazování bezpečnostní politik na servery v~doméně aplikačních serverů WildFly.
+Cílem implementace řešení bylo umožnění nasazování bezpečnostních politik na servery v~doméně aplikačních serverů WildFly.
 Implementované řešení by mělo být schopné nasadit bezpečnostní politiku na specifikovaný server na základě požadavku skrze JBoss Management API.
 Testování by se tak jednoznačně mělo soustředit právě na schopnost systému nastavit na základě požadavku na stanoveném serveru stanovenou politiku.
 Testování této klíčové vlastnosti je možné provádět jedině v~rámci testu integračního, tedy testu testujícího systém jako celek.
@@ -1230,10 +1229,10 @@ Nad tímto rozšířením pak bylo vytvořeno webové uživatelské rozhraní ve
 To umožňuje nastavovat a sledovat použití správce bezpečnosti a bezpečnostní politiky nasazené na jednotlivých serverech nebo celých skupinách serverů domény.
 
 Na implementované řešení byla závěrem vytvořena automatizovaná sada testů, umožňujících otestovat schopnost implementovaného systému měnit oprávnění
-aplikací nasazených na doméně aplikačních serverů.
+aplikací nasazených na doméně aplikačních serverů. Její spuštění prokázalo plnou funkčnost implementovaného řešení.
 
 Možným vylepšením do budoucna by mohlo být umožnění nasazování bezpečnostních politik na celé skupiny aplikačních serverů, ne na úrovni webové administrační konzoly WildFly, ale již na úrovni JBoss Management API. Uživatel by tak mohl provádět nasazování politik na skupiny serverů vlastním skriptem, aniž by sám musel procházet jednotlivé servery této skupiny.
 
 Rozsáhlejším možným rozšířením by mohlo být zadávání bezpečnostních politik již ne ve formě textu v~syntaxi typické pro bezpečnostní politiky uložené v~textových souborech, ale prostřednictvím specializovaného uživatelského rozhraní.
-To by mohlo umožnit zadávat bezpečnostní politiky po jednotlivých oprávněních za pomoci omezených nabídek. Byl by tak vystaven mnohem nižšímu riziku zadání neplatné politiky oproti stávajícímu řešení, kde se uživatel dozvídá o~chybě v~zadání politiky až při neúspěšném pokusu o~její uložení.
+To by mohlo umožnit zadávat bezpečnostní politiky po jednotlivých oprávněních za pomoci omezených nabídek. Uživatel by tak byl vystaven mnohem nižšímu riziku zadání neplatné politiky oproti stávajícímu řešení, kde se dozvídá o~chybě v~zadání politiky až při neúspěšném pokusu o~její uložení.
 
