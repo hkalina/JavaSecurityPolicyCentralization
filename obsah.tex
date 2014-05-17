@@ -598,11 +598,11 @@ Získáváním oprávnění třídy z~objektu bezpečnostní politiky pouze při
 \begin{figure}[ht]
   \centering
   \includegraphics[width=14cm]{fig/domain-schema}
-  \caption{Diagram datových toků tříd (hnědé šipky) a oprávnění tříd (černé šipky)}
+  \caption{Diagram datových toků tříd (přerušované tlusté šipky) a oprávnění tříd (souvislé šipky)}
   \label{diagramDatovychToku}
 \end{figure}
 
-Diagram datových toků na obrázku~\ref{diagramDatovychToku} ukazuje putování informace o~oprávněních třídy ze souborů bezpečnostní politiky (Policy files) až do systému řízení přístupu ({\tt AccessContro ller}) a správce bezpečnosti ({\tt SecurityManager}). Souvislé černé šipky představují přenos informace o~oprávněních, zatímco přerušované tlusté šipky přenos informace o~třídách. Tenké přerušované šipky představují reference. Směr šipky pak vede z~třídy objektu s~referenční proměnnou do třídy referencovaného objektu.
+Diagram datových toků na obrázku~\ref{diagramDatovychToku} ukazuje putování informace o~oprávněních třídy ze souborů bezpečnostní politiky (Policy files) až do systému řízení přístupu ({\tt AccessContro ller}) a správce bezpečnosti ({\tt SecurityManager}). Souvislé šipky představují přenos informace o~oprávněních, zatímco přerušované tlusté šipky přenos informace o~třídách. Tenké přerušované šipky představují reference. Směr šipky pak vede z~třídy objektu s~referenční proměnnou do třídy referencovaného objektu.
 
 Ochranné domény ({\tt ProtectionDomain}) a tím i statická oprávnění třídy jsou třídám přidělovány při jejich zavádění.
 Objekty ochranných domén ({\tt ProtectionDomain}) vytváří zavaděč tříd a to na základě jejich zdroje kódu ({\tt CodeSource}).
