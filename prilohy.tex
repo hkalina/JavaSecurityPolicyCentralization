@@ -1,10 +1,10 @@
 \chapter{Obsah CD}
 
 \begin{itemize}
-  \item {\tt projekt.pdf} -- Technická zpráva ve formátu PDF
+  \item {\tt projekt.pdf} -- Technická zpráva ve formátu PDF (Portable Document Format)
   \item {\tt projekt.tar.gz} -- Zdrojové soubory technické zprávy
 
-  \item {\tt wildfly-8.0.0.Final.tar.gz} -- Živé demo -- instalace WildFly s~nainstalovanými implementovanými rošířeními, použitelná pro předvedení bakalářské práce (použití v příloze \ref{prilohaPouzivani})
+  \item {\tt wildfly-8.0.0.Final.tar.gz} -- Živé demo -- instalace WildFly s~nainstalovanými implementovanými rošířeními, použitelná pro předvedení bakalářské práce (použití v~příloze \ref{prilohaPouzivani})
 
   \item {\tt jsm-policy-subsystem.tar.gz} -- Subsystém WildFly implementovaný jako hlavní součást této práce
   \item {\tt jsm-policy-console-hal.tar.gz} -- Rozšíření webové konzole WildFly umožňující správu výše uvedeného rozšíření (popsané v~kapitole \ref{navrhGUI})
@@ -27,7 +27,7 @@ Uvedený postup předpokládá operační systém Linux s~nainstalovaným běhov
       \newline\url{https://github.com/honza889/jboss-modules}
     \item Proveďte kompilaci za pomoci nástroje Maven -- v~adresáři {\tt jboss-modules} spusťte: {\tt mvn install}
     \item Výsledným archivem ({\tt target/jboss-modules-*-SNAPSHOT.jar}) nahraďte archiv {\tt jboss-modules.jar} v~adresáři WildFly.\footnote{\label{slave}Proveďte na všech hostitelích domény}
-    \item Na začátek spouštěcího skriptu, kterým budete WildFly spouštět, (např. {\tt bin/dom ain.sh}) přidejte:\footnotemark[\getrefnumber{slave}]
+    \item Na začátek spouštěcího skriptu, kterým budete WildFly spouštět, (např. {\tt bin/dom ain.sh}) přidejte:\footnotemark[1]
       \begin{lstlisting}
 JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
       \end{lstlisting}
@@ -39,8 +39,8 @@ JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
     \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-subsystem}. Získat jej můžete z archivu {\tt jsm-policy-subsystem.tar.gz} na~přiloženém CD nebo z~GitHub:
       \newline\url{https://github.com/honza889/jsm-policy-subsystem}
     \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
-    \item Výsledný adresář {\tt target/module/org} nahrajte do adresáře {\tt modules/system/la\linebreak yers/base/} v~adresáři WildFly.\footnotemark[\getrefnumber{slave}]
-    \item Spusťe konzolu WildFly příkazem {\tt bin/jboss-cli.sh} a následujícími příkazy v~ní nainstalujte a přidejte subsystém.\footnote{\label{master}Proveďte jen na doménovém řadiči (master)}
+    \item Výsledný adresář {\tt target/module/org} nahrajte do adresáře {\tt modules/system/la\linebreak yers/base/} v~adresáři WildFly.\footnotemark[1]
+    \item Spusťe konzolu WildFly příkazem {\tt bin/jboss-cli.sh} a následujícími příkazy v~ní nainstalujte a přidejte subsystém.\footnote{\label{master}Proveďte jen na doménovém řadiči (domain controller/master)}
     \begin{enumerate}
      \item Provozujete-li WildFly v režimu {\bf standalone}, použijte:
       \begin{lstlisting}
@@ -61,9 +61,9 @@ JAVA_OPTS="$JAVA_OPTS -Djboss.modules.policy-refreshable=true"
     \item Nakopírujte do zapisovatelného adresáře repozitář {\tt jsm-policy-console-hal}. Získat jej můžete z archivu {\tt jsm-policy-console-hal.tar.gz} na~přiloženém CD nebo z~GitHub:
       \newline\url{https://github.com/honza889/jsm-policy-console-hal}
     \item Proveďte kompilaci za pomoci nástroje Maven: {\tt mvn install}
-    \item Výsledný archiv ({\tt build/app/target/jboss-as-console-*-resources.jar}) nahrajte do adresáře {\tt modules/system/layers/base/org/jboss/as/console/main} v~adresáři WildFly.\footnotemark[\getrefnumber{slave}]
-    \item Upravte soubor {\tt module.xml}, aby atribut {\tt path} elementu {\tt resource-root} odpovídal názvu souboru zkopírovaném v~minulém kroku.\footnotemark[\getrefnumber{slave}]
-    \item Proveďte restart aplikačního serveru WildFly\footnotemark[\getrefnumber{slave}] a následně znovunačtěte webovou stránku s~webovou konzolou WildFly. (Např. stisknutím klávesy F5 nebo Ctrl+F5 ve webovém prohlížeči.)
+    \item Výsledný archiv ({\tt build/app/target/jboss-as-console-*-resources.jar}) nahrajte do adresáře {\tt modules/system/layers/base/org/jboss/as/console/main} v~adresáři WildFly.\footnotemark[1]
+    \item Upravte soubor {\tt module.xml}, aby atribut {\tt path} elementu {\tt resource-root} odpovídal názvu souboru zkopírovaném v~minulém kroku.\footnotemark[1]
+    \item Proveďte restart aplikačního serveru WildFly\footnotemark[1] a následně znovunačtěte webovou stránku s~webovou konzolou WildFly. (Např. stisknutím klávesy F5 nebo Ctrl+F5 ve webovém prohlížeči.)
     \item Jestliže se ve webové administrační konzole v~nabídce subsystémů ({\bf Subsystems}) ukáže nová položka {\bf JSM Policy}, bylo toto rozšíření úspěšně nainstalováno.
   \end{enumerate}
   
